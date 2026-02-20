@@ -1,17 +1,13 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
+import { Bell } from "lucide-react";
 
+import { AppSidebar } from "@/components/app/app-sidebar";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { getCurrentMember } from "@/lib/backend/api";
+import { Input } from "@/components/ui/input";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getMemberForUser } from "@/lib/supabase/member";
-
-const navItems = [
-  { href: "/app/dashboard", label: "Dashboard" },
-  { href: "/app/members", label: "Membres" },
-  { href: "/app/profile", label: "Mon profil" },
-];
 
 export default async function MemberAppLayout({ children }: { children: ReactNode }) {
   let userEmail: string | undefined;
@@ -21,7 +17,12 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
     if (!user) {
       redirect("/login");
     }
-    const member = await getMemberForUser(user.id);
+    let member = null;
+    try {
+      member = await getCurrentMember();
+    } catch {
+      redirect("/onboarding");
+    }
     if (!member) {
       redirect("/onboarding");
     }
@@ -30,30 +31,30 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-6">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">CZI</p>
-            <h1 className="text-sm font-semibold text-foreground">Espace membre</h1>
-            {userEmail ? <p className="text-xs text-muted">{userEmail}</p> : null}
-          </div>
-          <div className="flex items-center gap-3">
-            <nav className="flex items-center gap-1 rounded-lg bg-muted-surface p-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-surface hover:text-foreground"
+      <div className="flex">
+        <AppSidebar />
+        <div className="flex min-h-screen flex-1 flex-col">
+          <header className="border-b border-border bg-surface/95 px-6 backdrop-blur">
+            <div className="flex h-20 items-center justify-between gap-4">
+              <Input className="max-w-xl" placeholder="Rechercher..." />
+              <div className="flex items-center gap-4">
+                <button
+                  className="rounded-full bg-muted-surface p-2 text-muted transition-colors hover:text-foreground"
+                  type="button"
                 >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-            <SignOutButton />
-          </div>
+                  <Bell size={18} />
+                </button>
+                <div className="hidden text-right md:block">
+                  <p className="text-sm font-semibold text-foreground">Admin User</p>
+                  <p className="text-xs text-muted">{userEmail ?? "admin@czi.fr"}</p>
+                </div>
+                <SignOutButton />
+              </div>
+            </div>
+          </header>
+          <main className="flex-1 px-6 py-8">{children}</main>
         </div>
-      </header>
-      <main className="mx-auto w-full max-w-7xl px-6 py-8">{children}</main>
+      </div>
     </div>
   );
 }

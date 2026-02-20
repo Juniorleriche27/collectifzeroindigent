@@ -6,10 +6,16 @@ const pages = [
   { href: "/login", label: "Login", description: "Connexion utilisateur" },
   { href: "/signup", label: "Signup", description: "Inscription utilisateur" },
   { href: "/onboarding", label: "Onboarding", description: "Creation du profil membre" },
-  { href: "/app/dashboard", label: "Dashboard", description: "Accueil espace membre" },
-  { href: "/app/members", label: "Membres", description: "Liste et recherche" },
-  { href: "/app/members/demo", label: "Detail membre", description: "Fiche membre editable" },
-  { href: "/app/profile", label: "Mon profil", description: "Informations personnelles" },
+  { href: "/app/dashboard", label: "Tableau de bord", description: "Accueil espace membre" },
+  { href: "/app/membres", label: "Membres", description: "Liste et recherche" },
+  { href: "/app/membres/demo", label: "Detail membre", description: "Fiche membre editable" },
+  { href: "/app/organisations", label: "Organisations", description: "Cartes + modal creation" },
+  { href: "/app/parametres", label: "Parametres", description: "Tabs compte/securite/notifications/roles" },
+  { href: "/app/profils", label: "Profils", description: "Placeholder en cours de dev" },
+  { href: "/app/support", label: "Support", description: "Centre d'aide" },
+  { href: "/app/import-export", label: "Import/Export", description: "Hub import/export" },
+  { href: "/app/import", label: "Import", description: "Import simple" },
+  { href: "/app/export", label: "Export", description: "Export simple" },
 ];
 
 export default function HomePage() {

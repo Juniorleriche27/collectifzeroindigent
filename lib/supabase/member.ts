@@ -30,6 +30,7 @@ export type MemberListItem = {
   commune_id: string | null;
   join_mode: string | null;
   org_name: string | null;
+  created_at?: string | null;
 };
 
 export async function getMemberForUser(userId: string): Promise<{ id: string } | null> {
@@ -72,19 +73,42 @@ export async function getOnboardingLocations(): Promise<{
 
 export async function listMembers(filters?: {
   communeId?: string;
+  page?: number;
+  pageSize?: number;
   prefectureId?: string;
   regionId?: string;
   search?: string;
+  sort?: "created_desc" | "created_asc" | "name_asc" | "name_desc" | "status_asc";
   status?: string;
-}): Promise<MemberListItem[]> {
+}): Promise<{ count: number; rows: MemberListItem[] }> {
   const supabase = await createClient();
+  const page = Math.max(1, filters?.page ?? 1);
+  const pageSize = Math.max(1, Math.min(50, filters?.pageSize ?? 10));
+  const rangeFrom = (page - 1) * pageSize;
+  const rangeTo = rangeFrom + pageSize - 1;
+
   let query = supabase
     .from("member")
     .select(
-      "id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, org_name",
+      "id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, org_name, created_at",
+      { count: "exact" },
     )
-    .order("last_name", { ascending: true })
-    .order("first_name", { ascending: true });
+    .range(rangeFrom, rangeTo);
+
+  const sort = filters?.sort ?? "created_desc";
+  if (sort === "name_asc") {
+    query = query.order("last_name", { ascending: true }).order("first_name", { ascending: true });
+  } else if (sort === "name_desc") {
+    query = query
+      .order("last_name", { ascending: false })
+      .order("first_name", { ascending: false });
+  } else if (sort === "created_asc") {
+    query = query.order("created_at", { ascending: true });
+  } else if (sort === "status_asc") {
+    query = query.order("status", { ascending: true }).order("created_at", { ascending: false });
+  } else {
+    query = query.order("created_at", { ascending: false });
+  }
 
   if (filters?.status) {
     query = query.eq("status", filters.status);
@@ -107,12 +131,15 @@ export async function listMembers(filters?: {
     }
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
   if (error) {
     throw error;
   }
 
-  return data ?? [];
+  return {
+    count: count ?? 0,
+    rows: data ?? [],
+  };
 }
 
 export async function getMemberById(memberId: string): Promise<MemberListItem | null> {

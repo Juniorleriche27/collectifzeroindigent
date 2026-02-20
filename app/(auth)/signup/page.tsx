@@ -15,6 +15,7 @@ export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [joinMode, setJoinMode] = useState("personal");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -27,6 +28,11 @@ export default function SignupPage() {
 
     if (!isSupabaseConfigured) {
       setErrorMessage("Supabase non configure. Ajoutez les variables d'environnement.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Les mots de passe ne correspondent pas.");
       return;
     }
 
@@ -93,6 +99,19 @@ export default function SignupPage() {
             placeholder="Choisissez un mot de passe"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground" htmlFor="signup-password-confirm">
+            Confirmer le mot de passe
+          </label>
+          <Input
+            id="signup-password-confirm"
+            type="password"
+            placeholder="Retapez le mot de passe"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
             required
           />
         </div>

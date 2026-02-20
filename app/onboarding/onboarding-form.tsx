@@ -9,7 +9,7 @@ import type {
   CommuneOption,
   PrefectureOption,
   RegionOption,
-} from "@/lib/supabase/member";
+} from "@/lib/backend/api";
 
 import { initialState, submitOnboarding } from "./actions";
 

@@ -1,6 +1,6 @@
 # CZI Web MVP
 
-Frontend MVP de la plateforme CZI (membres + gouvernance) avec Next.js App Router et Supabase.
+MVP CZI (membres + gouvernance) avec frontend Next.js App Router, backend REST NestJS et Supabase.
 
 ## Prerequis
 
@@ -12,6 +12,7 @@ Frontend MVP de la plateforme CZI (membres + gouvernance) avec Next.js App Route
 
 ```bash
 npm install
+cd backend && npm install && cd ..
 cp .env.example .env.local
 ```
 
@@ -19,8 +20,18 @@ Renseigner ensuite les variables dans `.env.local` :
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_BACKEND_URL` (ex: `http://127.0.0.1:4000`)
 
 ## Lancer le projet
+
+Terminal 1 (backend REST):
+
+```bash
+cd backend
+npm run start:dev
+```
+
+Terminal 2 (frontend Next.js):
 
 ```bash
 npm run dev
@@ -32,17 +43,24 @@ npm run dev
 - `/signup`
 - `/onboarding`
 - `/app/dashboard`
-- `/app/members`
-- `/app/members/[id]`
-- `/app/profile`
+- `/app/membres`
+- `/app/membres/[id]`
+- `/app/organisations`
+- `/app/parametres`
+- `/app/profils`
+- `/app/support`
+- `/app/import`
+- `/app/export`
 
 ## Etat actuel
 
 - Auth Supabase branchee (signup/login/logout)
 - Session guard via middleware + layouts server
-- Ecrans MVP structures avec Tailwind + composants UI simples
-- Onboarding obligatoire: creation `member` + update `profile.member_id`
-- Membres: liste filtrable + detail editable relies a Supabase
+- Ecrans MVP structures avec Tailwind + composants UI simples (style Figma)
+- API backend REST active (`/api/health`, `/api/locations`, `/api/members`, `/api/onboarding`, `/api/organisations`)
+- Onboarding obligatoire: creation `member` + update `profile.member_id` via API backend
+- Membres/Organisations/Parametres relies au backend REST (RLS via token utilisateur)
+- Layout app: sidebar + topbar + nouvelles routes FR
 
 ## Verification RLS (compte standard)
 

@@ -1,15 +1,20 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
+import { getCurrentMember } from "@/lib/backend/api";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getMemberForUser } from "@/lib/supabase/member";
 
 export default async function AuthLayout({ children }: { children: ReactNode }) {
   if (isSupabaseConfigured) {
     const user = await getCurrentUser();
     if (user) {
-      const member = await getMemberForUser(user.id);
+      let member = null;
+      try {
+        member = await getCurrentMember();
+      } catch {
+        redirect("/onboarding");
+      }
       redirect(member ? "/app/dashboard" : "/onboarding");
     }
   }

@@ -3,9 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { completeOnboarding, getCurrentMember } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getMemberForUser } from "@/lib/supabase/member";
-import { createClient } from "@/lib/supabase/server";
 
 export type OnboardingState = {
   error: string | null;
@@ -23,6 +22,13 @@ function formValue(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
 }
 
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return "Impossible de creer le membre pour le moment.";
+}
+
 export async function submitOnboarding(
   _previousState: OnboardingState,
   formData: FormData,
@@ -33,19 +39,15 @@ export async function submitOnboarding(
     };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { error: "Session invalide. Reconnectez-vous." };
-  }
-
-  const existingMember = await getMemberForUser(user.id);
-  if (existingMember) {
-    redirect("/app/dashboard");
+  try {
+    const existingMember = await getCurrentMember();
+    if (existingMember) {
+      redirect("/app/dashboard");
+    }
+  } catch (error) {
+    return {
+      error: toErrorMessage(error),
+    };
   }
 
   const firstName = formValue(formData, "first_name");
@@ -78,37 +80,21 @@ export async function submitOnboarding(
     return { error: "Le nom de l'organisation est requis pour ce type d'inscription." };
   }
 
-  const { data: member, error: memberError } = await supabase
-    .from("member")
-    .insert({
-      user_id: user.id,
-      first_name: firstName,
-      last_name: lastName,
-      phone,
-      email: email || null,
-      region_id: regionId,
-      prefecture_id: prefectureId,
+  try {
+    await completeOnboarding({
       commune_id: communeId,
+      email: email || undefined,
+      first_name: firstName,
       join_mode: joinMode,
-      org_name: joinMode === "personal" ? null : orgName,
-    })
-    .select("id")
-    .single();
-
-  if (memberError || !member) {
+      last_name: lastName,
+      org_name: joinMode === "personal" ? undefined : orgName,
+      phone,
+      prefecture_id: prefectureId,
+      region_id: regionId,
+    });
+  } catch (error) {
     return {
-      error: memberError?.message ?? "Impossible de creer le membre pour le moment.",
-    };
-  }
-
-  const { error: profileError } = await supabase
-    .from("profile")
-    .update({ member_id: member.id })
-    .eq("user_id", user.id);
-
-  if (profileError) {
-    return {
-      error: profileError.message,
+      error: toErrorMessage(error),
     };
   }
 
