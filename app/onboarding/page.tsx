@@ -2,8 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { requireUser } from "@/lib/supabase/auth";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
-export default function OnboardingPage() {
+export default async function OnboardingPage() {
+  if (isSupabaseConfigured) {
+    await requireUser();
+  }
+
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-10">
       <Card>
