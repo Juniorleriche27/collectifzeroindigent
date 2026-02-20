@@ -1,0 +1,118 @@
+code,commune,prefecture_id,prefecture,region
+0341,Blitta 1,15.0,Blitta,Centrale
+0342,Blitta 2,15.0,Blitta,Centrale
+0343,Blitta 3,15.0,Blitta,Centrale
+0331,Mô 1,19.0,Mô,Centrale
+0332,Mô 2,19.0,Mô,Centrale
+0351,Sotouboua 1,16.0,Sotouboua,Centrale
+0352,Sotouboua 2,16.0,Sotouboua,Centrale
+0353,Sotouboua 3,16.0,Sotouboua,Centrale
+0321,Tchamba 1,17.0,Tchamba,Centrale
+0322,Tchamba 2,17.0,Tchamba,Centrale
+0323,Tchamba 3,17.0,Tchamba,Centrale
+0311,Tchaoudjo 1,18.0,Tchaoudjo,Centrale
+0312,Tchaoudjo 2,18.0,Tchaoudjo,Centrale
+0313,Tchaoudjo 3,18.0,Tchaoudjo,Centrale
+0314,Tchaoudjo 4,18.0,Tchaoudjo,Centrale
+0271,Assoli 1,8.0,Assoli,De La Kara
+0272,Assoli 2,8.0,Assoli,De La Kara
+0273,Assoli 3,8.0,Assoli,De La Kara
+0221,Bassar 1,9.0,Bassar,De La Kara
+0222,Bassar 2,9.0,Bassar,De La Kara
+0223,Bassar 3,9.0,Bassar,De La Kara
+0224,Bassar 4,9.0,Bassar,De La Kara
+0251,Binah 1,10.0,Binah,De La Kara
+0252,Binah 2,10.0,Binah,De La Kara
+0231,Dankpen 1,11.0,Dankpen,De La Kara
+0232,Dankpen 2,11.0,Dankpen,De La Kara
+0233,Dankpen 3,11.0,Dankpen,De La Kara
+0261,Doufelgou 1,12.0,Doufelgou,De La Kara
+0262,Doufelgou 2,12.0,Doufelgou,De La Kara
+0263,Doufelgou 3,12.0,Doufelgou,De La Kara
+0241,Kozah 1,14.0,Kozah,De La Kara
+0242,Kozah 2,14.0,Kozah,De La Kara
+0243,Kozah 3,14.0,Kozah,De La Kara
+0244,Kozah 4,14.0,Kozah,De La Kara
+0211,Kéran 1,13.0,Kéran,De La Kara
+0212,Kéran 2,13.0,Kéran,De La Kara
+0213,Kéran 3,13.0,Kéran,De La Kara
+04121,Agou 1,20.0,Agou,Des Plateaux
+04122,Agou 2,20.0,Agou,Des Plateaux
+04101,Akébou 1,21.0,Akébou,Des Plateaux
+04102,Akébou 2,21.0,Akébou,Des Plateaux
+0451,Amou 1,22.0,Amou,Des Plateaux
+0452,Amou 2,22.0,Amou,Des Plateaux
+0453,Amou 3,22.0,Amou,Des Plateaux
+0491,Anié 1,23.0,Anié,Des Plateaux
+0492,Anié 2,23.0,Anié,Des Plateaux
+0471,Danyi 1,24.0,Danyi,Des Plateaux
+0472,Danyi 2,24.0,Danyi,Des Plateaux
+0461,Est-Mono 1,25.0,Est-Mono,Des Plateaux
+0462,Est-Mono 2,25.0,Est-Mono,Des Plateaux
+0463,Est-Mono 3,25.0,Est-Mono,Des Plateaux
+0421,Haho 1,26.0,Haho,Des Plateaux
+0422,Haho 2,26.0,Haho,Des Plateaux
+0423,Haho 3,26.0,Haho,Des Plateaux
+0424,Haho 4,26.0,Haho,Des Plateaux
+0431,Kloto 1,27.0,Kloto,Des Plateaux
+0432,Kloto 2,27.0,Kloto,Des Plateaux
+0433,Kloto 3,27.0,Kloto,Des Plateaux
+0441,Kpélé 1,28.0,Kpélé,Des Plateaux
+0442,Kpélé 2,28.0,Kpélé,Des Plateaux
+04111,Moyen-Mono 1,29.0,Moyen-Mono,Des Plateaux
+04112,Moyen-Mono 2,29.0,Moyen-Mono,Des Plateaux
+041001,Ogou 1,30.0,Ogou,Des Plateaux
+041002,Ogou 2,30.0,Ogou,Des Plateaux
+041003,Ogou 3,30.0,Ogou,Des Plateaux
+041004,Ogou 4,30.0,Ogou,Des Plateaux
+0481,Wawa 1,31.0,Wawa,Des Plateaux
+0482,Wawa 2,31.0,Wawa,Des Plateaux
+0483,Wawa 3,31.0,Wawa,Des Plateaux
+0111,Cinkassé 1,1.0,Cinkassé,Des Savanes
+0112,Cinkassé 2,1.0,Cinkassé,Des Savanes
+0131,Kpendjal 1,2.0,Kpendjal,Des Savanes
+0132,Kpendjal 2,2.0,Kpendjal,Des Savanes
+0142,Kpendjal Ouest 1,3.0,Kpendjal-Ouest,Des Savanes
+0141,Kpendjal Ouest 2,3.0,Kpendjal-Ouest,Des Savanes
+0152,Oti 1,4.0,Oti,Des Savanes
+0151,Oti 2,4.0,Oti,Des Savanes
+0161,Oti Sud 1,5.0,Oti-Sud,Des Savanes
+0162,Oti Sud 2,5.0,Oti-Sud,Des Savanes
+0171,Tandjoaré 1,6.0,Tandjoaré,Des Savanes
+0172,Tandjoaré 2,6.0,Tandjoaré,Des Savanes
+0121,Tône 1,7.0,Tône,Des Savanes
+0122,Tône 2,7.0,Tône,Des Savanes
+0123,Tône 3,7.0,Tône,Des Savanes
+0124,Tône 4,7.0,Tône,Des Savanes
+0531,Agoé-Nyivé 1,32.0,Agoè-Nyivé,Maritime
+0532,Agoé-Nyivé 2,32.0,Agoè-Nyivé,Maritime
+0533,Agoé-Nyivé 3,32.0,Agoè-Nyivé,Maritime
+0534,Agoé-Nyivé 4,32.0,Agoè-Nyivé,Maritime
+0535,Agoé-Nyivé 5,32.0,Agoè-Nyivé,Maritime
+0536,Agoé-Nyivé 6,32.0,Agoè-Nyivé,Maritime
+0561,Avé 1,33.0,Avé,Maritime
+0562,Avé 2,33.0,Avé,Maritime
+0581,Bas-Mono 1,34.0,Bas-Mono,Maritime
+0582,Bas-Mono 2,34.0,Bas-Mono,Maritime
+0521,Golfe 1,35.0,Golfe,Maritime
+0522,Golfe 2,35.0,Golfe,Maritime
+0523,Golfe 3,35.0,Golfe,Maritime
+0524,Golfe 4,35.0,Golfe,Maritime
+0525,Golfe 5,35.0,Golfe,Maritime
+0526,Golfe 6,35.0,Golfe,Maritime
+0527,Golfe 7,35.0,Golfe,Maritime
+0511,Lacs 1,36.0,Lacs,Maritime
+0512,Lacs 2,36.0,Lacs,Maritime
+0513,Lacs 3,36.0,Lacs,Maritime
+0514,Lacs 4,36.0,Lacs,Maritime
+0571,Vo 1,37.0,Vo,Maritime
+0572,Vo 2,37.0,Vo,Maritime
+0573,Vo 3,37.0,Vo,Maritime
+0574,Vo 4,37.0,Vo,Maritime
+0541,Yoto 1,38.0,Yoto,Maritime
+0542,Yoto 2,38.0,Yoto,Maritime
+0543,Yoto 3,38.0,Yoto,Maritime
+0551,Zio 1,39.0,Zio,Maritime
+0552,Zio 2,39.0,Zio,Maritime
+0553,Zio 3,39.0,Zio,Maritime
+0554,Zio 4,39.0,Zio,Maritime

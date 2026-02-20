@@ -1,0 +1,40 @@
+prefecture_id,prefecture,region,chef_lieu,n_communes
+1,Cinkassé,Des Savanes,Cinkassé,2
+2,Kpendjal,Des Savanes,Mandouri,2
+3,Kpendjal-Ouest,Des Savanes,Naki-Est,2
+4,Oti,Des Savanes,Mango,2
+5,Oti-Sud,Des Savanes,Gando,2
+6,Tandjoaré,Des Savanes,Tandjouaré,2
+7,Tône,Des Savanes,Dapaong,4
+8,Assoli,De La Kara,Bafilo,3
+9,Bassar,De La Kara,Bassar,4
+10,Binah,De La Kara,Pagouda,2
+11,Dankpen,De La Kara,Gérin-kouka,3
+12,Doufelgou,De La Kara,Niamtougou,3
+13,Kéran,De La Kara,Kanté,3
+14,Kozah,De La Kara,Kara,4
+15,Blitta,Centrale,Blitta,3
+16,Sotouboua,Centrale,Sotouboua,3
+17,Tchamba,Centrale,Tchamba,3
+18,Tchaoudjo,Centrale,Sokodé,4
+19,Mô,Centrale,Djarkpanga,2
+20,Agou,Des Plateaux,Agou-Gadzépé,2
+21,Akébou,Des Plateaux,Kougnohou,2
+22,Amou,Des Plateaux,Amlamé,3
+23,Anié,Des Plateaux,Anié,2
+24,Danyi,Des Plateaux,Danyi-Apéyémé,2
+25,Est-Mono,Des Plateaux,Elavagnon,3
+26,Haho,Des Plateaux,Notsè,4
+27,Kloto,Des Plateaux,Kpalimé,3
+28,Kpélé,Des Plateaux,Adéta,2
+29,Moyen-Mono,Des Plateaux,Tohoun,2
+30,Ogou,Des Plateaux,Atakpamé,4
+31,Wawa,Des Plateaux,Badou,3
+32,Agoè-Nyivé,Maritime,Agoè-Nyivé,6
+33,Avé,Maritime,Kévé,2
+34,Bas-Mono,Maritime,Afagnan,2
+35,Golfe,Maritime,Lomé,7
+36,Lacs,Maritime,Aného,4
+37,Vo,Maritime,Vogan,4
+38,Yoto,Maritime,Tabligbo,3
+39,Zio,Maritime,Tsévié,4
