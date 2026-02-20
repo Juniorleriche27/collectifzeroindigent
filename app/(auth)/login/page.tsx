@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,6 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,7 +39,7 @@ export default function LoginPage() {
         return;
       }
 
-      const rawNextPath = searchParams.get("next");
+      const rawNextPath = new URLSearchParams(window.location.search).get("next");
       const targetPath =
         rawNextPath && rawNextPath.startsWith("/") ? rawNextPath : "/app/dashboard";
       router.replace(targetPath);

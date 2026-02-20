@@ -54,11 +54,36 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthRoute(pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/app/dashboard";
-    url.searchParams.delete("next");
-    return NextResponse.redirect(url);
+  if (user) {
+    let hasMember = false;
+
+    if (isAuthRoute(pathname) || pathname === "/onboarding" || pathname.startsWith("/app")) {
+      const { data: member } = await supabase
+        .from("member")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      hasMember = Boolean(member);
+    }
+
+    if (isAuthRoute(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = hasMember ? "/app/dashboard" : "/onboarding";
+      url.searchParams.delete("next");
+      return NextResponse.redirect(url);
+    }
+
+    if (!hasMember && pathname.startsWith("/app")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    }
+
+    if (hasMember && pathname === "/onboarding") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/app/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;

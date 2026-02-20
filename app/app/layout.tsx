@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getMemberForUser } from "@/lib/supabase/member";
 
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard" },
@@ -19,6 +20,10 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
     const user = await getCurrentUser();
     if (!user) {
       redirect("/login");
+    }
+    const member = await getMemberForUser(user.id);
+    if (!member) {
+      redirect("/onboarding");
     }
     userEmail = user.email;
   }

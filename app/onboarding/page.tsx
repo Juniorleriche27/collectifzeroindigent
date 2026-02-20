@@ -1,13 +1,40 @@
-import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
+
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { requireUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getMemberForUser, getOnboardingLocations } from "@/lib/supabase/member";
+
+import { OnboardingForm } from "./onboarding-form";
 
 export default async function OnboardingPage() {
+  let disabledReason: string | undefined;
+  let defaultEmail: string | undefined;
+  let regions: Array<{ id: string; name: string }> = [];
+  let prefectures: Array<{ id: string; name: string; region_id: string }> = [];
+  let communes: Array<{ id: string; name: string; prefecture_id: string }> = [];
+
   if (isSupabaseConfigured) {
-    await requireUser();
+    const user = await requireUser();
+    defaultEmail = user.email;
+
+    const member = await getMemberForUser(user.id);
+    if (member) {
+      redirect("/app/dashboard");
+    }
+
+    try {
+      const locationData = await getOnboardingLocations();
+      regions = locationData.regions;
+      prefectures = locationData.prefectures;
+      communes = locationData.communes;
+    } catch (error) {
+      console.error("Unable to load onboarding locations", error);
+      disabledReason = "Impossible de charger region/prefecture/commune pour le moment.";
+    }
+  } else {
+    disabledReason =
+      "Supabase non configure. Ajoutez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY.";
   }
 
   return (
@@ -18,86 +45,16 @@ export default async function OnboardingPage() {
         </p>
         <CardTitle className="mt-2">Onboarding membre</CardTitle>
         <CardDescription className="mt-2">
-          Cette page preparera la creation de `member` puis la mise a jour de
-          `profile.member_id`.
+          Creation du membre puis association automatique a votre profil.
         </CardDescription>
-        <form className="mt-8 grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="first-name">
-              Prenom
-            </label>
-            <Input id="first-name" placeholder="Ex: Afiwa" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="last-name">
-              Nom
-            </label>
-            <Input id="last-name" placeholder="Ex: Mensah" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="phone">
-              Telephone
-            </label>
-            <Input id="phone" placeholder="+228 90 00 00 00" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="email-optional">
-              Email (optionnel)
-            </label>
-            <Input id="email-optional" type="email" placeholder="vous@exemple.com" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="region">
-              Region
-            </label>
-            <Select id="region" defaultValue="">
-              <option value="" disabled>
-                Selectionner une region
-              </option>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="prefecture">
-              Prefecture
-            </label>
-            <Select id="prefecture" defaultValue="">
-              <option value="" disabled>
-                Selectionner une prefecture
-              </option>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="commune">
-              Commune
-            </label>
-            <Select id="commune" defaultValue="">
-              <option value="" disabled>
-                Selectionner une commune
-              </option>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="join-mode-onboarding">
-              Type d&apos;inscription
-            </label>
-            <Select id="join-mode-onboarding" defaultValue="personal">
-              <option value="personal">Personal</option>
-              <option value="association">Association</option>
-              <option value="enterprise">Enterprise</option>
-            </Select>
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="org-name">
-              Nom organisation (si association/enterprise)
-            </label>
-            <Input id="org-name" placeholder="Nom de l'organisation" />
-          </div>
-          <div className="md:col-span-2">
-            <Button size="lg" type="submit">
-              Terminer l&apos;onboarding
-            </Button>
-          </div>
-        </form>
+
+        <OnboardingForm
+          communes={communes}
+          defaultEmail={defaultEmail}
+          disabledReason={disabledReason}
+          prefectures={prefectures}
+          regions={regions}
+        />
       </Card>
     </main>
   );

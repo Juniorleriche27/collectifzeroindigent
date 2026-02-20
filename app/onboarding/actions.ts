@@ -1,0 +1,117 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getMemberForUser } from "@/lib/supabase/member";
+import { createClient } from "@/lib/supabase/server";
+
+export type OnboardingState = {
+  error: string | null;
+};
+
+const initialState: OnboardingState = {
+  error: null,
+};
+
+export { initialState };
+
+const joinModes = new Set(["personal", "association", "enterprise"]);
+
+function formValue(formData: FormData, key: string): string {
+  return String(formData.get(key) ?? "").trim();
+}
+
+export async function submitOnboarding(
+  _previousState: OnboardingState,
+  formData: FormData,
+): Promise<OnboardingState> {
+  if (!isSupabaseConfigured) {
+    return {
+      error: "Supabase non configure. Ajoutez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { error: "Session invalide. Reconnectez-vous." };
+  }
+
+  const existingMember = await getMemberForUser(user.id);
+  if (existingMember) {
+    redirect("/app/dashboard");
+  }
+
+  const firstName = formValue(formData, "first_name");
+  const lastName = formValue(formData, "last_name");
+  const phone = formValue(formData, "phone");
+  const email = formValue(formData, "email");
+  const regionId = formValue(formData, "region_id");
+  const prefectureId = formValue(formData, "prefecture_id");
+  const communeId = formValue(formData, "commune_id");
+  const joinMode = formValue(formData, "join_mode");
+  const orgName = formValue(formData, "org_name");
+
+  if (
+    !firstName ||
+    !lastName ||
+    !phone ||
+    !regionId ||
+    !prefectureId ||
+    !communeId ||
+    !joinMode
+  ) {
+    return { error: "Tous les champs obligatoires doivent etre renseignes." };
+  }
+
+  if (!joinModes.has(joinMode)) {
+    return { error: "Type d'inscription invalide." };
+  }
+
+  if (joinMode !== "personal" && !orgName) {
+    return { error: "Le nom de l'organisation est requis pour ce type d'inscription." };
+  }
+
+  const { data: member, error: memberError } = await supabase
+    .from("member")
+    .insert({
+      user_id: user.id,
+      first_name: firstName,
+      last_name: lastName,
+      phone,
+      email: email || null,
+      region_id: regionId,
+      prefecture_id: prefectureId,
+      commune_id: communeId,
+      join_mode: joinMode,
+      org_name: joinMode === "personal" ? null : orgName,
+    })
+    .select("id")
+    .single();
+
+  if (memberError || !member) {
+    return {
+      error: memberError?.message ?? "Impossible de creer le membre pour le moment.",
+    };
+  }
+
+  const { error: profileError } = await supabase
+    .from("profile")
+    .update({ member_id: member.id })
+    .eq("user_id", user.id);
+
+  if (profileError) {
+    return {
+      error: profileError.message,
+    };
+  }
+
+  revalidatePath("/app");
+  redirect("/app/dashboard");
+}
