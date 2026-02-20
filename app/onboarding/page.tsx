@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { getCurrentMember, getLocations } from "@/lib/backend/api";
 import { requireUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getMemberForUser, getOnboardingLocations } from "@/lib/supabase/member";
 
 import { OnboardingForm } from "./onboarding-form";
 
@@ -18,34 +18,24 @@ export default async function OnboardingPage() {
     const user = await requireUser();
     defaultEmail = user.email;
 
-    let canLoadLocations = true;
-    try {
-      const member = await getCurrentMember();
-      if (member) {
-        redirect("/app/dashboard");
-      }
-    } catch {
-      canLoadLocations = false;
-      disabledReason =
-        "Impossible de verifier votre profil membre via l'API backend. " +
-        "Verifiez que le backend tourne sur le bon port.";
+    const member = await getMemberForUser(user.id);
+    if (member) {
+      redirect("/app/dashboard");
     }
 
-    if (canLoadLocations) {
-      try {
-        const locationData = await getLocations();
-        regions = locationData.regions;
-        prefectures = locationData.prefectures;
-        communes = locationData.communes;
-        if (regions.length === 0 || prefectures.length === 0 || communes.length === 0) {
-          disabledReason =
-            "Configuration territoriale incomplete (region/prefecture/commune). " +
-            "Ajoutez ces donnees dans Supabase avant de terminer l'onboarding.";
-        }
-      } catch (error) {
-        console.error("Unable to load onboarding locations", error);
-        disabledReason = "Impossible de charger region/prefecture/commune pour le moment.";
+    try {
+      const locationData = await getOnboardingLocations();
+      regions = locationData.regions;
+      prefectures = locationData.prefectures;
+      communes = locationData.communes;
+      if (regions.length === 0 || prefectures.length === 0 || communes.length === 0) {
+        disabledReason =
+          "Configuration territoriale incomplete (region/prefecture/commune). " +
+          "Ajoutez ces donnees dans Supabase avant de terminer l'onboarding.";
       }
+    } catch (error) {
+      console.error("Unable to load onboarding locations", error);
+      disabledReason = "Impossible de charger region/prefecture/commune pour le moment.";
     }
   } else {
     disabledReason =

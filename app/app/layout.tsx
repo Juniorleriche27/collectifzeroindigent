@@ -4,10 +4,10 @@ import { Bell } from "lucide-react";
 
 import { AppSidebar } from "@/components/app/app-sidebar";
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { getCurrentMember } from "@/lib/backend/api";
 import { Input } from "@/components/ui/input";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getMemberForUser } from "@/lib/supabase/member";
 
 export default async function MemberAppLayout({ children }: { children: ReactNode }) {
   let userEmail: string | undefined;
@@ -17,12 +17,7 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
     if (!user) {
       redirect("/login");
     }
-    let member = null;
-    try {
-      member = await getCurrentMember();
-    } catch {
-      redirect("/onboarding");
-    }
+    const member = await getMemberForUser(user.id);
     if (!member) {
       redirect("/onboarding");
     }

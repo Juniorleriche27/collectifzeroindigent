@@ -1,15 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import {
-  isSupabaseConfigured,
-  supabaseAnonKey,
-  supabaseUrl,
-} from "@/lib/supabase/config";
-
-function isAuthRoute(pathname: string) {
-  return pathname === "/login" || pathname === "/signup";
-}
+import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "@/lib/supabase/config";
 
 function isProtectedRoute(pathname: string) {
   return pathname === "/onboarding" || pathname.startsWith("/app");
@@ -57,20 +49,13 @@ export async function proxy(request: NextRequest) {
   if (user) {
     let hasMember = false;
 
-    if (isAuthRoute(pathname) || pathname === "/onboarding" || pathname.startsWith("/app")) {
+    if (pathname === "/onboarding" || pathname.startsWith("/app")) {
       const { data: member } = await supabase
         .from("member")
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle();
       hasMember = Boolean(member);
-    }
-
-    if (isAuthRoute(pathname)) {
-      const url = request.nextUrl.clone();
-      url.pathname = hasMember ? "/app/dashboard" : "/onboarding";
-      url.searchParams.delete("next");
-      return NextResponse.redirect(url);
     }
 
     if (!hasMember && pathname.startsWith("/app")) {
