@@ -41,3 +41,21 @@ npm run dev
 - Auth Supabase branchee (signup/login/logout)
 - Session guard via middleware + layouts server
 - Ecrans MVP structures avec Tailwind + composants UI simples
+- Onboarding obligatoire: creation `member` + update `profile.member_id`
+- Membres: liste filtrable + detail editable relies a Supabase
+
+## Verification RLS (compte standard)
+
+Configurer ces variables dans votre shell:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `RLS_TEST_EMAIL`
+- `RLS_TEST_PASSWORD`
+- `RLS_FOREIGN_MEMBER_ID` (optionnel)
+
+Puis lancer:
+
+```bash
+npm run verify:rls
+```
