@@ -36,9 +36,21 @@ export function MemberEditForm({
     () => prefectures.filter((prefecture) => String(prefecture.region_id) === regionId),
     [prefectures, regionId],
   );
+  const prefectureIdsInRegion = useMemo(
+    () => new Set(filteredPrefectures.map((prefecture) => String(prefecture.id))),
+    [filteredPrefectures],
+  );
   const filteredCommunes = useMemo(
-    () => communes.filter((commune) => String(commune.prefecture_id) === prefectureId),
-    [communes, prefectureId],
+    () => {
+      if (prefectureId) {
+        return communes.filter((commune) => String(commune.prefecture_id) === prefectureId);
+      }
+      if (!regionId) return [];
+      return communes.filter((commune) =>
+        prefectureIdsInRegion.has(String(commune.prefecture_id)),
+      );
+    },
+    [communes, prefectureId, prefectureIdsInRegion, regionId],
   );
 
   const updateMemberAction = updateMember.bind(null, String(member.id));
@@ -169,11 +181,11 @@ export function MemberEditForm({
           name="commune_id"
           value={communeId}
           onChange={(event) => setCommuneId(event.target.value)}
-          disabled={!prefectureId}
+          disabled={!regionId || filteredCommunes.length === 0}
           required
         >
           <option value="" disabled>
-            Selectionner une commune
+            {regionId ? "Selectionner une commune" : "Selectionner d'abord une region"}
           </option>
           {filteredCommunes.map((commune) => (
             <option key={commune.id} value={commune.id}>

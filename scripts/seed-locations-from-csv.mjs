@@ -2,6 +2,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
+const GRAND_LOME_REGION = "Grand Lomé";
+const GRAND_LOME_PREFECTURE_CODES = new Set(["32", "35"]);
+const GRAND_LOME_PREFECTURE_NAMES = new Set([
+  "agoe nyive",
+  "agoe-nyive",
+  "agoè-nyivé",
+  "golfe",
+]);
+
 function loadDotEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return {};
   const content = fs.readFileSync(filePath, "utf8");
@@ -18,13 +27,47 @@ function loadDotEnvFile(filePath) {
   );
 }
 
+function splitCsvLine(line, delimiter) {
+  const values = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let idx = 0; idx < line.length; idx += 1) {
+    const char = line[idx];
+    const next = line[idx + 1];
+
+    if (char === '"' && inQuotes && next === '"') {
+      current += '"';
+      idx += 1;
+      continue;
+    }
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+
+    if (char === delimiter && !inQuotes) {
+      values.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current.trim());
+  return values;
+}
+
 function parseCsv(filePath) {
   const raw = fs.readFileSync(filePath, "utf8").replace(/^\uFEFF/, "");
   const lines = raw.split(/\r?\n/).filter((line) => line.trim().length > 0);
   if (lines.length === 0) return [];
-  const headers = lines[0].split(",").map((header) => header.trim());
+  const delimiter = lines[0].includes(";") ? ";" : ",";
+  const headers = splitCsvLine(lines[0], delimiter).map((header) => header.trim());
   return lines.slice(1).map((line) => {
-    const values = line.split(",").map((value) => value.trim());
+    const values = splitCsvLine(line, delimiter).map((value) => value.trim());
     const row = {};
     headers.forEach((header, idx) => {
       row[header] = values[idx] ?? "";
@@ -39,13 +82,59 @@ function normalizeText(value) {
     .replace(/\s+/g, " ");
 }
 
+function stripDiacritics(value) {
+  return normalizeText(value)
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
 function normalizeKey(value) {
-  return normalizeText(value).toLocaleLowerCase("fr-FR");
+  return stripDiacritics(value)
+    .replace(/[’'`]/g, "")
+    .replace(/[-_]/g, " ")
+    .toLocaleLowerCase("fr-FR")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function normalizePrefectureCode(value) {
   const parsed = Number.parseInt(String(value ?? "").replace(".0", ""), 10);
   return Number.isNaN(parsed) ? normalizeText(value) : String(parsed);
+}
+
+function sanitizeCommuneName(value) {
+  return normalizeText(value)
+    .replace(/\s*[-–—]\s*maire.*$/i, "")
+    .replace(/\s*\(.*maire.*\)\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function resolveRegionNameForPrefecture({
+  csvCode,
+  prefectureName,
+  rowRegionName,
+}) {
+  const regionName = normalizeText(rowRegionName);
+  const regionKey = normalizeKey(regionName);
+  const prefectureKey = normalizeKey(prefectureName);
+
+  if (regionKey === normalizeKey(GRAND_LOME_REGION)) {
+    return GRAND_LOME_REGION;
+  }
+
+  if (GRAND_LOME_PREFECTURE_CODES.has(csvCode)) {
+    return GRAND_LOME_REGION;
+  }
+
+  if (
+    GRAND_LOME_PREFECTURE_NAMES.has(prefectureKey) &&
+    regionKey === normalizeKey("Maritime")
+  ) {
+    return GRAND_LOME_REGION;
+  }
+
+  return regionName;
 }
 
 const envFromFile = {
@@ -81,7 +170,10 @@ for (const file of [regionsCsvPath, prefecturesCsvPath, communesCsvPath]) {
 
 async function seedRegions() {
   const rows = parseCsv(regionsCsvPath);
-  const regionNames = [...new Set(rows.map((row) => normalizeText(row.region)).filter(Boolean))];
+  const regionNames = new Set(
+    rows.map((row) => normalizeText(row.region)).filter(Boolean),
+  );
+  regionNames.add(GRAND_LOME_REGION);
 
   const { data: existing, error: existingError } = await supabase
     .from("region")
@@ -124,33 +216,61 @@ async function seedPrefectures(regionIdByName) {
     .select("id, name, region_id");
   if (existingError) throw existingError;
 
-  const existingByPair = new Map(
-    (existing ?? []).map((pref) => [
-      `${normalizeKey(pref.name)}::${pref.region_id}`,
-      pref.id,
-    ]),
-  );
+  const existingRows = existing ?? [];
+  const existingByPair = new Map();
+  const existingByName = new Map();
+  for (const pref of existingRows) {
+    const nameKey = normalizeKey(pref.name);
+    const pairKey = `${nameKey}::${pref.region_id}`;
+    existingByPair.set(pairKey, pref.id);
+    const list = existingByName.get(nameKey) ?? [];
+    list.push({ id: pref.id, region_id: pref.region_id });
+    existingByName.set(nameKey, list);
+  }
 
   const prefectureUuidByCsvCode = new Map();
   let inserted = 0;
+  let updated = 0;
   let skipped = 0;
 
   for (const row of rows) {
     const name = normalizeText(row.prefecture);
-    const regionName = normalizeKey(row.region);
     const csvCode = normalizePrefectureCode(row.prefecture_id);
-    const regionId = regionIdByName.get(regionName);
+    const resolvedRegionName = resolveRegionNameForPrefecture({
+      csvCode,
+      prefectureName: name,
+      rowRegionName: row.region,
+    });
+    const regionId = regionIdByName.get(normalizeKey(resolvedRegionName));
+    const nameKey = normalizeKey(name);
 
     if (!name || !regionId || !csvCode) {
       skipped += 1;
       continue;
     }
 
-    const pairKey = `${normalizeKey(name)}::${regionId}`;
+    const pairKey = `${nameKey}::${regionId}`;
     const existingId = existingByPair.get(pairKey);
 
     if (existingId) {
       prefectureUuidByCsvCode.set(csvCode, existingId);
+      continue;
+    }
+
+    const sameNameExisting = existingByName.get(nameKey)?.[0];
+    if (sameNameExisting) {
+      if (sameNameExisting.region_id !== regionId) {
+        const { error } = await supabase
+          .from("prefecture")
+          .update({ region_id: regionId })
+          .eq("id", sameNameExisting.id);
+        if (error) throw error;
+        updated += 1;
+        existingByPair.delete(`${nameKey}::${sameNameExisting.region_id}`);
+        sameNameExisting.region_id = regionId;
+      }
+      existingByPair.set(pairKey, sameNameExisting.id);
+      prefectureUuidByCsvCode.set(csvCode, sameNameExisting.id);
       continue;
     }
 
@@ -162,11 +282,12 @@ async function seedPrefectures(regionIdByName) {
     if (error) throw error;
 
     existingByPair.set(pairKey, data.id);
+    existingByName.set(nameKey, [{ id: data.id, region_id: regionId }]);
     prefectureUuidByCsvCode.set(csvCode, data.id);
     inserted += 1;
   }
 
-  return { inserted, skipped, prefectureUuidByCsvCode };
+  return { inserted, skipped, updated, prefectureUuidByCsvCode };
 }
 
 async function seedCommunes(prefectureUuidByCsvCode) {
@@ -188,7 +309,8 @@ async function seedCommunes(prefectureUuidByCsvCode) {
   let skipped = 0;
 
   for (const row of rows) {
-    const name = normalizeText(row.commune);
+    const rawName = row.commune || row.name || row.nom_commune || "";
+    const name = sanitizeCommuneName(rawName);
     const csvPrefectureCode = normalizePrefectureCode(row.prefecture_id);
     const prefectureId = prefectureUuidByCsvCode.get(csvPrefectureCode);
 
@@ -243,6 +365,7 @@ async function run() {
           regions: regionResult.inserted,
           prefectures: prefectureResult.inserted,
           communes: communeResult.inserted,
+          prefectures_region_remapped: prefectureResult.updated,
         },
         skipped: {
           prefectures: prefectureResult.skipped,
