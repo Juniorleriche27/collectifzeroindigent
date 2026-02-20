@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getMemberForUser } from "@/lib/supabase/member";
+import { getLinkedMemberIdFromProfile } from "@/lib/supabase/member";
 import { createClient } from "@/lib/supabase/server";
 
 export type OnboardingState = {
@@ -43,9 +43,14 @@ export async function submitOnboarding(
     return { error: "Session invalide. Reconnectez-vous." };
   }
 
-  const existingMember = await getMemberForUser(user.id);
-  if (existingMember) {
-    redirect("/app/dashboard");
+  try {
+    const linkedMemberId = await getLinkedMemberIdFromProfile(user.id);
+    if (linkedMemberId) {
+      redirect("/app/dashboard");
+    }
+  } catch (error) {
+    // Keep onboarding usable even if membership check fails due policy misconfiguration.
+    console.error("Unable to check linked member before onboarding submit", error);
   }
 
   const firstName = formValue(formData, "first_name");

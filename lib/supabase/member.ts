@@ -48,6 +48,21 @@ export async function getMemberForUser(userId: string): Promise<{ id: string } |
   return data;
 }
 
+export async function getLinkedMemberIdFromProfile(userId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profile")
+    .select("member_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data?.member_id ?? null;
+}
+
 export async function getOnboardingLocations(): Promise<{
   regions: RegionOption[];
   prefectures: PrefectureOption[];

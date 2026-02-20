@@ -50,12 +50,17 @@ export async function proxy(request: NextRequest) {
     let hasMember = false;
 
     if (pathname === "/onboarding" || pathname.startsWith("/app")) {
-      const { data: member } = await supabase
-        .from("member")
-        .select("id")
+      const { data: profile, error: profileError } = await supabase
+        .from("profile")
+        .select("member_id")
         .eq("user_id", user.id)
         .maybeSingle();
-      hasMember = Boolean(member);
+
+      if (profileError) {
+        console.error("Unable to read profile.member_id in middleware", profileError);
+      } else {
+        hasMember = Boolean(profile?.member_id);
+      }
     }
 
     if (!hasMember && pathname.startsWith("/app")) {

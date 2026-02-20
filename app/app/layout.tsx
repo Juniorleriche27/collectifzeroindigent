@@ -7,7 +7,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Input } from "@/components/ui/input";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getMemberForUser } from "@/lib/supabase/member";
+import { getLinkedMemberIdFromProfile } from "@/lib/supabase/member";
 
 export default async function MemberAppLayout({ children }: { children: ReactNode }) {
   let userEmail: string | undefined;
@@ -17,8 +17,15 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
     if (!user) {
       redirect("/login");
     }
-    const member = await getMemberForUser(user.id);
-    if (!member) {
+
+    let linkedMemberId: string | null = null;
+    try {
+      linkedMemberId = await getLinkedMemberIdFromProfile(user.id);
+    } catch (error) {
+      console.error("Unable to check linked member in app layout", error);
+    }
+
+    if (!linkedMemberId) {
       redirect("/onboarding");
     }
     userEmail = user.email;

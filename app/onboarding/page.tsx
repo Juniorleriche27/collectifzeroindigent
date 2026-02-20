@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getMemberForUser, getOnboardingLocations } from "@/lib/supabase/member";
+import {
+  getLinkedMemberIdFromProfile,
+  getOnboardingLocations,
+} from "@/lib/supabase/member";
 
 import { OnboardingForm } from "./onboarding-form";
 
@@ -18,9 +21,14 @@ export default async function OnboardingPage() {
     const user = await requireUser();
     defaultEmail = user.email;
 
-    const member = await getMemberForUser(user.id);
-    if (member) {
-      redirect("/app/dashboard");
+    try {
+      const linkedMemberId = await getLinkedMemberIdFromProfile(user.id);
+      if (linkedMemberId) {
+        redirect("/app/dashboard");
+      }
+    } catch (error) {
+      // Do not block onboarding page on membership check failures (ex: policy issues).
+      console.error("Unable to check linked member from profile", error);
     }
 
     try {
