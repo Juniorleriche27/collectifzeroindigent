@@ -42,6 +42,14 @@ export type OrganisationCardItem = {
   members: number;
 };
 
+export type DashboardOverview = {
+  active_members: number;
+  pending_members: number;
+  suspended_members: number;
+  total_members: number;
+  trend_new_this_month: number;
+};
+
 type BackendRequestOptions = RequestInit & {
   fallbackError?: string;
 };
@@ -145,6 +153,12 @@ export async function getLocations() {
 export async function getCurrentMember() {
   return requestBackend<MemberRecord | null>('/members/me', {
     fallbackError: 'Impossible de charger votre profil membre.',
+  });
+}
+
+export async function getDashboardOverview() {
+  return requestBackend<DashboardOverview>('/dashboard/overview', {
+    fallbackError: 'Impossible de charger les indicateurs dashboard.',
   });
 }
 

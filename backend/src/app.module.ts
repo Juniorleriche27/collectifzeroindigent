@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthModule } from './health/health.module';
 import { InfraModule } from './infra/infra.module';
 import { LocationsModule } from './locations/locations.module';
@@ -18,6 +19,7 @@ import { OrganisationsModule } from './organisations/organisations.module';
     InfraModule,
     AuthModule,
     HealthModule,
+    DashboardModule,
     LocationsModule,
     MembersModule,
     OnboardingModule,
