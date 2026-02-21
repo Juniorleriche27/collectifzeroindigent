@@ -43,14 +43,15 @@ export async function submitOnboarding(
     return { error: "Session invalide. Reconnectez-vous." };
   }
 
+  let linkedMemberId: string | null = null;
   try {
-    const linkedMemberId = await getLinkedMemberIdFromProfile(user.id);
-    if (linkedMemberId) {
-      redirect("/app/dashboard");
-    }
+    linkedMemberId = await getLinkedMemberIdFromProfile(user.id);
   } catch (error) {
     // Keep onboarding usable even if membership check fails due policy misconfiguration.
     console.error("Unable to check linked member before onboarding submit", error);
+  }
+  if (linkedMemberId) {
+    redirect("/app/dashboard");
   }
 
   const firstName = formValue(formData, "first_name");

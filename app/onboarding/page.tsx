@@ -21,14 +21,15 @@ export default async function OnboardingPage() {
     const user = await requireUser();
     defaultEmail = user.email;
 
+    let linkedMemberId: string | null = null;
     try {
-      const linkedMemberId = await getLinkedMemberIdFromProfile(user.id);
-      if (linkedMemberId) {
-        redirect("/app/dashboard");
-      }
+      linkedMemberId = await getLinkedMemberIdFromProfile(user.id);
     } catch (error) {
       // Do not block onboarding page on membership check failures (ex: policy issues).
       console.error("Unable to check linked member from profile", error);
+    }
+    if (linkedMemberId) {
+      redirect("/app/dashboard");
     }
 
     try {
