@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Building2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -29,15 +30,23 @@ export function OrganisationsClient({
   sourceLabel,
   sourceNote,
 }: OrganisationsClientProps) {
+  const router = useRouter();
   const initialOrganisationCreateState: OrganisationCreateState = {
     error: null,
     success: null,
   };
+  const createFormRef = useRef<HTMLFormElement>(null);
   const [open, setOpen] = useState(false);
   const [state, createAction, isPending] = useActionState(
     createOrganisationAction,
     initialOrganisationCreateState,
   );
+
+  useEffect(() => {
+    if (!state.success) return;
+    createFormRef.current?.reset();
+    router.refresh();
+  }, [router, state.success]);
 
   return (
     <>
@@ -52,10 +61,22 @@ export function OrganisationsClient({
             {sourceNote ? ` - ${sourceNote}` : ""}
           </CardDescription>
         </div>
-        <Button disabled={!canCreate} onClick={() => setOpen(true)} title={!canCreate ? sourceNote ?? "" : ""}>
+        <Button
+          disabled={!canCreate}
+          onClick={() => setOpen(true)}
+          title={!canCreate ? sourceNote ?? "" : ""}
+        >
           Creer une organisation
         </Button>
       </div>
+
+      {!canCreate ? (
+        <Card>
+          <CardDescription className="text-amber-700">
+            Creation desactive: {sourceNote ?? "table organisation absente."}
+          </CardDescription>
+        </Card>
+      ) : null}
 
       <Card className="space-y-3">
         <CardTitle className="text-base">Recherche</CardTitle>
@@ -114,7 +135,7 @@ export function OrganisationsClient({
               Cette insertion fonctionne uniquement si une table `organisation` ou `organization`
               existe dans Supabase.
             </CardDescription>
-            <form action={createAction} className="grid gap-4 md:grid-cols-2">
+            <form ref={createFormRef} action={createAction} className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium" htmlFor="org-name">
                   Nom organisation

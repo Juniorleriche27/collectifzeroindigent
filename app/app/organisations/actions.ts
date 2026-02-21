@@ -41,6 +41,12 @@ export async function createOrganisationAction(
       success: null,
     };
   }
+  if (name.length < 3) {
+    return {
+      error: "Le nom de l'organisation doit contenir au moins 3 caracteres.",
+      success: null,
+    };
+  }
 
   if (type !== "association" && type !== "enterprise") {
     return {
