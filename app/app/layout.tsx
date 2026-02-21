@@ -9,6 +9,8 @@ import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getLinkedMemberIdFromProfile } from "@/lib/supabase/member";
 
+export const dynamic = "force-dynamic";
+
 export default async function MemberAppLayout({ children }: { children: ReactNode }) {
   let userEmail: string | undefined;
 

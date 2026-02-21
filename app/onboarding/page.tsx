@@ -10,6 +10,8 @@ import {
 
 import { OnboardingForm } from "./onboarding-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function OnboardingPage() {
   let disabledReason: string | undefined;
   let defaultEmail: string | undefined;
