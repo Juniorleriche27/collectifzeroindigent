@@ -4,7 +4,7 @@ import { OnboardingForm } from "./onboarding-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function OnboardingPage() {
+export default function OnboardingPage() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-10">
       <Card>
