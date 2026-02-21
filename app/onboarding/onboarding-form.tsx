@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export function OnboardingForm({
   const [joinMode, setJoinMode] = useState("personal");
   const [emailValue, setEmailValue] = useState(defaultEmail ?? "");
   const [runtimeDisabledReason, setRuntimeDisabledReason] = useState<string | null>(null);
+  const [alreadyOnboarded, setAlreadyOnboarded] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [regionsState, setRegionsState] = useState<RegionOption[]>(regions);
   const [prefecturesState, setPrefecturesState] = useState<PrefectureOption[]>(prefectures);
@@ -84,7 +86,10 @@ export function OnboardingForm({
         if (profileResult.error) {
           console.error("Unable to verify linked member from profile", profileResult.error);
         } else if (profileResult.data?.member_id) {
-          router.replace("/app/dashboard");
+          setAlreadyOnboarded(true);
+          setRuntimeDisabledReason(
+            "Votre profil est deja complete. Ouvrez directement le dashboard.",
+          );
           return;
         }
 
@@ -294,6 +299,13 @@ export function OnboardingForm({
       ) : null}
       {effectiveDisabledReason ? (
         <p className="md:col-span-2 text-sm text-amber-700">{effectiveDisabledReason}</p>
+      ) : null}
+      {alreadyOnboarded ? (
+        <p className="md:col-span-2 text-sm text-primary">
+          <Link className="font-semibold underline" href="/app/dashboard">
+            Aller au dashboard
+          </Link>
+        </p>
       ) : null}
       {state.error ? <p className="md:col-span-2 text-sm text-red-600">{state.error}</p> : null}
 
