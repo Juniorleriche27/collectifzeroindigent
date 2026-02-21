@@ -13,43 +13,43 @@ export class DashboardService {
     startOfMonth.setUTCHours(0, 0, 0, 0);
 
     const [
-      totalMembersResult,
-      activeMembersResult,
-      pendingMembersResult,
-      suspendedMembersResult,
-      createdThisMonthResult,
+      totalMembers,
+      activeMembers,
+      pendingMembers,
+      suspendedMembers,
+      createdThisMonth,
     ] = await Promise.all([
-      client.from('member').select('id', { count: 'exact', head: true }),
-      client
-        .from('member')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'active'),
-      client
-        .from('member')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending'),
-      client
-        .from('member')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'suspended'),
-      client
-        .from('member')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', startOfMonth.toISOString()),
+      this.countMembers(client),
+      this.countMembers(client, (query) => query.eq('status', 'active')),
+      this.countMembers(client, (query) => query.eq('status', 'pending')),
+      this.countMembers(client, (query) => query.eq('status', 'suspended')),
+      this.countMembers(client, (query) =>
+        query.gte('created_at', startOfMonth.toISOString()),
+      ),
     ]);
 
-    if (totalMembersResult.error) throw totalMembersResult.error;
-    if (activeMembersResult.error) throw activeMembersResult.error;
-    if (pendingMembersResult.error) throw pendingMembersResult.error;
-    if (suspendedMembersResult.error) throw suspendedMembersResult.error;
-    if (createdThisMonthResult.error) throw createdThisMonthResult.error;
-
     return {
-      active_members: activeMembersResult.count ?? 0,
-      pending_members: pendingMembersResult.count ?? 0,
-      suspended_members: suspendedMembersResult.count ?? 0,
-      total_members: totalMembersResult.count ?? 0,
-      trend_new_this_month: createdThisMonthResult.count ?? 0,
+      active_members: activeMembers,
+      pending_members: pendingMembers,
+      suspended_members: suspendedMembers,
+      total_members: totalMembers,
+      trend_new_this_month: createdThisMonth,
     };
+  }
+
+  private async countMembers(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    applyFilter?: (query: any) => any,
+  ): Promise<number> {
+    let query = client.from('member').select('id', { count: 'exact' }).limit(1);
+    if (applyFilter) {
+      query = applyFilter(query);
+    }
+
+    const { count, error } = await query;
+    if (error) {
+      throw error;
+    }
+    return count ?? 0;
   }
 }
