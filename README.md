@@ -77,3 +77,11 @@ Puis lancer:
 ```bash
 npm run verify:rls
 ```
+
+## Activation organisations (production)
+
+Si la page `/app/organisations` affiche "Aucune table organisation detectee", executez ce script dans Supabase SQL Editor:
+
+- `sql/2026-02-21_create_organisation_table.sql`
+
+Ensuite rechargez la page: la creation d'organisation sera active.

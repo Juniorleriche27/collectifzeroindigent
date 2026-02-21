@@ -56,7 +56,8 @@ export class OrganisationsService {
         can_create: false,
         items: fromMembers,
         source: 'public.member',
-        source_note: 'Aucune table organisation detectee.',
+        source_note:
+          "Aucune table organisation detectee. Appliquez le script SQL 'sql/2026-02-21_create_organisation_table.sql'.",
       },
       search,
     );
