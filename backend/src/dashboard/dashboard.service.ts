@@ -8,22 +8,53 @@ export class DashboardService {
 
   async overview(accessToken: string) {
     const client = this.supabaseDataService.forUser(accessToken);
-    const now = new Date();
-    const monthStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
+    const { data: rows, error } = await client
+      .from('member')
+      .select('status, created_at');
+    if (error) {
+      throw error;
+    }
 
-    const [
-      totalMembers,
-      activeMembers,
-      pendingMembers,
-      suspendedMembers,
-      createdThisMonthResult,
-    ] = await Promise.all([
-      this.countMembers(client),
-      this.countMembers(client, (query) => query.eq('status', 'active')),
-      this.countMembers(client, (query) => query.eq('status', 'pending')),
-      this.countMembers(client, (query) => query.eq('status', 'suspended')),
-      this.countMembersSafe(client, (query) => query.gte('created_at', monthStart)),
-    ]);
+    const members = rows ?? [];
+    const totalMembers = members.length;
+
+    const statusCounts = new Map<string, number>();
+    let createdThisMonthResult = 0;
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+
+    for (const member of members) {
+      const status =
+        typeof member.status === 'string' ? member.status.trim().toLowerCase() : '';
+      if (status) {
+        statusCounts.set(status, (statusCounts.get(status) ?? 0) + 1);
+      }
+
+      if (member.created_at) {
+        const createdAt = new Date(member.created_at);
+        if (!Number.isNaN(createdAt.getTime()) && createdAt >= monthStart) {
+          createdThisMonthResult += 1;
+        }
+      }
+    }
+
+    const pendingMembers =
+      (statusCounts.get('pending') ?? 0) +
+      (statusCounts.get('en_attente') ?? 0) +
+      (statusCounts.get('waiting') ?? 0);
+
+    const suspendedMembers =
+      (statusCounts.get('suspended') ?? 0) +
+      (statusCounts.get('suspendu') ?? 0) +
+      (statusCounts.get('blocked') ?? 0);
+
+    const activeMembers =
+      (statusCounts.get('active') ?? 0) +
+      (statusCounts.get('approved') ?? 0) +
+      (statusCounts.get('validated') ?? 0) +
+      (statusCounts.get('valide') ?? 0) ||
+      Math.max(totalMembers - pendingMembers - suspendedMembers, 0);
 
     return {
       active_members: activeMembers,
@@ -32,33 +63,5 @@ export class DashboardService {
       total_members: totalMembers,
       trend_new_this_month: createdThisMonthResult,
     };
-  }
-
-  private async countMembers(
-    client: ReturnType<SupabaseDataService['forUser']>,
-    applyFilter?: (query: any) => any,
-  ): Promise<number> {
-    let query = client.from('member').select('id', { count: 'exact' }).limit(1);
-    if (applyFilter) {
-      query = applyFilter(query);
-    }
-
-    const { count, error } = await query;
-    if (error) {
-      throw error;
-    }
-    return count ?? 0;
-  }
-
-  private async countMembersSafe(
-    client: ReturnType<SupabaseDataService['forUser']>,
-    applyFilter?: (query: any) => any,
-  ): Promise<number> {
-    try {
-      return await this.countMembers(client, applyFilter);
-    } catch (error) {
-      console.error('Dashboard month count fallback to 0', error);
-      return 0;
-    }
   }
 }

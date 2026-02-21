@@ -42,47 +42,54 @@ export default async function DashboardPage() {
       console.error("Unable to load dashboard overview endpoint", error);
       try {
         const supabase = await createClient();
+        const { data: members, error: membersError } = await supabase
+          .from("member")
+          .select("status, created_at");
+        if (membersError) {
+          throw membersError;
+        }
 
-        const [
-          allMembersResult,
-          activeMembersResult,
-          pendingMembersResult,
-          suspendedMembersResult,
-        ] =
-          await Promise.all([
-            supabase.from("member").select("id", { count: "exact" }).limit(1),
-            supabase
-              .from("member")
-              .select("id", { count: "exact" })
-              .eq("status", "active")
-              .limit(1),
-            supabase
-              .from("member")
-              .select("id", { count: "exact" })
-              .eq("status", "pending")
-              .limit(1),
-            supabase
-              .from("member")
-              .select("id", { count: "exact" })
-              .eq("status", "suspended")
-              .limit(1),
-          ]);
+        const rows = members ?? [];
+        const allMembers = rows.length;
+        const statusCounts = new Map<string, number>();
+        let createdThisMonth = 0;
+        const monthStart = new Date();
+        monthStart.setUTCDate(1);
+        monthStart.setUTCHours(0, 0, 0, 0);
 
-        if (allMembersResult.error) throw allMembersResult.error;
-        if (activeMembersResult.error) throw activeMembersResult.error;
-        if (pendingMembersResult.error) throw pendingMembersResult.error;
-        if (suspendedMembersResult.error) throw suspendedMembersResult.error;
+        for (const row of rows) {
+          const status = typeof row.status === "string" ? row.status.trim().toLowerCase() : "";
+          if (status) {
+            statusCounts.set(status, (statusCounts.get(status) ?? 0) + 1);
+          }
+          if (row.created_at) {
+            const createdAt = new Date(row.created_at);
+            if (!Number.isNaN(createdAt.getTime()) && createdAt >= monthStart) {
+              createdThisMonth += 1;
+            }
+          }
+        }
 
-        const allMembers = allMembersResult.count ?? 0;
-        const activeMembers = activeMembersResult.count ?? 0;
-        const pendingMembers = pendingMembersResult.count ?? 0;
-        const suspendedMembers = suspendedMembersResult.count ?? 0;
+        const pendingMembers =
+          (statusCounts.get("pending") ?? 0) +
+          (statusCounts.get("en_attente") ?? 0) +
+          (statusCounts.get("waiting") ?? 0);
+        const suspendedMembers =
+          (statusCounts.get("suspended") ?? 0) +
+          (statusCounts.get("suspendu") ?? 0) +
+          (statusCounts.get("blocked") ?? 0);
+        const activeMembers =
+          (statusCounts.get("active") ?? 0) +
+            (statusCounts.get("approved") ?? 0) +
+            (statusCounts.get("validated") ?? 0) +
+            (statusCounts.get("valide") ?? 0) ||
+          Math.max(allMembers - pendingMembers - suspendedMembers, 0);
 
         kpis = [
           {
             label: "Membres visibles",
             value: String(allMembers),
-            trend: "Mode secours",
+            trend: `+${createdThisMonth} ce mois`,
           },
           {
             label: "Demandes en attente",
@@ -95,7 +102,7 @@ export default async function DashboardPage() {
             trend: `${activeMembers} actifs`,
           },
         ];
-        loadNotice = "Indicateurs backend indisponibles. Mode secours Supabase actif.";
+        loadNotice = "Indicateurs backend indisponibles. Mode secours Supabase actif (RLS).";
       } catch (fallbackError) {
         console.error("Unable to load dashboard fallback metrics", fallbackError);
         loadError = "Impossible de charger les indicateurs dashboard.";
