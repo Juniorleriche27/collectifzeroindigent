@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { requireUser } from "@/lib/supabase/auth";
+import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
   getLinkedMemberIdFromProfile,
@@ -18,7 +18,10 @@ export default async function OnboardingPage() {
   let communes: Array<{ id: string; name: string; prefecture_id: string }> = [];
 
   if (isSupabaseConfigured) {
-    const user = await requireUser();
+    const user = await getCurrentUser();
+    if (!user) {
+      redirect("/login?next=%2Fonboarding");
+    }
     defaultEmail = user.email;
 
     let linkedMemberId: string | null = null;

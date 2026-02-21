@@ -25,7 +25,6 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({
             request,
           });
@@ -50,36 +49,6 @@ export async function proxy(request: NextRequest) {
       url.pathname = "/login";
       url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
-    }
-
-    if (user) {
-      let hasMember = false;
-
-      if (pathname === "/onboarding" || pathname.startsWith("/app")) {
-        const { data: profile, error: profileError } = await supabase
-          .from("profile")
-          .select("member_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (profileError) {
-          console.error("Unable to read profile.member_id in middleware", profileError);
-        } else {
-          hasMember = Boolean(profile?.member_id);
-        }
-      }
-
-      if (!hasMember && pathname.startsWith("/app")) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/onboarding";
-        return NextResponse.redirect(url);
-      }
-
-      if (hasMember && pathname === "/onboarding") {
-        const url = request.nextUrl.clone();
-        url.pathname = "/app/dashboard";
-        return NextResponse.redirect(url);
-      }
     }
 
     return response;
