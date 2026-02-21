@@ -91,3 +91,15 @@ Ensuite rechargez la page: la creation d'organisation sera active.
 Pour activer le rattachement d'un membre a une organisation (`member.organisation_id`), executez aussi:
 
 - `sql/2026-02-21_link_member_organisation.sql`
+
+## RLS par role (phase 2)
+
+Pour appliquer les droits metier sur `member` selon `profile.role` (`member`, `pf`, `cn`, `ca`, `admin`), executez:
+
+- `sql/2026-02-21_role_based_member_access.sql`
+
+Effet attendu:
+
+- `member`: acces a ses propres enregistrements
+- `pf`: acces aux membres de sa region
+- `cn`/`ca`/`admin`: acces elargi

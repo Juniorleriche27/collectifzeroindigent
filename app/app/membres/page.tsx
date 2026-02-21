@@ -6,6 +6,8 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { getLocations, listMembers, listOrganisations } from "@/lib/backend/api";
+import { getProfileRoleByAuthUser } from "@/lib/supabase/profile";
+import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -37,6 +39,14 @@ function normalizePageSize(value: number): number {
   return 10;
 }
 
+function roleVisibilityHint(role: string): string {
+  if (role === "pf") return "RLS PF: membres visibles sur votre region.";
+  if (role === "admin" || role === "ca" || role === "cn") {
+    return "RLS gouvernance: vue elargie sur plusieurs membres.";
+  }
+  return "RLS membre: seuls vos enregistrements sont visibles.";
+}
+
 export default async function MembersPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const query = paramValue(params.q).trim();
@@ -56,9 +66,21 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   let prefectures = [] as Awaited<ReturnType<typeof getLocations>>["prefectures"];
   let communes = [] as Awaited<ReturnType<typeof getLocations>>["communes"];
   let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
+  let currentRole = "member";
 
   if (isSupabaseConfigured) {
     try {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const roleLookup = await getProfileRoleByAuthUser(supabase, user.id);
+        if (!roleLookup.error && roleLookup.role) {
+          currentRole = roleLookup.role;
+        }
+      }
+
       const [locationData, organisationData, memberData] = await Promise.all([
         getLocations(),
         listOrganisations(),
@@ -133,9 +155,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-primary">Membres</p>
           <h2 className="mt-1 text-3xl font-semibold tracking-tight">Liste & filtres</h2>
-          <CardDescription className="mt-2">
-            En compte standard RLS, seuls vos enregistrements sont visibles.
-          </CardDescription>
+          <CardDescription className="mt-2">{roleVisibilityHint(currentRole)}</CardDescription>
         </div>
         <Link href="/app/membres">
           <Button variant="secondary">Reinitialiser</Button>
