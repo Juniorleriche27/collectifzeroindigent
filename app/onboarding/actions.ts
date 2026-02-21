@@ -17,6 +17,16 @@ function formValue(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
 }
 
+function normalizeOnboardingError(message: string): string {
+  if (/infinite recursion detected in policy.*member/i.test(message)) {
+    return (
+      "Erreur RLS sur la table member (policy recursive). " +
+      "Appliquez le script SQL `sql/2026-02-21_fix_member_profile_rls.sql` dans Supabase, puis reessayez."
+    );
+  }
+  return message;
+}
+
 export async function submitOnboarding(
   _previousState: OnboardingState,
   formData: FormData,
@@ -97,7 +107,9 @@ export async function submitOnboarding(
 
   if (memberError || !member) {
     return {
-      error: memberError?.message ?? "Impossible de creer le membre pour le moment.",
+      error: normalizeOnboardingError(
+        memberError?.message ?? "Impossible de creer le membre pour le moment.",
+      ),
     };
   }
 
