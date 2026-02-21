@@ -30,6 +30,13 @@ function parsePositiveInt(value: string, fallback: number): number {
   return Math.floor(parsed);
 }
 
+function normalizePageSize(value: number): number {
+  if (value === 20 || value === 50) {
+    return value;
+  }
+  return 10;
+}
+
 export default async function MembersPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const query = paramValue(params.q).trim();
@@ -39,7 +46,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   const communeId = paramValue(params.commune_id);
   const sort = paramValue(params.sort) || "created_desc";
   const page = parsePositiveInt(paramValue(params.page), 1);
-  const pageSize = 10;
+  const pageSize = normalizePageSize(parsePositiveInt(paramValue(params.page_size), 10));
 
   let loadError: string | null = null;
   let members = [] as Awaited<ReturnType<typeof listMembers>>["rows"];
@@ -102,10 +109,14 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     if (prefectureId) urlParams.set("prefecture_id", prefectureId);
     if (communeId) urlParams.set("commune_id", communeId);
     if (sort) urlParams.set("sort", sort);
+    if (pageSize !== 10) urlParams.set("page_size", String(pageSize));
     if (nextPage > 1) urlParams.set("page", String(nextPage));
     const serialized = urlParams.toString();
     return serialized ? `/app/membres?${serialized}` : "/app/membres";
   }
+
+  const startItem = totalCount === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const endItem = totalCount === 0 ? 0 : Math.min(totalCount, safePage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -162,6 +173,11 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             <option value="name_asc">Nom A-Z</option>
             <option value="name_desc">Nom Z-A</option>
             <option value="status_asc">Status</option>
+          </Select>
+          <Select defaultValue={String(pageSize)} name="page_size">
+            <option value="10">10 / page</option>
+            <option value="20">20 / page</option>
+            <option value="50">50 / page</option>
           </Select>
           <div className="md:col-span-6 flex items-center gap-3">
             <Button type="submit">Appliquer les filtres</Button>
@@ -238,9 +254,14 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <Link className="font-semibold text-primary" href={`/app/membres/${member.id}`}>
-                      Voir detail
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link className="font-semibold text-primary" href={`/app/membres/${member.id}`}>
+                        Voir
+                      </Link>
+                      <Link className="text-sm font-medium text-muted hover:text-foreground" href={`/app/membres/${member.id}`}>
+                        Modifier
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -251,7 +272,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
 
       <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
         <p className="text-sm text-muted">
-          Page {safePage} / {totalPages}
+          Page {safePage} / {totalPages} | {startItem}-{endItem} sur {totalCount}
         </p>
         <div className="flex gap-2">
           <Link href={buildPageHref(Math.max(1, safePage - 1))}>

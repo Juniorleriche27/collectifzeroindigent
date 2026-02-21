@@ -58,7 +58,7 @@ export function AppSidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors",
                 active
-                  ? "bg-foreground text-background"
+                  ? "bg-primary/15 text-primary ring-1 ring-primary/20"
                   : "text-muted hover:bg-muted-surface hover:text-foreground",
               )}
               href={item.href}
