@@ -26,7 +26,9 @@ export class DashboardService {
 
     for (const member of members) {
       const status =
-        typeof member.status === 'string' ? member.status.trim().toLowerCase() : '';
+        typeof member.status === 'string'
+          ? member.status.trim().toLowerCase()
+          : '';
       if (status) {
         statusCounts.set(status, (statusCounts.get(status) ?? 0) + 1);
       }
@@ -51,9 +53,9 @@ export class DashboardService {
 
     const activeMembers =
       (statusCounts.get('active') ?? 0) +
-      (statusCounts.get('approved') ?? 0) +
-      (statusCounts.get('validated') ?? 0) +
-      (statusCounts.get('valide') ?? 0) ||
+        (statusCounts.get('approved') ?? 0) +
+        (statusCounts.get('validated') ?? 0) +
+        (statusCounts.get('valide') ?? 0) ||
       Math.max(totalMembers - pendingMembers - suspendedMembers, 0);
 
     return {
