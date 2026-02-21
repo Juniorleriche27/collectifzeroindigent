@@ -2,13 +2,18 @@
 
 import { useActionState, useMemo, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-import { updateAccountSettings } from "./actions";
+import {
+  updateAccountSettings,
+  updateNotificationSettings,
+  updateSecuritySettings,
+} from "./actions";
 import type { SettingsState } from "./actions";
 
 const tabs = ["Compte", "Securite", "Notifications", "Roles"] as const;
@@ -19,7 +24,12 @@ type ParametresClientProps = {
     email: string;
     firstName: string;
     lastName: string;
+    notifications: {
+      emailUpdates: boolean;
+      securityAlerts: boolean;
+    };
     phone: string;
+    role: string;
   };
 };
 
@@ -29,8 +39,16 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
     success: null,
   };
   const [activeTab, setActiveTab] = useState<TabName>("Compte");
-  const [state, accountAction, isPending] = useActionState(
+  const [accountState, accountAction, accountPending] = useActionState(
     updateAccountSettings,
+    initialSettingsState,
+  );
+  const [securityState, securityAction, securityPending] = useActionState(
+    updateSecuritySettings,
+    initialSettingsState,
+  );
+  const [notificationState, notificationAction, notificationPending] = useActionState(
+    updateNotificationSettings,
     initialSettingsState,
   );
 
@@ -72,13 +90,15 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
             </label>
             <Input defaultValue={defaults.email} id="account-email" name="email" type="email" />
           </div>
-          {state.error ? <p className="md:col-span-2 text-sm text-red-600">{state.error}</p> : null}
-          {state.success ? (
-            <p className="md:col-span-2 text-sm text-emerald-700">{state.success}</p>
+          {accountState.error ? (
+            <p className="md:col-span-2 text-sm text-red-600">{accountState.error}</p>
+          ) : null}
+          {accountState.success ? (
+            <p className="md:col-span-2 text-sm text-emerald-700">{accountState.success}</p>
           ) : null}
           <div className="md:col-span-2">
-            <Button disabled={isPending} type="submit">
-              {isPending ? "Mise a jour..." : "Mettre a jour"}
+            <Button disabled={accountPending} type="submit">
+              {accountPending ? "Mise a jour..." : "Mettre a jour"}
             </Button>
           </div>
         </form>
@@ -87,27 +107,39 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
 
     if (activeTab === "Securite") {
       return (
-        <form className="grid gap-4 md:grid-cols-2">
+        <form action={securityAction} className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium" htmlFor="current-password">
               Mot de passe actuel
             </label>
-            <Input id="current-password" type="password" />
+            <Input id="current-password" name="current_password" type="password" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="new-password">
               Nouveau mot de passe
             </label>
-            <Input id="new-password" type="password" />
+            <Input id="new-password" name="new_password" type="password" required />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="new-password-confirm">
               Confirmer le mot de passe
             </label>
-            <Input id="new-password-confirm" type="password" />
+            <Input id="new-password-confirm" name="confirm_password" type="password" required />
           </div>
+          <p className="text-xs text-muted md:col-span-2">
+            Supabase peut exiger une re-authentification recente pour le changement de mot de
+            passe.
+          </p>
+          {securityState.error ? (
+            <p className="md:col-span-2 text-sm text-red-600">{securityState.error}</p>
+          ) : null}
+          {securityState.success ? (
+            <p className="md:col-span-2 text-sm text-emerald-700">{securityState.success}</p>
+          ) : null}
           <div className="md:col-span-2">
-            <Button type="button">Mettre a jour la securite</Button>
+            <Button disabled={securityPending} type="submit">
+              {securityPending ? "Mise a jour..." : "Mettre a jour la securite"}
+            </Button>
           </div>
         </form>
       );
@@ -115,13 +147,16 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
 
     if (activeTab === "Notifications") {
       return (
-        <div className="space-y-4">
+        <form action={notificationAction} className="space-y-4">
           <div className="flex items-center justify-between rounded-lg border border-border p-4">
             <div>
               <p className="font-medium">Notifications email</p>
               <p className="text-sm text-muted">Recevoir les mises a jour membres par email.</p>
             </div>
-            <Select defaultValue="enabled">
+            <Select
+              defaultValue={defaults.notifications.emailUpdates ? "enabled" : "disabled"}
+              name="email_updates"
+            >
               <option value="enabled">Active</option>
               <option value="disabled">Desactive</option>
             </Select>
@@ -133,12 +168,24 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
                 Recevoir une alerte en cas de connexion suspecte.
               </p>
             </div>
-            <Select defaultValue="enabled">
+            <Select
+              defaultValue={defaults.notifications.securityAlerts ? "enabled" : "disabled"}
+              name="security_alerts"
+            >
               <option value="enabled">Active</option>
               <option value="disabled">Desactive</option>
             </Select>
           </div>
-        </div>
+          {notificationState.error ? (
+            <p className="text-sm text-red-600">{notificationState.error}</p>
+          ) : null}
+          {notificationState.success ? (
+            <p className="text-sm text-emerald-700">{notificationState.success}</p>
+          ) : null}
+          <Button disabled={notificationPending} type="submit">
+            {notificationPending ? "Mise a jour..." : "Enregistrer les notifications"}
+          </Button>
+        </form>
       );
     }
 
@@ -150,39 +197,45 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
         </CardDescription>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="role-default">
+            <label className="text-sm font-medium">
               Role principal
             </label>
-            <Select id="role-default" defaultValue="member">
-              <option value="member">member</option>
-              <option value="responsable">responsable</option>
-              <option value="admin">admin</option>
-            </Select>
+            <div className="rounded-lg border border-border bg-muted-surface p-3">
+              <Badge>{defaults.role}</Badge>
+            </div>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="role-scope">
+            <label className="text-sm font-medium">
               Portee
             </label>
-            <Select id="role-scope" defaultValue="personnel">
-              <option value="personnel">Personnel</option>
-              <option value="regional">Regional</option>
-              <option value="national">National</option>
-            </Select>
+            <div className="rounded-lg border border-border bg-muted-surface p-3 text-sm text-muted">
+              Controle par les policies RLS et les mandats metier.
+            </div>
           </div>
         </div>
-        <Button type="button">Enregistrer les roles</Button>
       </div>
     );
   }, [
     accountAction,
+    accountPending,
+    accountState.error,
+    accountState.success,
     activeTab,
     defaults.email,
     defaults.firstName,
     defaults.lastName,
+    defaults.notifications.emailUpdates,
+    defaults.notifications.securityAlerts,
     defaults.phone,
-    isPending,
-    state.error,
-    state.success,
+    defaults.role,
+    notificationAction,
+    notificationPending,
+    notificationState.error,
+    notificationState.success,
+    securityAction,
+    securityPending,
+    securityState.error,
+    securityState.success,
   ]);
 
   return (

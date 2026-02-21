@@ -5,6 +5,11 @@ type ProfileLookupResult = {
   memberId: string | null;
 };
 
+type ProfileRoleLookupResult = {
+  error: PostgrestError | null;
+  role: string | null;
+};
+
 function isMissingUserIdColumn(error: PostgrestError | null): boolean {
   if (!error) return false;
   return error.code === "42703" && /user_id/i.test(error.message);
@@ -53,4 +58,27 @@ export async function updateProfileMemberIdByAuthUser(
     .eq("id", userId);
 
   return updateById.error;
+}
+
+export async function getProfileRoleByAuthUser(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<ProfileRoleLookupResult> {
+  const byUserId = await supabase
+    .from("profile")
+    .select("role")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!isMissingUserIdColumn(byUserId.error)) {
+    return { error: byUserId.error, role: byUserId.data?.role ?? null };
+  }
+
+  const byId = await supabase
+    .from("profile")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  return { error: byId.error, role: byId.data?.role ?? null };
 }
