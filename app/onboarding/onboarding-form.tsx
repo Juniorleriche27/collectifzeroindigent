@@ -26,12 +26,6 @@ type OnboardingFormProps = {
   regions?: RegionOption[];
 };
 
-type OrganisationOption = {
-  id: string;
-  name: string;
-  type: string;
-};
-
 export function OnboardingForm({
   communes = [],
   defaultEmail,
@@ -46,7 +40,6 @@ export function OnboardingForm({
   const [prefectureId, setPrefectureId] = useState("");
   const [communeId, setCommuneId] = useState("");
   const [joinMode, setJoinMode] = useState("personal");
-  const [organisationId, setOrganisationId] = useState("");
   const [emailValue, setEmailValue] = useState(defaultEmail ?? "");
   const [runtimeDisabledReason, setRuntimeDisabledReason] = useState<string | null>(null);
   const [alreadyOnboarded, setAlreadyOnboarded] = useState(false);
@@ -54,7 +47,6 @@ export function OnboardingForm({
   const [regionsState, setRegionsState] = useState<RegionOption[]>(regions);
   const [prefecturesState, setPrefecturesState] = useState<PrefectureOption[]>(prefectures);
   const [communesState, setCommunesState] = useState<CommuneOption[]>(communes);
-  const [organisationsState, setOrganisationsState] = useState<OrganisationOption[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -80,20 +72,14 @@ export function OnboardingForm({
           setEmailValue((previous) => previous || user.email || "");
         }
 
-        const [
-          profileLookup,
-          regionsResult,
-          prefecturesResult,
-          communesResult,
-          organisationsResult,
-        ] =
-          await Promise.all([
+        const [profileLookup, regionsResult, prefecturesResult, communesResult] = await Promise.all(
+          [
             getProfileMemberIdByAuthUser(supabase, user.id),
             supabase.from("region").select("id, name").order("name"),
             supabase.from("prefecture").select("id, name, region_id").order("name"),
             supabase.from("commune").select("id, name, prefecture_id").order("name"),
-            supabase.from("organisation").select("id, name, type").order("name"),
-          ]);
+          ],
+        );
 
         if (!active) return;
 
@@ -110,7 +96,6 @@ export function OnboardingForm({
         if (regionsResult.error) throw regionsResult.error;
         if (prefecturesResult.error) throw prefecturesResult.error;
         if (communesResult.error) throw communesResult.error;
-        if (organisationsResult.error) throw organisationsResult.error;
 
         const nextRegions = regionsResult.data ?? [];
         const nextPrefectures = prefecturesResult.data ?? [];
@@ -119,7 +104,6 @@ export function OnboardingForm({
         setRegionsState(nextRegions);
         setPrefecturesState(nextPrefectures);
         setCommunesState(nextCommunes);
-        setOrganisationsState(organisationsResult.data ?? []);
 
         if (
           nextRegions.length === 0 ||
@@ -173,10 +157,6 @@ export function OnboardingForm({
     },
     [communesState, prefectureId, prefectureIdsInRegion, regionId],
   );
-  const filteredOrganisations = useMemo(() => {
-    if (joinMode === "personal") return [];
-    return organisationsState.filter((organisation) => organisation.type === joinMode);
-  }, [joinMode, organisationsState]);
 
   const effectiveDisabledReason = disabledReason ?? runtimeDisabledReason;
   const formDisabled = isPending || loadingLocations || Boolean(effectiveDisabledReason);
@@ -294,10 +274,7 @@ export function OnboardingForm({
           id="join-mode-onboarding"
           name="join_mode"
           value={joinMode}
-          onChange={(event) => {
-            setJoinMode(event.target.value);
-            setOrganisationId("");
-          }}
+          onChange={(event) => setJoinMode(event.target.value)}
           required
         >
           <option value="personal">Personal</option>
@@ -306,32 +283,15 @@ export function OnboardingForm({
         </Select>
       </div>
       <div className="space-y-2 md:col-span-2">
-        <label className="text-sm font-medium" htmlFor="organisation-id">
-          Organisation existante (optionnel)
-        </label>
-        <Select
-          id="organisation-id"
-          name="organisation_id"
-          value={organisationId}
-          onChange={(event) => setOrganisationId(event.target.value)}
-          disabled={joinMode === "personal"}
-        >
-          <option value="">Selectionner une organisation</option>
-          {filteredOrganisations.map((organisation) => (
-            <option key={organisation.id} value={organisation.id}>
-              {organisation.name}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div className="space-y-2 md:col-span-2">
         <label className="text-sm font-medium" htmlFor="org-name">
-          Nouveau nom organisation (si non presente dans la liste)
+          Nom de votre association/entreprise
         </label>
         <Input
           id="org-name"
           name="org_name"
-          placeholder="Nom de l'organisation"
+          placeholder="Ex: Association CZI Jeunes / Entreprise CZI SARL"
+          disabled={joinMode === "personal"}
+          required={joinMode !== "personal"}
         />
       </div>
 

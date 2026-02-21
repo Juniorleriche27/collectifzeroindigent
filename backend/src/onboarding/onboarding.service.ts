@@ -127,7 +127,7 @@ export class OnboardingService {
 
     if (!orgName) {
       throw new BadRequestException(
-        'organisation_id ou org_name est requis pour association/enterprise.',
+        'org_name est requis pour association/enterprise.',
       );
     }
 

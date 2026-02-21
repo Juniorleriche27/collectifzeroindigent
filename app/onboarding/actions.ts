@@ -67,7 +67,6 @@ export async function submitOnboarding(
   const prefectureId = formValue(formData, "prefecture_id");
   const communeId = formValue(formData, "commune_id");
   const joinMode = formValue(formData, "join_mode");
-  const organisationId = formValue(formData, "organisation_id");
   const orgName = formValue(formData, "org_name");
 
   if (
@@ -86,10 +85,9 @@ export async function submitOnboarding(
     return { error: "Type d'inscription invalide." };
   }
 
-  if (joinMode !== "personal" && !orgName && !organisationId) {
+  if (joinMode !== "personal" && !orgName) {
     return {
-      error:
-        "Selectionnez une organisation existante ou renseignez un nouveau nom d'organisation.",
+      error: "Le nom de l'association/entreprise est obligatoire pour ce type de profil.",
     };
   }
 
@@ -103,7 +101,6 @@ export async function submitOnboarding(
       prefecture_id: prefectureId,
       commune_id: communeId,
       join_mode: joinMode,
-      organisation_id: joinMode === "personal" ? undefined : organisationId || undefined,
       org_name: joinMode === "personal" ? undefined : orgName || undefined,
     });
   } catch (error) {
