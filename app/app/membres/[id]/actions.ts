@@ -11,7 +11,7 @@ export type MemberUpdateState = {
 };
 
 const joinModes = new Set(["personal", "association", "enterprise"]);
-const allowedStatuses = new Set(["active", "pending", "suspended"]);
+const allowedStatuses = new Set(["active", "pending"]);
 
 function formValue(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();

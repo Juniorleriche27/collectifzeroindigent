@@ -141,7 +141,6 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             <option value="">Tous statuts</option>
             <option value="active">Actif</option>
             <option value="pending">En attente</option>
-            <option value="suspended">Suspendu</option>
           </Select>
           <Select defaultValue={regionId} name="region_id">
             <option value="">Toutes regions</option>

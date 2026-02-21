@@ -104,10 +104,14 @@ export function MemberEditForm({
         <label className="text-sm font-medium" htmlFor="member-status">
           Status
         </label>
-        <Select id="member-status" name="status" defaultValue={member.status ?? "active"} required>
+        <Select
+          id="member-status"
+          name="status"
+          defaultValue={member.status === "pending" ? "pending" : "active"}
+          required
+        >
           <option value="active">Actif</option>
           <option value="pending">En attente</option>
-          <option value="suspended">Suspendu</option>
         </Select>
       </div>
       <div className="space-y-2">

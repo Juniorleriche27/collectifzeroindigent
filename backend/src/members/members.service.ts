@@ -17,6 +17,7 @@ type ListMembersQuery = {
 @Injectable()
 export class MembersService {
   constructor(private readonly supabaseDataService: SupabaseDataService) {}
+  private readonly allowedStatusFilters = new Set(['active', 'pending']);
 
   async list(accessToken: string, query: ListMembersQuery) {
     const client = this.supabaseDataService.forUser(accessToken);
@@ -52,7 +53,9 @@ export class MembersService {
       dbQuery = dbQuery.order('created_at', { ascending: false });
     }
 
-    if (query.status) dbQuery = dbQuery.eq('status', query.status);
+    if (query.status && this.allowedStatusFilters.has(query.status)) {
+      dbQuery = dbQuery.eq('status', query.status);
+    }
     if (query.region_id) dbQuery = dbQuery.eq('region_id', query.region_id);
     if (query.prefecture_id)
       dbQuery = dbQuery.eq('prefecture_id', query.prefecture_id);
