@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getLinkedMemberIdFromProfile } from "@/lib/supabase/member";
+import { updateProfileMemberIdByAuthUser } from "@/lib/supabase/profile";
 import { createClient } from "@/lib/supabase/server";
 
 export type OnboardingState = {
@@ -113,10 +114,7 @@ export async function submitOnboarding(
     };
   }
 
-  const { error: profileError } = await supabase
-    .from("profile")
-    .update({ member_id: member.id })
-    .eq("user_id", user.id);
+  const profileError = await updateProfileMemberIdByAuthUser(supabase, user.id, member.id);
 
   if (profileError) {
     return {

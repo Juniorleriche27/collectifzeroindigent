@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getProfileMemberIdByAuthUser } from "@/lib/supabase/profile";
 
 export type RegionOption = {
   id: string;
@@ -50,17 +51,13 @@ export async function getMemberForUser(userId: string): Promise<{ id: string } |
 
 export async function getLinkedMemberIdFromProfile(userId: string): Promise<string | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("profile")
-    .select("member_id")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { error, memberId } = await getProfileMemberIdByAuthUser(supabase, userId);
 
   if (error) {
     throw error;
   }
 
-  return data?.member_id ?? null;
+  return memberId;
 }
 
 export async function getOnboardingLocations(): Promise<{

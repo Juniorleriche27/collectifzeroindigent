@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
+import { getProfileMemberIdByAuthUser } from "@/lib/supabase/profile";
 import type {
   CommuneOption,
   PrefectureOption,
@@ -71,13 +72,9 @@ export function OnboardingForm({
           setEmailValue((previous) => previous || user.email || "");
         }
 
-        const [profileResult, regionsResult, prefecturesResult, communesResult] =
+        const [profileLookup, regionsResult, prefecturesResult, communesResult] =
           await Promise.all([
-            supabase
-              .from("profile")
-              .select("member_id")
-              .eq("user_id", user.id)
-              .maybeSingle(),
+            getProfileMemberIdByAuthUser(supabase, user.id),
             supabase.from("region").select("id, name").order("name"),
             supabase.from("prefecture").select("id, name, region_id").order("name"),
             supabase.from("commune").select("id, name, prefecture_id").order("name"),
@@ -85,9 +82,9 @@ export function OnboardingForm({
 
         if (!active) return;
 
-        if (profileResult.error) {
-          console.error("Unable to verify linked member from profile", profileResult.error);
-        } else if (profileResult.data?.member_id) {
+        if (profileLookup.error) {
+          console.error("Unable to verify linked member from profile", profileLookup.error);
+        } else if (profileLookup.memberId) {
           setAlreadyOnboarded(true);
           setRuntimeDisabledReason(
             "Votre profil est deja complete. Ouvrez directement le dashboard.",
