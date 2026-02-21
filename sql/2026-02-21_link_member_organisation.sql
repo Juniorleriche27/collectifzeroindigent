@@ -28,9 +28,9 @@ update public.member m
 set organisation_id = o.id
 from public.organisation o
 where m.organisation_id is null
-  and m.join_mode in ('association', 'enterprise')
+  and m.join_mode::text in ('association', 'enterprise')
   and m.org_name is not null
   and lower(trim(m.org_name)) = lower(trim(o.name))
-  and o.type = m.join_mode;
+  and lower(trim(o.type)) = lower(trim(m.join_mode::text));
 
 commit;
