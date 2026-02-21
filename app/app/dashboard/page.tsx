@@ -1,6 +1,7 @@
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { getDashboardOverview, listMembers } from "@/lib/backend/api";
+import { getDashboardOverview } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createClient } from "@/lib/supabase/server";
 
 type DashboardKpi = {
   label: string;
@@ -15,6 +16,7 @@ export default async function DashboardPage() {
     { label: "Comptes suspendus", value: "0", trend: "Surveillance" },
   ];
   let loadError: string | null = null;
+  let loadNotice: string | null = null;
 
   if (isSupabaseConfigured) {
     try {
@@ -39,32 +41,72 @@ export default async function DashboardPage() {
     } catch (error) {
       console.error("Unable to load dashboard overview endpoint", error);
       try {
-        const [allMembers, activeMembers, pendingMembers, suspendedMembers] = await Promise.all([
-          listMembers({ page: 1, page_size: 1 }),
-          listMembers({ page: 1, page_size: 1, status: "active" }),
-          listMembers({ page: 1, page_size: 1, status: "pending" }),
-          listMembers({ page: 1, page_size: 1, status: "suspended" }),
-        ]);
+        const supabase = await createClient();
+        const startOfMonth = new Date();
+        startOfMonth.setUTCDate(1);
+        startOfMonth.setUTCHours(0, 0, 0, 0);
+
+        const [
+          allMembersResult,
+          activeMembersResult,
+          pendingMembersResult,
+          suspendedMembersResult,
+          createdThisMonthResult,
+        ] =
+          await Promise.all([
+            supabase.from("member").select("id", { count: "exact" }).limit(1),
+            supabase
+              .from("member")
+              .select("id", { count: "exact" })
+              .eq("status", "active")
+              .limit(1),
+            supabase
+              .from("member")
+              .select("id", { count: "exact" })
+              .eq("status", "pending")
+              .limit(1),
+            supabase
+              .from("member")
+              .select("id", { count: "exact" })
+              .eq("status", "suspended")
+              .limit(1),
+            supabase
+              .from("member")
+              .select("id", { count: "exact" })
+              .gte("created_at", startOfMonth.toISOString())
+              .limit(1),
+          ]);
+
+        if (allMembersResult.error) throw allMembersResult.error;
+        if (activeMembersResult.error) throw activeMembersResult.error;
+        if (pendingMembersResult.error) throw pendingMembersResult.error;
+        if (suspendedMembersResult.error) throw suspendedMembersResult.error;
+        if (createdThisMonthResult.error) throw createdThisMonthResult.error;
+
+        const allMembers = allMembersResult.count ?? 0;
+        const activeMembers = activeMembersResult.count ?? 0;
+        const pendingMembers = pendingMembersResult.count ?? 0;
+        const suspendedMembers = suspendedMembersResult.count ?? 0;
+        const createdThisMonth = createdThisMonthResult.count ?? 0;
 
         kpis = [
           {
             label: "Membres visibles",
-            value: String(allMembers.count),
-            trend: "Mode compatibilite",
+            value: String(allMembers),
+            trend: `+${createdThisMonth} ce mois`,
           },
           {
             label: "Demandes en attente",
-            value: String(pendingMembers.count),
+            value: String(pendingMembers),
             trend: "A traiter",
           },
           {
             label: "Comptes suspendus",
-            value: String(suspendedMembers.count),
-            trend: `${activeMembers.count} actifs`,
+            value: String(suspendedMembers),
+            trend: `${activeMembers} actifs`,
           },
         ];
-        loadError =
-          "Indicateurs avances indisponibles. Affichage en mode compatibilite via la liste membres.";
+        loadNotice = "Indicateurs backend indisponibles. Mode secours Supabase actif.";
       } catch (fallbackError) {
         console.error("Unable to load dashboard fallback metrics", fallbackError);
         loadError = "Impossible de charger les indicateurs dashboard.";
@@ -81,6 +123,11 @@ export default async function DashboardPage() {
       {loadError ? (
         <Card>
           <CardDescription className="text-red-600">{loadError}</CardDescription>
+        </Card>
+      ) : null}
+      {loadNotice ? (
+        <Card>
+          <CardDescription className="text-amber-700">{loadNotice}</CardDescription>
         </Card>
       ) : null}
       <section className="grid gap-4 md:grid-cols-3">
