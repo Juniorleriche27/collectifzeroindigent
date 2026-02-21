@@ -31,6 +31,7 @@ export type MemberRecord = {
   prefecture_id: string | null;
   commune_id: string | null;
   join_mode: string | null;
+  organisation_id: string | null;
   org_name: string | null;
   created_at?: string | null;
 };
@@ -164,6 +165,7 @@ export async function getDashboardOverview() {
 
 export async function listMembers(filters?: {
   commune_id?: string;
+  organisation_id?: string;
   page?: number;
   page_size?: number;
   prefecture_id?: string;
@@ -179,6 +181,7 @@ export async function listMembers(filters?: {
   if (filters?.region_id) query.set('region_id', filters.region_id);
   if (filters?.prefecture_id) query.set('prefecture_id', filters.prefecture_id);
   if (filters?.commune_id) query.set('commune_id', filters.commune_id);
+  if (filters?.organisation_id) query.set('organisation_id', filters.organisation_id);
   if (filters?.sort) query.set('sort', filters.sort);
   if (filters?.page) query.set('page', String(filters.page));
   if (filters?.page_size) query.set('page_size', String(filters.page_size));
@@ -225,11 +228,12 @@ export async function completeOnboarding(payload: {
   first_name: string;
   last_name: string;
   phone: string;
-  email?: string;
+  email?: string | null;
   region_id: string;
   prefecture_id: string;
   commune_id: string;
   join_mode: string;
+  organisation_id?: string;
   org_name?: string;
 }) {
   return requestBackend<{ member_id: string; message: string }>('/onboarding', {

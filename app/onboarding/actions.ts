@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { completeOnboarding } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getLinkedMemberIdFromProfile } from "@/lib/supabase/member";
-import { updateProfileMemberIdByAuthUser } from "@/lib/supabase/profile";
 import { createClient } from "@/lib/supabase/server";
 
 export type OnboardingState = {
@@ -67,6 +67,7 @@ export async function submitOnboarding(
   const prefectureId = formValue(formData, "prefecture_id");
   const communeId = formValue(formData, "commune_id");
   const joinMode = formValue(formData, "join_mode");
+  const organisationId = formValue(formData, "organisation_id");
   const orgName = formValue(formData, "org_name");
 
   if (
@@ -85,14 +86,15 @@ export async function submitOnboarding(
     return { error: "Type d'inscription invalide." };
   }
 
-  if (joinMode !== "personal" && !orgName) {
-    return { error: "Le nom de l'organisation est requis pour ce type d'inscription." };
+  if (joinMode !== "personal" && !orgName && !organisationId) {
+    return {
+      error:
+        "Selectionnez une organisation existante ou renseignez un nouveau nom d'organisation.",
+    };
   }
 
-  const { data: member, error: memberError } = await supabase
-    .from("member")
-    .insert({
-      user_id: user.id,
+  try {
+    await completeOnboarding({
       first_name: firstName,
       last_name: lastName,
       phone,
@@ -101,24 +103,14 @@ export async function submitOnboarding(
       prefecture_id: prefectureId,
       commune_id: communeId,
       join_mode: joinMode,
-      org_name: joinMode === "personal" ? null : orgName,
-    })
-    .select("id")
-    .single();
-
-  if (memberError || !member) {
+      organisation_id: joinMode === "personal" ? undefined : organisationId || undefined,
+      org_name: joinMode === "personal" ? undefined : orgName || undefined,
+    });
+  } catch (error) {
     return {
       error: normalizeOnboardingError(
-        memberError?.message ?? "Impossible de creer le membre pour le moment.",
+        error instanceof Error ? error.message : "Impossible de finaliser l'onboarding.",
       ),
-    };
-  }
-
-  const profileError = await updateProfileMemberIdByAuthUser(supabase, user.id, member.id);
-
-  if (profileError) {
-    return {
-      error: profileError.message,
     };
   }
 

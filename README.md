@@ -85,3 +85,9 @@ Si la page `/app/organisations` affiche "Aucune table organisation detectee", ex
 - `sql/2026-02-21_create_organisation_table.sql`
 
 Ensuite rechargez la page: la creation d'organisation sera active.
+
+## Liaison membres -> organisations (phase 2)
+
+Pour activer le rattachement d'un membre a une organisation (`member.organisation_id`), executez aussi:
+
+- `sql/2026-02-21_link_member_organisation.sql`

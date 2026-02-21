@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select";
 import type {
   CommuneOption,
   MemberRecord,
+  OrganisationCardItem,
   PrefectureOption,
   RegionOption,
 } from "@/lib/backend/api";
@@ -18,6 +19,7 @@ import type { MemberUpdateState } from "./actions";
 type MemberEditFormProps = {
   communes: CommuneOption[];
   member: MemberRecord;
+  organisations: OrganisationCardItem[];
   prefectures: PrefectureOption[];
   regions: RegionOption[];
 };
@@ -25,6 +27,7 @@ type MemberEditFormProps = {
 export function MemberEditForm({
   communes,
   member,
+  organisations,
   prefectures,
   regions,
 }: MemberEditFormProps) {
@@ -36,6 +39,7 @@ export function MemberEditForm({
   const [prefectureId, setPrefectureId] = useState(String(member.prefecture_id ?? ""));
   const [communeId, setCommuneId] = useState(String(member.commune_id ?? ""));
   const [joinMode, setJoinMode] = useState(member.join_mode ?? "personal");
+  const [organisationId, setOrganisationId] = useState(String(member.organisation_id ?? ""));
 
   const filteredPrefectures = useMemo(
     () => prefectures.filter((prefecture) => String(prefecture.region_id) === regionId),
@@ -57,6 +61,11 @@ export function MemberEditForm({
     },
     [communes, prefectureId, prefectureIdsInRegion, regionId],
   );
+  const filteredOrganisations = useMemo(() => {
+    if (joinMode === "personal") return [];
+    const category = joinMode === "association" ? "Association" : "Entreprise";
+    return organisations.filter((organisation) => organisation.category === category);
+  }, [joinMode, organisations]);
 
   const updateMemberAction = updateMember.bind(null, String(member.id));
   const [state, formAction, isPending] = useActionState(
@@ -122,7 +131,10 @@ export function MemberEditForm({
           id="member-join-mode"
           name="join_mode"
           value={joinMode}
-          onChange={(event) => setJoinMode(event.target.value)}
+          onChange={(event) => {
+            setJoinMode(event.target.value);
+            setOrganisationId("");
+          }}
           required
         >
           <option value="personal">Personal</option>
@@ -204,8 +216,27 @@ export function MemberEditForm({
         </Select>
       </div>
       <div className="space-y-2">
+        <label className="text-sm font-medium" htmlFor="member-organisation-id">
+          Organisation existante (optionnel)
+        </label>
+        <Select
+          id="member-organisation-id"
+          name="organisation_id"
+          value={organisationId}
+          onChange={(event) => setOrganisationId(event.target.value)}
+          disabled={joinMode === "personal"}
+        >
+          <option value="">Selectionner une organisation</option>
+          {filteredOrganisations.map((organisation) => (
+            <option key={organisation.id} value={organisation.id}>
+              {organisation.name}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="member-org-name">
-          Nom organisation (si association/enterprise)
+          Nouveau nom organisation (si non presente dans la liste)
         </label>
         <Input
           defaultValue={member.org_name ?? ""}

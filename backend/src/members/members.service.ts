@@ -5,6 +5,7 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 
 type ListMembersQuery = {
   commune_id?: string;
+  organisation_id?: string;
   page?: string;
   page_size?: string;
   prefecture_id?: string;
@@ -18,6 +19,8 @@ type ListMembersQuery = {
 export class MembersService {
   constructor(private readonly supabaseDataService: SupabaseDataService) {}
   private readonly allowedStatusFilters = new Set(['active', 'pending']);
+  private readonly memberSelectFields =
+    'id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, organisation_id, org_name, created_at';
 
   async list(accessToken: string, query: ListMembersQuery) {
     const client = this.supabaseDataService.forUser(accessToken);
@@ -28,10 +31,7 @@ export class MembersService {
 
     let dbQuery = client
       .from('member')
-      .select(
-        'id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, org_name, created_at',
-        { count: 'exact' },
-      )
+      .select(this.memberSelectFields, { count: 'exact' })
       .range(rangeFrom, rangeTo);
 
     const sort = query.sort ?? 'created_desc';
@@ -60,6 +60,8 @@ export class MembersService {
     if (query.prefecture_id)
       dbQuery = dbQuery.eq('prefecture_id', query.prefecture_id);
     if (query.commune_id) dbQuery = dbQuery.eq('commune_id', query.commune_id);
+    if (query.organisation_id)
+      dbQuery = dbQuery.eq('organisation_id', query.organisation_id);
     if (query.q) {
       const safeSearch = query.q.replaceAll(',', ' ').trim();
       if (safeSearch) {
@@ -86,9 +88,7 @@ export class MembersService {
     const client = this.supabaseDataService.forUser(accessToken);
     const { data, error } = await client
       .from('member')
-      .select(
-        'id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, org_name, created_at',
-      )
+      .select(this.memberSelectFields)
       .eq('id', memberId)
       .maybeSingle();
 
@@ -104,9 +104,7 @@ export class MembersService {
 
     const { data, error } = await client
       .from('member')
-      .select(
-        'id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, org_name, created_at',
-      )
+      .select(this.memberSelectFields)
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -126,6 +124,10 @@ export class MembersService {
     const normalizedPayload = {
       ...payload,
       email: payload.email || null,
+      organisation_id:
+        payload.join_mode && payload.join_mode === 'personal'
+          ? null
+          : (payload.organisation_id ?? null),
       org_name:
         payload.join_mode && payload.join_mode === 'personal'
           ? null
@@ -136,9 +138,7 @@ export class MembersService {
       .from('member')
       .update(normalizedPayload)
       .eq('id', memberId)
-      .select(
-        'id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, org_name, created_at',
-      )
+      .select(this.memberSelectFields)
       .maybeSingle();
 
     if (error) {
@@ -153,6 +153,10 @@ export class MembersService {
     const normalizedPayload = {
       ...payload,
       email: payload.email || null,
+      organisation_id:
+        payload.join_mode && payload.join_mode === 'personal'
+          ? null
+          : (payload.organisation_id ?? null),
       org_name:
         payload.join_mode && payload.join_mode === 'personal'
           ? null
@@ -163,9 +167,7 @@ export class MembersService {
       .from('member')
       .update(normalizedPayload)
       .eq('user_id', userId)
-      .select(
-        'id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, org_name, created_at',
-      )
+      .select(this.memberSelectFields)
       .maybeSingle();
 
     if (error) {

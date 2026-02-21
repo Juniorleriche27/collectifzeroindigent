@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { getLocations, getMemberById } from "@/lib/backend/api";
+import { getLocations, getMemberById, listOrganisations } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 import { MemberEditForm } from "./member-edit-form";
@@ -36,15 +36,18 @@ export default async function MemberDetailPage({
 
   let member: Awaited<ReturnType<typeof getMemberById>> | null = null;
   let locations: Awaited<ReturnType<typeof getLocations>> | null = null;
+  let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
   let loadError: string | null = null;
 
   try {
-    const [memberData, locationData] = await Promise.all([
+    const [memberData, locationData, organisationData] = await Promise.all([
       getMemberById(id),
       getLocations(),
+      listOrganisations(),
     ]);
     member = memberData;
     locations = locationData;
+    organisations = organisationData.items;
   } catch (error) {
     console.error("Unable to load member detail", error);
     loadError = "Impossible de charger ce membre pour le moment.";
@@ -102,6 +105,7 @@ export default async function MemberDetailPage({
         <MemberEditForm
           communes={locations.communes}
           member={member}
+          organisations={organisations}
           prefectures={locations.prefectures}
           regions={locations.regions}
         />

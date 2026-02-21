@@ -39,4 +39,8 @@ export class CreateOnboardingDto {
   @IsString()
   @MaxLength(200)
   org_name?: string;
+
+  @IsOptional()
+  @IsString()
+  organisation_id?: string;
 }

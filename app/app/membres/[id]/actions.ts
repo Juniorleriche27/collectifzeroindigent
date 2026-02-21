@@ -45,6 +45,7 @@ export async function updateMember(
   const prefectureId = formValue(formData, "prefecture_id");
   const communeId = formValue(formData, "commune_id");
   const joinMode = formValue(formData, "join_mode");
+  const organisationId = formValue(formData, "organisation_id");
   const orgName = formValue(formData, "org_name");
 
   if (
@@ -71,9 +72,10 @@ export async function updateMember(
     return { error: "Type d'inscription invalide.", success: null };
   }
 
-  if (joinMode !== "personal" && !orgName) {
+  if (joinMode !== "personal" && !orgName && !organisationId) {
     return {
-      error: "Le nom de l'organisation est requis pour ce type d'inscription.",
+      error:
+        "Selectionnez une organisation existante ou renseignez un nouveau nom d'organisation.",
       success: null,
     };
   }
@@ -85,6 +87,7 @@ export async function updateMember(
       first_name: firstName,
       join_mode: joinMode,
       last_name: lastName,
+      organisation_id: joinMode === "personal" ? null : organisationId || null,
       org_name: joinMode === "personal" ? null : orgName,
       phone,
       prefecture_id: prefectureId,

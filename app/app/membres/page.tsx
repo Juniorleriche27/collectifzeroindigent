@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { getLocations, listMembers } from "@/lib/backend/api";
+import { getLocations, listMembers, listOrganisations } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -44,6 +44,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   const regionId = paramValue(params.region_id);
   const prefectureId = paramValue(params.prefecture_id);
   const communeId = paramValue(params.commune_id);
+  const organisationId = paramValue(params.organisation_id);
   const sort = paramValue(params.sort) || "created_desc";
   const page = parsePositiveInt(paramValue(params.page), 1);
   const pageSize = normalizePageSize(parsePositiveInt(paramValue(params.page_size), 10));
@@ -54,13 +55,16 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   let regions = [] as Awaited<ReturnType<typeof getLocations>>["regions"];
   let prefectures = [] as Awaited<ReturnType<typeof getLocations>>["prefectures"];
   let communes = [] as Awaited<ReturnType<typeof getLocations>>["communes"];
+  let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
 
   if (isSupabaseConfigured) {
     try {
-      const [locationData, memberData] = await Promise.all([
+      const [locationData, organisationData, memberData] = await Promise.all([
         getLocations(),
+        listOrganisations(),
         listMembers({
           commune_id: communeId || undefined,
+          organisation_id: organisationId || undefined,
           page,
           page_size: pageSize,
           prefecture_id: prefectureId || undefined,
@@ -76,6 +80,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
       regions = locationData.regions;
       prefectures = locationData.prefectures;
       communes = locationData.communes;
+      organisations = organisationData.items;
       members = memberData.rows;
       totalCount = memberData.count;
     } catch (error) {
@@ -96,6 +101,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     prefectures.map((prefecture) => [String(prefecture.id), prefecture.name]),
   );
   const communesById = new Map(communes.map((commune) => [String(commune.id), commune.name]));
+  const organisationsById = new Map(
+    organisations.map((organisation) => [String(organisation.id), organisation.name]),
+  );
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
   const hasPreviousPage = safePage > 1;
@@ -108,6 +116,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     if (regionId) urlParams.set("region_id", regionId);
     if (prefectureId) urlParams.set("prefecture_id", prefectureId);
     if (communeId) urlParams.set("commune_id", communeId);
+    if (organisationId) urlParams.set("organisation_id", organisationId);
     if (sort) urlParams.set("sort", sort);
     if (pageSize !== 10) urlParams.set("page_size", String(pageSize));
     if (nextPage > 1) urlParams.set("page", String(nextPage));
@@ -135,7 +144,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
 
       <Card className="space-y-4">
         <CardTitle className="text-base">Recherche</CardTitle>
-        <form className="grid gap-3 md:grid-cols-6" method="get">
+        <form className="grid gap-3 md:grid-cols-7" method="get">
           <Input defaultValue={query} name="q" placeholder="Nom, email, telephone..." />
           <Select defaultValue={status} name="status">
             <option value="">Tous statuts</option>
@@ -166,6 +175,14 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
               </option>
             ))}
           </Select>
+          <Select defaultValue={organisationId} name="organisation_id">
+            <option value="">Toutes organisations</option>
+            {organisations.map((organisation) => (
+              <option key={organisation.id} value={organisation.id}>
+                {organisation.name}
+              </option>
+            ))}
+          </Select>
           <Select defaultValue={sort} name="sort">
             <option value="created_desc">Plus recents</option>
             <option value="created_asc">Plus anciens</option>
@@ -178,7 +195,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             <option value="20">20 / page</option>
             <option value="50">50 / page</option>
           </Select>
-          <div className="md:col-span-6 flex items-center gap-3">
+          <div className="md:col-span-7 flex items-center gap-3">
             <Button type="submit">Appliquer les filtres</Button>
             <p className="text-sm text-muted">{totalCount} resultat(s)</p>
           </div>
@@ -186,7 +203,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
       </Card>
 
       <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[860px] text-left">
+        <table className="w-full min-w-[980px] text-left">
           <thead className="bg-muted-surface">
             <tr>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -202,6 +219,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                 Localisation
               </th>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
+                Organisation
+              </th>
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
                 Statut
               </th>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -212,19 +232,19 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           <tbody>
             {!isSupabaseConfigured ? (
               <tr className="border-t border-border">
-                <td className="px-4 py-6 text-sm text-muted" colSpan={6}>
+                <td className="px-4 py-6 text-sm text-muted" colSpan={7}>
                   Configurez Supabase pour charger les donnees membres.
                 </td>
               </tr>
             ) : loadError ? (
               <tr className="border-t border-border">
-                <td className="px-4 py-6 text-sm text-red-600" colSpan={6}>
+                <td className="px-4 py-6 text-sm text-red-600" colSpan={7}>
                   {loadError}
                 </td>
               </tr>
             ) : members.length === 0 ? (
               <tr className="border-t border-border">
-                <td className="px-4 py-6 text-sm text-muted" colSpan={6}>
+                <td className="px-4 py-6 text-sm text-muted" colSpan={7}>
                   Aucun membre ne correspond aux filtres.
                 </td>
               </tr>
@@ -246,6 +266,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                       (prefecturesById.get(String(member.prefecture_id)) ?? "-") +
                       " / " +
                       (communesById.get(String(member.commune_id)) ?? "-")}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted">
+                    {organisationsById.get(String(member.organisation_id)) ?? member.org_name ?? "-"}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <Badge variant={statusVariant(member.status)}>

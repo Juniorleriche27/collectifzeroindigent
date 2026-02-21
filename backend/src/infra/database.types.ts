@@ -41,6 +41,7 @@ export type Database = {
           id?: string;
           join_mode: string;
           last_name: string;
+          organisation_id?: string | null;
           org_name?: string | null;
           phone: string;
           prefecture_id: string;
@@ -60,6 +61,7 @@ export type Database = {
           id: string;
           join_mode: string | null;
           last_name: string | null;
+          organisation_id: string | null;
           org_name: string | null;
           phone: string | null;
           prefecture_id: string;
@@ -78,6 +80,7 @@ export type Database = {
           id?: string;
           join_mode?: string | null;
           last_name?: string | null;
+          organisation_id?: string | null;
           org_name?: string | null;
           phone?: string | null;
           prefecture_id?: string;
@@ -88,10 +91,31 @@ export type Database = {
         };
       };
       organisation: {
-        Insert: { [key: string]: Json | null | undefined };
+        Insert: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          name: string;
+          type: string;
+          updated_at?: string;
+        };
         Relationships: [];
-        Row: { [key: string]: Json | null };
-        Update: { [key: string]: Json | null | undefined };
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          name: string;
+          type: string;
+          updated_at: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          name?: string;
+          type?: string;
+          updated_at?: string;
+        };
       };
       organization: {
         Insert: { [key: string]: Json | null | undefined };
