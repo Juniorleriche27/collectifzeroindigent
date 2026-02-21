@@ -14,7 +14,8 @@ import type {
   RegionOption,
 } from "@/lib/backend/api";
 
-import { initialState, submitOnboarding } from "./actions";
+import { submitOnboarding } from "./actions";
+import type { OnboardingState } from "./actions";
 
 type OnboardingFormProps = {
   communes?: CommuneOption[];
@@ -31,6 +32,7 @@ export function OnboardingForm({
   prefectures = [],
   regions = [],
 }: OnboardingFormProps) {
+  const initialState: OnboardingState = { error: null };
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(submitOnboarding, initialState);
   const [regionId, setRegionId] = useState("");

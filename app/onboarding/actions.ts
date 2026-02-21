@@ -11,12 +11,6 @@ export type OnboardingState = {
   error: string | null;
 };
 
-const initialState: OnboardingState = {
-  error: null,
-};
-
-export { initialState };
-
 const joinModes = new Set(["personal", "association", "enterprise"]);
 
 function formValue(formData: FormData, key: string): string {

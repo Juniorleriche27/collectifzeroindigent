@@ -12,7 +12,8 @@ import type {
   RegionOption,
 } from "@/lib/backend/api";
 
-import { initialMemberUpdateState, updateMember } from "./actions";
+import { updateMember } from "./actions";
+import type { MemberUpdateState } from "./actions";
 
 type MemberEditFormProps = {
   communes: CommuneOption[];
@@ -27,6 +28,10 @@ export function MemberEditForm({
   prefectures,
   regions,
 }: MemberEditFormProps) {
+  const initialMemberUpdateState: MemberUpdateState = {
+    error: null,
+    success: null,
+  };
   const [regionId, setRegionId] = useState(String(member.region_id ?? ""));
   const [prefectureId, setPrefectureId] = useState(String(member.prefecture_id ?? ""));
   const [communeId, setCommuneId] = useState(String(member.commune_id ?? ""));

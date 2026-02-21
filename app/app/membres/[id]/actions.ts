@@ -10,11 +10,6 @@ export type MemberUpdateState = {
   success: string | null;
 };
 
-export const initialMemberUpdateState: MemberUpdateState = {
-  error: null,
-  success: null,
-};
-
 const joinModes = new Set(["personal", "association", "enterprise"]);
 const allowedStatuses = new Set(["active", "pending", "suspended"]);
 

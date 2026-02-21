@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-import { initialSettingsState, updateAccountSettings } from "./actions";
+import { updateAccountSettings } from "./actions";
+import type { SettingsState } from "./actions";
 
 const tabs = ["Compte", "Securite", "Notifications", "Roles"] as const;
 type TabName = (typeof tabs)[number];
@@ -23,6 +24,10 @@ type ParametresClientProps = {
 };
 
 export function ParametresClient({ defaults }: ParametresClientProps) {
+  const initialSettingsState: SettingsState = {
+    error: null,
+    success: null,
+  };
   const [activeTab, setActiveTab] = useState<TabName>("Compte");
   const [state, accountAction, isPending] = useActionState(
     updateAccountSettings,

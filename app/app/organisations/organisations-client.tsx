@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import type { OrganisationCardItem } from "@/lib/backend/api";
 
-import { createOrganisationAction, initialOrganisationCreateState } from "./actions";
+import { createOrganisationAction } from "./actions";
+import type { OrganisationCreateState } from "./actions";
 
 type OrganisationsClientProps = {
   canCreate: boolean;
@@ -28,6 +29,10 @@ export function OrganisationsClient({
   sourceLabel,
   sourceNote,
 }: OrganisationsClientProps) {
+  const initialOrganisationCreateState: OrganisationCreateState = {
+    error: null,
+    success: null,
+  };
   const [open, setOpen] = useState(false);
   const [state, createAction, isPending] = useActionState(
     createOrganisationAction,

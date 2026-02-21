@@ -10,11 +10,6 @@ export type OrganisationCreateState = {
   success: string | null;
 };
 
-export const initialOrganisationCreateState: OrganisationCreateState = {
-  error: null,
-  success: null,
-};
-
 function formValue(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
 }
