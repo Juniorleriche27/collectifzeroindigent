@@ -8,24 +8,21 @@ export class DashboardService {
 
   async overview(accessToken: string) {
     const client = this.supabaseDataService.forUser(accessToken);
-    const startOfMonth = new Date();
-    startOfMonth.setUTCDate(1);
-    startOfMonth.setUTCHours(0, 0, 0, 0);
+    const now = new Date();
+    const monthStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
 
     const [
       totalMembers,
       activeMembers,
       pendingMembers,
       suspendedMembers,
-      createdThisMonth,
+      createdThisMonthResult,
     ] = await Promise.all([
       this.countMembers(client),
       this.countMembers(client, (query) => query.eq('status', 'active')),
       this.countMembers(client, (query) => query.eq('status', 'pending')),
       this.countMembers(client, (query) => query.eq('status', 'suspended')),
-      this.countMembers(client, (query) =>
-        query.gte('created_at', startOfMonth.toISOString()),
-      ),
+      this.countMembersSafe(client, (query) => query.gte('created_at', monthStart)),
     ]);
 
     return {
@@ -33,7 +30,7 @@ export class DashboardService {
       pending_members: pendingMembers,
       suspended_members: suspendedMembers,
       total_members: totalMembers,
-      trend_new_this_month: createdThisMonth,
+      trend_new_this_month: createdThisMonthResult,
     };
   }
 
@@ -51,5 +48,17 @@ export class DashboardService {
       throw error;
     }
     return count ?? 0;
+  }
+
+  private async countMembersSafe(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    applyFilter?: (query: any) => any,
+  ): Promise<number> {
+    try {
+      return await this.countMembers(client, applyFilter);
+    } catch (error) {
+      console.error('Dashboard month count fallback to 0', error);
+      return 0;
+    }
   }
 }

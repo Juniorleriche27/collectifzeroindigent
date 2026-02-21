@@ -42,16 +42,12 @@ export default async function DashboardPage() {
       console.error("Unable to load dashboard overview endpoint", error);
       try {
         const supabase = await createClient();
-        const startOfMonth = new Date();
-        startOfMonth.setUTCDate(1);
-        startOfMonth.setUTCHours(0, 0, 0, 0);
 
         const [
           allMembersResult,
           activeMembersResult,
           pendingMembersResult,
           suspendedMembersResult,
-          createdThisMonthResult,
         ] =
           await Promise.all([
             supabase.from("member").select("id", { count: "exact" }).limit(1),
@@ -70,30 +66,23 @@ export default async function DashboardPage() {
               .select("id", { count: "exact" })
               .eq("status", "suspended")
               .limit(1),
-            supabase
-              .from("member")
-              .select("id", { count: "exact" })
-              .gte("created_at", startOfMonth.toISOString())
-              .limit(1),
           ]);
 
         if (allMembersResult.error) throw allMembersResult.error;
         if (activeMembersResult.error) throw activeMembersResult.error;
         if (pendingMembersResult.error) throw pendingMembersResult.error;
         if (suspendedMembersResult.error) throw suspendedMembersResult.error;
-        if (createdThisMonthResult.error) throw createdThisMonthResult.error;
 
         const allMembers = allMembersResult.count ?? 0;
         const activeMembers = activeMembersResult.count ?? 0;
         const pendingMembers = pendingMembersResult.count ?? 0;
         const suspendedMembers = suspendedMembersResult.count ?? 0;
-        const createdThisMonth = createdThisMonthResult.count ?? 0;
 
         kpis = [
           {
             label: "Membres visibles",
             value: String(allMembers),
-            trend: `+${createdThisMonth} ce mois`,
+            trend: "Mode secours",
           },
           {
             label: "Demandes en attente",
