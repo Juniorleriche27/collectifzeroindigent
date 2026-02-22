@@ -104,6 +104,6 @@ Pour appliquer les droits metier sur `member` selon `profile.role` (`member`, `p
 
 Effet attendu:
 
-- `member`: acces a ses propres enregistrements
+- `member`: acces en lecture sur le reseau (toutes regions), region personnelle appliquee par defaut dans le filtre UI
 - `pf`: acces en lecture sur toutes les regions (filtre par region recommande), edition limitee a sa region
 - `cn`/`ca`/`admin`: acces elargi

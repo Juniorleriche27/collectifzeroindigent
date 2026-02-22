@@ -43,6 +43,9 @@ function roleVisibilityHint(role: string): string {
   if (role === "pf") {
     return "PF: region personnelle appliquee par defaut. Utilisez le filtre region pour elargir la vue.";
   }
+  if (role === "member") {
+    return "Membre: lecture reseau autorisee. Region personnelle appliquee par defaut, filtres ouverts sur toutes les regions.";
+  }
   if (role === "admin" || role === "ca" || role === "cn") {
     return "RLS gouvernance: vue elargie sur plusieurs membres.";
   }
@@ -84,7 +87,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           currentRole = roleLookup.role;
         }
 
-        if (currentRole === "pf" && !hasExplicitRegionFilter) {
+        if ((currentRole === "pf" || currentRole === "member") && !hasExplicitRegionFilter) {
           const currentMember = await getCurrentMember();
           effectiveRegionId = String(currentMember?.region_id ?? "");
         }
@@ -168,9 +171,11 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           <h2 className="mt-1 text-3xl font-semibold tracking-tight">Liste & filtres</h2>
           <CardDescription className="mt-2">{roleVisibilityHint(currentRole)}</CardDescription>
         </div>
-        <Link href="/app/membres">
-          <Button variant="secondary">Reinitialiser</Button>
-        </Link>
+        {currentRole !== "member" ? (
+          <Link href="/app/membres">
+            <Button variant="secondary">Reinitialiser</Button>
+          </Link>
+        ) : null}
       </div>
 
       <Card className="space-y-4">
@@ -311,9 +316,14 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                       <Link className="font-semibold text-primary" href={`/app/membres/${member.id}`}>
                         Voir
                       </Link>
-                      <Link className="text-sm font-medium text-muted hover:text-foreground" href={`/app/membres/${member.id}`}>
-                        Modifier
-                      </Link>
+                      {currentRole !== "member" ? (
+                        <Link
+                          className="text-sm font-medium text-muted hover:text-foreground"
+                          href={`/app/membres/${member.id}`}
+                        >
+                          Modifier
+                        </Link>
+                      ) : null}
                     </div>
                   </td>
                 </tr>

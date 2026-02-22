@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { getLocations, getMemberById, listOrganisations } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getProfileRoleByAuthUser } from "@/lib/supabase/profile";
+import { createClient } from "@/lib/supabase/server";
 
 import { MemberEditForm } from "./member-edit-form";
 
@@ -37,9 +39,21 @@ export default async function MemberDetailPage({
   let member: Awaited<ReturnType<typeof getMemberById>> | null = null;
   let locations: Awaited<ReturnType<typeof getLocations>> | null = null;
   let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
+  let currentRole = "member";
   let loadError: string | null = null;
 
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const roleLookup = await getProfileRoleByAuthUser(supabase, user.id);
+      if (!roleLookup.error && roleLookup.role) {
+        currentRole = roleLookup.role;
+      }
+    }
+
     const [memberData, locationData, organisationData] = await Promise.all([
       getMemberById(id),
       getLocations(),
@@ -93,23 +107,35 @@ export default async function MemberDetailPage({
         <Badge variant={statusVariant(member.status)}>{member.status ?? "unknown"}</Badge>
       </div>
 
-      <Card className="space-y-2">
-        <CardTitle>Edition membre</CardTitle>
-        <CardDescription>
-          Les modifications sont soumises a RLS. Un compte standard ne peut editer que ses propres
-          donnees.
-        </CardDescription>
-      </Card>
+      {currentRole === "member" ? (
+        <Card className="space-y-2">
+          <CardTitle>Mode lecture</CardTitle>
+          <CardDescription>
+            Ce profil est visible pour contact reseau. Les modifications sont reservees aux roles
+            gouvernance.
+          </CardDescription>
+        </Card>
+      ) : (
+        <>
+          <Card className="space-y-2">
+            <CardTitle>Edition membre</CardTitle>
+            <CardDescription>
+              Les modifications sont soumises a RLS. Un compte standard ne peut editer que ses
+              propres donnees.
+            </CardDescription>
+          </Card>
 
-      <Card>
-        <MemberEditForm
-          communes={locations.communes}
-          member={member}
-          organisations={organisations}
-          prefectures={locations.prefectures}
-          regions={locations.regions}
-        />
-      </Card>
+          <Card>
+            <MemberEditForm
+              communes={locations.communes}
+              member={member}
+              organisations={organisations}
+              prefectures={locations.prefectures}
+              regions={locations.regions}
+            />
+          </Card>
+        </>
+      )}
     </div>
   );
 }
