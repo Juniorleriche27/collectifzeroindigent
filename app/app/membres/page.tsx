@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { getLocations, listMembers, listOrganisations } from "@/lib/backend/api";
+import { getCurrentMember, getLocations, listMembers, listOrganisations } from "@/lib/backend/api";
 import { getProfileRoleByAuthUser } from "@/lib/supabase/profile";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -40,7 +40,9 @@ function normalizePageSize(value: number): number {
 }
 
 function roleVisibilityHint(role: string): string {
-  if (role === "pf") return "RLS PF: membres visibles sur votre region.";
+  if (role === "pf") {
+    return "PF: region personnelle appliquee par defaut. Utilisez le filtre region pour elargir la vue.";
+  }
   if (role === "admin" || role === "ca" || role === "cn") {
     return "RLS gouvernance: vue elargie sur plusieurs membres.";
   }
@@ -51,7 +53,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   const params = await searchParams;
   const query = paramValue(params.q).trim();
   const status = paramValue(params.status);
-  const regionId = paramValue(params.region_id);
+  const requestedRegionId = paramValue(params.region_id);
+  const hasExplicitRegionFilter = Object.prototype.hasOwnProperty.call(params, "region_id");
   const prefectureId = paramValue(params.prefecture_id);
   const communeId = paramValue(params.commune_id);
   const organisationId = paramValue(params.organisation_id);
@@ -67,6 +70,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   let communes = [] as Awaited<ReturnType<typeof getLocations>>["communes"];
   let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
   let currentRole = "member";
+  let effectiveRegionId = requestedRegionId;
 
   if (isSupabaseConfigured) {
     try {
@@ -78,6 +82,11 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
         const roleLookup = await getProfileRoleByAuthUser(supabase, user.id);
         if (!roleLookup.error && roleLookup.role) {
           currentRole = roleLookup.role;
+        }
+
+        if (currentRole === "pf" && !hasExplicitRegionFilter) {
+          const currentMember = await getCurrentMember();
+          effectiveRegionId = String(currentMember?.region_id ?? "");
         }
       }
 
@@ -91,7 +100,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           page_size: pageSize,
           prefecture_id: prefectureId || undefined,
           q: query || undefined,
-          region_id: regionId || undefined,
+          region_id: effectiveRegionId || undefined,
           sort:
             sort === "created_asc" || sort === "name_asc" || sort === "name_desc" || sort === "status_asc"
               ? sort
@@ -111,8 +120,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     }
   }
 
-  const availablePrefectures = regionId
-    ? prefectures.filter((prefecture) => String(prefecture.region_id) === regionId)
+  const availablePrefectures = effectiveRegionId
+    ? prefectures.filter((prefecture) => String(prefecture.region_id) === effectiveRegionId)
     : prefectures;
   const availableCommunes = prefectureId
     ? communes.filter((commune) => String(commune.prefecture_id) === prefectureId)
@@ -135,7 +144,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     const urlParams = new URLSearchParams();
     if (query) urlParams.set("q", query);
     if (status) urlParams.set("status", status);
-    if (regionId) urlParams.set("region_id", regionId);
+    if (effectiveRegionId || hasExplicitRegionFilter) {
+      urlParams.set("region_id", effectiveRegionId);
+    }
     if (prefectureId) urlParams.set("prefecture_id", prefectureId);
     if (communeId) urlParams.set("commune_id", communeId);
     if (organisationId) urlParams.set("organisation_id", organisationId);
@@ -171,7 +182,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             <option value="active">Actif</option>
             <option value="pending">En attente</option>
           </Select>
-          <Select defaultValue={regionId} name="region_id">
+          <Select defaultValue={effectiveRegionId} name="region_id">
             <option value="">Toutes regions</option>
             {regions.map((region) => (
               <option key={region.id} value={region.id}>

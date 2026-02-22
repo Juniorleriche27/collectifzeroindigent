@@ -86,11 +86,7 @@ on public.member
 for select
 using (
   user_id = auth.uid()
-  or public.current_profile_role() in ('admin', 'ca', 'cn')
-  or (
-    public.current_profile_role() = 'pf'
-    and region_id = public.current_member_region_id()
-  )
+  or public.current_profile_role() in ('admin', 'ca', 'cn', 'pf')
 );
 
 create policy member_insert_by_role
