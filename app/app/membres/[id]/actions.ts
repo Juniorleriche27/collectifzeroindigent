@@ -4,14 +4,25 @@ import { revalidatePath } from "next/cache";
 
 import { updateMemberById } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import {
+  getProfileRoleByAuthUser,
+  updateProfileRoleByAuthUser,
+} from "@/lib/supabase/profile";
+import { createClient } from "@/lib/supabase/server";
 
 export type MemberUpdateState = {
   error: string | null;
   success: string | null;
 };
 
+export type MemberRoleState = {
+  error: string | null;
+  success: string | null;
+};
+
 const joinModes = new Set(["personal", "association", "enterprise"]);
 const allowedStatuses = new Set(["active", "pending"]);
+const allowedRoles = new Set(["member", "pf", "cn", "ca", "admin"]);
 
 function formValue(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
@@ -22,6 +33,25 @@ function toErrorMessage(error: unknown): string {
     return error.message;
   }
   return "Impossible de mettre a jour ce membre.";
+}
+
+function toRoleErrorMessage(error: unknown): string {
+  if (error && typeof error === "object") {
+    const candidate = error as { code?: string; message?: string };
+    if (candidate.code === "42501") {
+      return (
+        "Permission RLS insuffisante pour modifier le role. " +
+        "Appliquez le script SQL `sql/2026-02-22_profile_role_governance_access.sql`."
+      );
+    }
+    if (typeof candidate.message === "string" && candidate.message.trim()) {
+      return candidate.message.trim();
+    }
+  }
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return "Impossible de mettre a jour le role.";
 }
 
 export async function updateMember(
@@ -107,5 +137,82 @@ export async function updateMember(
   return {
     error: null,
     success: "Membre mis a jour.",
+  };
+}
+
+export async function updateMemberRole(
+  memberId: string,
+  targetUserId: string,
+  _previousState: MemberRoleState,
+  formData: FormData,
+): Promise<MemberRoleState> {
+  if (!isSupabaseConfigured) {
+    return { error: "Supabase non configure.", success: null };
+  }
+
+  const nextRole = formValue(formData, "role").toLowerCase();
+  if (!allowedRoles.has(nextRole)) {
+    return { error: "Role invalide.", success: null };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "Session invalide. Reconnectez-vous.", success: null };
+  }
+
+  const actorRoleLookup = await getProfileRoleByAuthUser(supabase, user.id);
+  if (actorRoleLookup.error) {
+    return { error: toRoleErrorMessage(actorRoleLookup.error), success: null };
+  }
+  const actorRole = (actorRoleLookup.role ?? "member").toLowerCase();
+
+  if (actorRole !== "admin" && actorRole !== "ca") {
+    return { error: "Seuls les roles admin/ca peuvent modifier un role.", success: null };
+  }
+
+  if (actorRole === "ca" && (nextRole === "ca" || nextRole === "admin")) {
+    return {
+      error: "Le role CA peut attribuer uniquement member/pf/cn.",
+      success: null,
+    };
+  }
+
+  if (targetUserId === user.id && nextRole !== actorRole && actorRole === "ca") {
+    return {
+      error: "Un role CA ne peut pas modifier son propre role.",
+      success: null,
+    };
+  }
+
+  const updateResult = await updateProfileRoleByAuthUser(supabase, targetUserId, nextRole);
+  if (updateResult.error) {
+    return { error: toRoleErrorMessage(updateResult.error), success: null };
+  }
+
+  const verification = await getProfileRoleByAuthUser(supabase, targetUserId);
+  if (verification.error) {
+    return { error: toRoleErrorMessage(verification.error), success: null };
+  }
+  if (verification.role?.toLowerCase() !== nextRole) {
+    return {
+      error:
+        "Role non modifie. Verifiez les policies profile puis reappliquez `sql/2026-02-22_profile_role_governance_access.sql`.",
+      success: null,
+    };
+  }
+
+  revalidatePath("/app/membres");
+  revalidatePath(`/app/membres/${memberId}`);
+  revalidatePath("/app/profils");
+  revalidatePath("/app/parametres");
+
+  return {
+    error: null,
+    success: `Role mis a jour: ${nextRole}.`,
   };
 }

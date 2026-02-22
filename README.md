@@ -101,9 +101,18 @@ Si `public.profile.role` est de type enum et refuse `pf/cn/ca/admin`, executez d
 Pour appliquer les droits metier sur `member` selon `profile.role` (`member`, `pf`, `cn`, `ca`, `admin`), executez:
 
 - `sql/2026-02-21_role_based_member_access.sql`
+- `sql/2026-02-22_profile_role_governance_access.sql`
 
 Effet attendu:
 
 - `member`: acces en lecture sur le reseau (toutes regions), region personnelle appliquee par defaut dans le filtre UI
 - `pf`: acces en lecture sur toutes les regions (filtre par region recommande), edition limitee a sa region
 - `cn`/`ca`/`admin`: acces elargi
+
+## Changer un role depuis l'app
+
+1. Ouvrir `/app/membres/[id]` sur la fiche d'un membre.
+2. Dans le bloc `Role gouvernance`, choisir le role cible.
+3. Seuls `admin` et `ca` peuvent modifier:
+   - `admin`: `member`, `pf`, `cn`, `ca`, `admin`
+   - `ca`: `member`, `pf`, `cn`

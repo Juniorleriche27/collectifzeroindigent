@@ -113,3 +113,35 @@ export async function getProfileRoleByAuthUser(
 
   return { error: byId.error, role: byId.data?.role ?? null };
 }
+
+export async function updateProfileRoleByAuthUser(
+  supabase: SupabaseClient,
+  userId: string,
+  role: string,
+): Promise<ProfileRoleLookupResult> {
+  const updateByUserId = await supabase
+    .from("profile")
+    .update({ role })
+    .eq("user_id", userId)
+    .select("role")
+    .maybeSingle();
+
+  if (!isMissingUserIdColumn(updateByUserId.error)) {
+    if (updateByUserId.error) {
+      return { error: updateByUserId.error, role: null };
+    }
+    if (updateByUserId.data?.role) {
+      return { error: null, role: updateByUserId.data.role };
+    }
+    return { error: null, role: null };
+  }
+
+  const updateById = await supabase
+    .from("profile")
+    .update({ role })
+    .eq("id", userId)
+    .select("role")
+    .maybeSingle();
+
+  return { error: updateById.error, role: updateById.data?.role ?? null };
+}

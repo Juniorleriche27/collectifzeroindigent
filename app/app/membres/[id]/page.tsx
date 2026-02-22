@@ -8,6 +8,7 @@ import { getProfileRoleByAuthUser } from "@/lib/supabase/profile";
 import { createClient } from "@/lib/supabase/server";
 
 import { MemberEditForm } from "./member-edit-form";
+import { MemberRoleForm } from "./member-role-form";
 
 function statusVariant(status: string | null): "success" | "warning" | "danger" | "default" {
   if (status === "active") return "success";
@@ -40,6 +41,7 @@ export default async function MemberDetailPage({
   let locations: Awaited<ReturnType<typeof getLocations>> | null = null;
   let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
   let currentRole = "member";
+  let targetRole: string | null = null;
   let loadError: string | null = null;
 
   try {
@@ -50,7 +52,7 @@ export default async function MemberDetailPage({
     if (user) {
       const roleLookup = await getProfileRoleByAuthUser(supabase, user.id);
       if (!roleLookup.error && roleLookup.role) {
-        currentRole = roleLookup.role;
+        currentRole = roleLookup.role.trim().toLowerCase();
       }
     }
 
@@ -62,6 +64,13 @@ export default async function MemberDetailPage({
     member = memberData;
     locations = locationData;
     organisations = organisationData.items;
+
+    if (memberData?.user_id) {
+      const targetRoleLookup = await getProfileRoleByAuthUser(supabase, memberData.user_id);
+      if (!targetRoleLookup.error && targetRoleLookup.role) {
+        targetRole = targetRoleLookup.role.trim().toLowerCase();
+      }
+    }
   } catch (error) {
     console.error("Unable to load member detail", error);
     loadError = "Impossible de charger ce membre pour le moment.";
@@ -158,6 +167,19 @@ export default async function MemberDetailPage({
               organisations={organisations}
               prefectures={locations.prefectures}
               regions={locations.regions}
+            />
+          </Card>
+
+          <Card className="space-y-2">
+            <CardTitle>Role gouvernance</CardTitle>
+            <CardDescription>
+              Admin et CA peuvent ajuster le role applicatif de ce compte dans `public.profile`.
+            </CardDescription>
+            <MemberRoleForm
+              actorRole={currentRole}
+              currentRole={targetRole}
+              memberId={member.id}
+              targetUserId={member.user_id}
             />
           </Card>
         </>
