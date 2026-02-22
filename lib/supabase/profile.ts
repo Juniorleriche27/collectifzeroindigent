@@ -15,6 +15,25 @@ function isMissingUserIdColumn(error: PostgrestError | null): boolean {
   return error.code === "42703" && /user_id/i.test(error.message);
 }
 
+async function lookupMemberIdByUserId(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<ProfileLookupResult> {
+  const memberLookup = await supabase
+    .from("member")
+    .select("id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (memberLookup.error) {
+    return { error: memberLookup.error, memberId: null };
+  }
+
+  return { error: null, memberId: memberLookup.data?.id ?? null };
+}
+
 export async function getProfileMemberIdByAuthUser(
   supabase: SupabaseClient,
   userId: string,
@@ -26,7 +45,13 @@ export async function getProfileMemberIdByAuthUser(
     .maybeSingle();
 
   if (!isMissingUserIdColumn(byUserId.error)) {
-    return { error: byUserId.error, memberId: byUserId.data?.member_id ?? null };
+    if (byUserId.error) {
+      return { error: byUserId.error, memberId: null };
+    }
+    if (byUserId.data?.member_id) {
+      return { error: null, memberId: byUserId.data.member_id };
+    }
+    return lookupMemberIdByUserId(supabase, userId);
   }
 
   const byId = await supabase
@@ -35,7 +60,13 @@ export async function getProfileMemberIdByAuthUser(
     .eq("id", userId)
     .maybeSingle();
 
-  return { error: byId.error, memberId: byId.data?.member_id ?? null };
+  if (byId.error) {
+    return { error: byId.error, memberId: null };
+  }
+  if (byId.data?.member_id) {
+    return { error: null, memberId: byId.data.member_id };
+  }
+  return lookupMemberIdByUserId(supabase, userId);
 }
 
 export async function updateProfileMemberIdByAuthUser(
