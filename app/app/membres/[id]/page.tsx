@@ -108,13 +108,39 @@ export default async function MemberDetailPage({
       </div>
 
       {currentRole === "member" ? (
-        <Card className="space-y-2">
-          <CardTitle>Mode lecture</CardTitle>
-          <CardDescription>
-            Ce profil est visible pour contact reseau. Les modifications sont reservees aux roles
-            gouvernance.
-          </CardDescription>
-        </Card>
+        <>
+          <Card className="space-y-2">
+            <CardTitle>Mode lecture</CardTitle>
+            <CardDescription>
+              Ce profil est visible pour contact reseau. Les modifications sont reservees aux roles
+              gouvernance.
+            </CardDescription>
+          </Card>
+          <Card className="space-y-3">
+            <CardTitle>Contacter ce membre</CardTitle>
+            <div className="flex flex-wrap items-center gap-3">
+              {member.phone ? (
+                <a
+                  className="rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted-surface"
+                  href={`tel:${member.phone.replace(/\s+/g, "")}`}
+                >
+                  Appeler
+                </a>
+              ) : null}
+              {member.email ? (
+                <a
+                  className="rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted-surface"
+                  href={`mailto:${member.email}`}
+                >
+                  Envoyer un email
+                </a>
+              ) : null}
+              {!member.phone && !member.email ? (
+                <CardDescription>Aucun contact disponible pour ce membre.</CardDescription>
+              ) : null}
+            </div>
+          </Card>
+        </>
       ) : (
         <>
           <Card className="space-y-2">

@@ -292,9 +292,27 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                     {[member.first_name, member.last_name].filter(Boolean).join(" ") || "-"}
                   </td>
                   <td className="px-4 py-3 text-sm text-muted">
-                    {member.phone ?? "-"}
+                    {member.phone ? (
+                      <a
+                        className="hover:text-foreground hover:underline"
+                        href={`tel:${member.phone.replace(/\s+/g, "")}`}
+                      >
+                        {member.phone}
+                      </a>
+                    ) : (
+                      "-"
+                    )}
                     <br />
-                    {member.email ?? "-"}
+                    {member.email ? (
+                      <a
+                        className="hover:text-foreground hover:underline"
+                        href={`mailto:${member.email}`}
+                      >
+                        {member.email}
+                      </a>
+                    ) : (
+                      "-"
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm text-muted">
                     {(regionsById.get(String(member.region_id)) ?? "-") +
@@ -316,6 +334,21 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                       <Link className="font-semibold text-primary" href={`/app/membres/${member.id}`}>
                         Voir
                       </Link>
+                      {member.email ? (
+                        <a
+                          className="text-sm font-medium text-muted hover:text-foreground"
+                          href={`mailto:${member.email}`}
+                        >
+                          Contacter
+                        </a>
+                      ) : member.phone ? (
+                        <a
+                          className="text-sm font-medium text-muted hover:text-foreground"
+                          href={`tel:${member.phone.replace(/\s+/g, "")}`}
+                        >
+                          Appeler
+                        </a>
+                      ) : null}
                       {currentRole !== "member" ? (
                         <Link
                           className="text-sm font-medium text-muted hover:text-foreground"
