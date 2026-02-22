@@ -94,6 +94,10 @@ Pour activer le rattachement d'un membre a une organisation (`member.organisatio
 
 ## RLS par role (phase 2)
 
+Si `public.profile.role` est de type enum et refuse `pf/cn/ca/admin`, executez d'abord:
+
+- `sql/2026-02-22_extend_profile_role_enum.sql`
+
 Pour appliquer les droits metier sur `member` selon `profile.role` (`member`, `pf`, `cn`, `ca`, `admin`), executez:
 
 - `sql/2026-02-21_role_based_member_access.sql`
