@@ -79,14 +79,22 @@ export class OnboardingService {
       );
     }
 
-    const { error: updateProfileError } = await client
+    const updatePayload = { member_id: member.id };
+
+    let { error: updateProfileError } = await client
       .from('profile')
-      .update({ member_id: member.id })
+      .update(updatePayload)
       .eq('user_id', user.id);
 
-    if (updateProfileError) {
-      throw updateProfileError;
+    if (updateProfileError?.code === '42703') {
+      const fallbackUpdate = await client
+        .from('profile')
+        .update(updatePayload)
+        .eq('id', user.id);
+      updateProfileError = fallbackUpdate.error;
     }
+
+    if (updateProfileError) throw updateProfileError;
 
     return {
       member_id: member.id,
