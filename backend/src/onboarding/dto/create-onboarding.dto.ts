@@ -36,6 +36,10 @@ export class CreateOnboardingDto {
   join_mode!: string;
 
   @IsOptional()
+  @IsIn(['engaged', 'entrepreneur', 'org_leader'])
+  cellule_primary?: 'engaged' | 'entrepreneur' | 'org_leader';
+
+  @IsOptional()
   @IsString()
   @MaxLength(200)
   org_name?: string;

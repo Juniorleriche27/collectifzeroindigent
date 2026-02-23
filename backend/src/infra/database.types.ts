@@ -314,6 +314,8 @@ export type Database = {
       member: {
         Insert: {
           association_name?: string | null;
+          cellule_primary?: string;
+          cellule_secondary?: string | null;
           commune_id: string;
           created_at?: string | null;
           email?: string | null;
@@ -334,6 +336,8 @@ export type Database = {
         Relationships: [];
         Row: {
           association_name: string | null;
+          cellule_primary: string;
+          cellule_secondary: string | null;
           commune_id: string;
           created_at: string | null;
           email: string | null;
@@ -353,6 +357,8 @@ export type Database = {
         };
         Update: {
           association_name?: string | null;
+          cellule_primary?: string;
+          cellule_secondary?: string | null;
           commune_id?: string;
           created_at?: string | null;
           email?: string | null;

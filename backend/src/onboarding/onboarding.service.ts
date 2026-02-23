@@ -12,6 +12,8 @@ type ResolvedOrganisation = {
   name: string;
 };
 
+type CellulePrimary = 'engaged' | 'entrepreneur' | 'org_leader';
+
 @Injectable()
 export class OnboardingService {
   constructor(private readonly supabaseDataService: SupabaseDataService) {}
@@ -29,6 +31,10 @@ export class OnboardingService {
     }
 
     const normalizedOrgName = payload.org_name?.trim() ?? '';
+    const cellulePrimary = this.resolveCellulePrimary(
+      payload.join_mode,
+      payload.cellule_primary,
+    );
     const resolvedOrganisation = await this.resolveOrganisation(
       client,
       user.id,
@@ -62,6 +68,7 @@ export class OnboardingService {
         first_name: payload.first_name,
         join_mode: payload.join_mode,
         last_name: payload.last_name,
+        cellule_primary: cellulePrimary,
         organisation_id: resolvedOrganisation?.id ?? null,
         org_name:
           payload.join_mode === 'personal' ? null : resolvedOrganisation?.name,
@@ -100,6 +107,25 @@ export class OnboardingService {
       member_id: member.id,
       message: 'Onboarding completed.',
     };
+  }
+
+  private resolveCellulePrimary(
+    joinMode: string,
+    cellulePrimary?: CellulePrimary,
+  ): CellulePrimary {
+    if (cellulePrimary) {
+      return cellulePrimary;
+    }
+
+    if (joinMode === 'enterprise') {
+      return 'entrepreneur';
+    }
+
+    if (joinMode === 'association') {
+      return 'org_leader';
+    }
+
+    return 'engaged';
   }
 
   private async resolveOrganisation(
