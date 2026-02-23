@@ -13,7 +13,7 @@ export default function OnboardingPage() {
         </p>
         <CardTitle className="mt-2">Onboarding membre</CardTitle>
         <CardDescription className="mt-2">
-          Creation du membre puis association automatique a votre profil.
+          Fiche membre complete: identite, localisation, orientation CZI et besoins.
         </CardDescription>
         <OnboardingForm />
       </Card>
