@@ -25,6 +25,7 @@ export default async function CampagnesEmailPage({ searchParams }: { searchParam
 
   let loadError: string | null = null;
   let items: Awaited<ReturnType<typeof listEmailCampaigns>>["items"] = [];
+  let canManage = false;
   let role: string | null = null;
   let regions: Awaited<ReturnType<typeof getLocations>>["regions"] = [];
   let prefectures: Awaited<ReturnType<typeof getLocations>>["prefectures"] = [];
@@ -32,18 +33,24 @@ export default async function CampagnesEmailPage({ searchParams }: { searchParam
 
   if (isSupabaseConfigured) {
     try {
-      const [campaignData, locationData] = await Promise.all([
-        listEmailCampaigns(query || undefined),
-        getLocations(),
-      ]);
-      items = campaignData.items;
-      role = campaignData.role;
+      const locationData = await getLocations();
       regions = locationData.regions;
       prefectures = locationData.prefectures;
       communes = locationData.communes;
     } catch (error) {
+      console.error("Unable to load locations for email campaigns", error);
+      loadError = toErrorMessage(error, "Impossible de charger les localisations.");
+    }
+
+    try {
+      const campaignData = await listEmailCampaigns(query || undefined);
+      items = campaignData.items;
+      canManage = campaignData.can_manage;
+      role = campaignData.role;
+    } catch (error) {
       console.error("Unable to load email campaigns", error);
-      loadError = toErrorMessage(error, "Impossible de charger les campagnes email.");
+      loadError =
+        loadError ?? toErrorMessage(error, "Impossible de charger les campagnes email.");
     }
   } else {
     loadError = "Supabase non configure.";
@@ -51,6 +58,7 @@ export default async function CampagnesEmailPage({ searchParams }: { searchParam
 
   return (
     <CampagnesEmailClient
+      canManage={canManage}
       communes={communes}
       initialQuery={query}
       items={items}

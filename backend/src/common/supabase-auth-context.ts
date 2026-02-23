@@ -88,7 +88,7 @@ export async function isCommunicationManager(
   userId: string,
   role: string,
 ): Promise<boolean> {
-  if (role === 'admin' || role === 'ca') {
+  if (role === 'admin' || role === 'ca' || role === 'cn' || role === 'pf') {
     return true;
   }
 
@@ -117,7 +117,7 @@ export async function assertCommunicationManager(
   const manager = await isCommunicationManager(client, userId, role);
   if (!manager) {
     throw new ForbiddenException(
-      'Acces reserve a admin/ca/equipe communication.',
+      'Acces reserve a admin/ca/cn/pf/equipe communication.',
     );
   }
 

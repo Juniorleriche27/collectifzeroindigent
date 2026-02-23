@@ -1,6 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { assertCommunicationManager } from '../common/supabase-auth-context';
+import {
+  assertCommunicationManager,
+  getProfileRoleByUserId,
+  isCommunicationManager,
+  requireUserId,
+} from '../common/supabase-auth-context';
 import { normalizeSingleScope, type ScopeInput } from '../common/scope.util';
 import type { Database } from '../infra/database.types';
 import { SupabaseDataService } from '../infra/supabase-data.service';
@@ -42,7 +47,17 @@ export class EmailCampaignsService {
 
   async list(accessToken: string, search?: string) {
     const client = this.supabaseDataService.forUser(accessToken);
-    const actor = await assertCommunicationManager(client);
+    const userId = await requireUserId(client);
+    const role = await getProfileRoleByUserId(client, userId);
+    const canManage = await isCommunicationManager(client, userId, role);
+
+    if (!canManage) {
+      return {
+        can_manage: false,
+        items: [],
+        role,
+      };
+    }
 
     let query = client
       .from('email_campaign')
@@ -66,11 +81,12 @@ export class EmailCampaignsService {
     const statsByCampaign = await this.loadCampaignStats(client, items.map((item) => item.id));
 
     return {
+      can_manage: true,
       items: items.map((item) => ({
         ...item,
         stats: statsByCampaign.get(item.id) ?? this.emptyStats(),
       })),
-      role: actor.role,
+      role,
     };
   }
 

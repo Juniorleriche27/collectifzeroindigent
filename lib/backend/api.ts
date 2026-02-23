@@ -493,6 +493,7 @@ export async function listEmailCampaigns(search?: string) {
   const queryString = query.toString();
 
   return requestBackend<{
+    can_manage: boolean;
     items: EmailCampaignItem[];
     role: string;
   }>(queryString ? `/email-campaigns?${queryString}` : "/email-campaigns", {

@@ -48,6 +48,15 @@ export async function createEmailCampaignAction(
   const prefectureId = formValue(formData, "prefecture_id");
   const communeId = formValue(formData, "commune_id");
   const provider = formValue(formData, "provider");
+  let effectiveScope: ScopeLevel = audienceScope;
+
+  if (communeId) {
+    effectiveScope = "commune";
+  } else if (prefectureId && (audienceScope === "all" || audienceScope === "region")) {
+    effectiveScope = "prefecture";
+  } else if (regionId && audienceScope === "all") {
+    effectiveScope = "region";
+  }
 
   if (!subject || !body) {
     return {
@@ -56,24 +65,24 @@ export async function createEmailCampaignAction(
     };
   }
 
-  if (audienceScope === "region" && !regionId) {
+  if (effectiveScope === "region" && !regionId) {
     return { error: "Selectionnez une region cible.", success: null };
   }
-  if (audienceScope === "prefecture" && !prefectureId) {
+  if (effectiveScope === "prefecture" && !prefectureId) {
     return { error: "Selectionnez une prefecture cible.", success: null };
   }
-  if (audienceScope === "commune" && !communeId) {
+  if (effectiveScope === "commune" && !communeId) {
     return { error: "Selectionnez une commune cible.", success: null };
   }
 
   try {
     await createEmailCampaign({
-      audience_scope: audienceScope,
+      audience_scope: effectiveScope,
       body,
-      commune_id: audienceScope === "commune" ? communeId : undefined,
-      prefecture_id: audienceScope === "prefecture" ? prefectureId : undefined,
+      commune_id: effectiveScope === "commune" ? communeId : undefined,
+      prefecture_id: effectiveScope === "prefecture" ? prefectureId : undefined,
       provider: provider || undefined,
-      region_id: audienceScope === "region" ? regionId : undefined,
+      region_id: effectiveScope === "region" ? regionId : undefined,
       subject,
     });
   } catch (error) {

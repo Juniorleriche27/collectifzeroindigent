@@ -42,7 +42,17 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
 
   if (isSupabaseConfigured) {
     try {
-      const [conversationData, locationData, memberData] = await Promise.all([
+      const locationData = await getLocations();
+      regions = locationData.regions;
+      prefectures = locationData.prefectures;
+      communes = locationData.communes;
+    } catch (error) {
+      console.error("Unable to load locations for communaute", error);
+      loadError = toErrorMessage(error, "Impossible de charger les localisations.");
+    }
+
+    try {
+      const [conversationData, memberData] = await Promise.all([
         listConversations({
           conversation_type:
             conversationType === "community" || conversationType === "direct"
@@ -50,16 +60,12 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
               : undefined,
           q: query || undefined,
         }),
-        getLocations(),
         listMembers({ page: 1, page_size: 50 }),
       ]);
 
       currentMemberId = conversationData.current_member_id;
       items = conversationData.items;
       members = memberData.rows;
-      regions = locationData.regions;
-      prefectures = locationData.prefectures;
-      communes = locationData.communes;
 
       if (selectedConversationParam && items.some((item) => item.id === selectedConversationParam)) {
         selectedConversationId = selectedConversationParam;
@@ -73,7 +79,7 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
       }
     } catch (error) {
       console.error("Unable to load communaute data", error);
-      loadError = toErrorMessage(error, "Impossible de charger les discussions.");
+      loadError = loadError ?? toErrorMessage(error, "Impossible de charger les discussions.");
     }
   } else {
     loadError = "Supabase non configure.";

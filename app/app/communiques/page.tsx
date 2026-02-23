@@ -33,19 +33,23 @@ export default async function CommuniquesPage({ searchParams }: { searchParams: 
 
   if (isSupabaseConfigured) {
     try {
-      const [locationData, result] = await Promise.all([
-        getLocations(),
-        listAnnouncements(query || undefined),
-      ]);
+      const locationData = await getLocations();
       regions = locationData.regions;
       prefectures = locationData.prefectures;
       communes = locationData.communes;
+    } catch (error) {
+      console.error("Unable to load locations for announcements", error);
+      loadError = toErrorMessage(error, "Impossible de charger les localisations.");
+    }
+
+    try {
+      const result = await listAnnouncements(query || undefined);
       items = result.items;
       canManage = result.can_manage;
       role = result.role;
     } catch (error) {
       console.error("Unable to load announcements", error);
-      loadError = toErrorMessage(error, "Impossible de charger les communiques.");
+      loadError = loadError ?? toErrorMessage(error, "Impossible de charger les communiques.");
     }
   } else {
     loadError = "Supabase non configure.";

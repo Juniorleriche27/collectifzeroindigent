@@ -112,13 +112,25 @@ export function CommunauteClient({
     }),
     [communes, prefectures, regions],
   );
+  const prefectureToRegion = useMemo(
+    () => new Map(prefectures.map((item) => [String(item.id), String(item.region_id)])),
+    [prefectures],
+  );
+  const communeToPrefecture = useMemo(
+    () => new Map(communes.map((item) => [String(item.id), String(item.prefecture_id)])),
+    [communes],
+  );
 
   const availablePrefectures = selectedRegion
     ? prefectures.filter((item) => String(item.region_id) === selectedRegion)
     : prefectures;
   const availableCommunes = selectedPrefecture
     ? communes.filter((item) => String(item.prefecture_id) === selectedPrefecture)
-    : communes;
+    : selectedRegion
+      ? communes.filter(
+          (item) => prefectureToRegion.get(String(item.prefecture_id)) === selectedRegion,
+        )
+      : communes;
 
   return (
     <div className="space-y-6">
@@ -302,10 +314,19 @@ export function CommunauteClient({
                       Portee
                     </label>
                     <Select
-                      defaultValue="all"
+                      value={scopeType}
                       id="create-community-scope"
                       name="scope_type"
-                      onChange={(event) => setScopeType(event.target.value as ScopeLevel)}
+                      onChange={(event) => {
+                        const nextScope = event.target.value as ScopeLevel;
+                        setScopeType(nextScope);
+                        if (nextScope === "all") {
+                          setSelectedRegion("");
+                          setSelectedPrefecture("");
+                        } else if (nextScope === "region") {
+                          setSelectedPrefecture("");
+                        }
+                      }}
                     >
                       <option value="all">National</option>
                       <option value="region">Par region</option>
@@ -339,10 +360,16 @@ export function CommunauteClient({
                       Prefecture
                     </label>
                     <Select
-                      disabled={scopeType === "all" || scopeType === "region"}
+                      disabled={scopeType === "all"}
                       id="create-community-prefecture"
                       name="prefecture_id"
-                      onChange={(event) => setSelectedPrefecture(event.target.value)}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setSelectedPrefecture(value);
+                        if (value && scopeType === "region") {
+                          setScopeType("prefecture");
+                        }
+                      }}
                     >
                       <option value="">Selectionner une prefecture</option>
                       {availablePrefectures.map((prefecture) => (
@@ -357,9 +384,24 @@ export function CommunauteClient({
                       Commune
                     </label>
                     <Select
-                      disabled={scopeType !== "commune"}
+                      disabled={scopeType === "all"}
                       id="create-community-commune"
                       name="commune_id"
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        if (!value) return;
+                        const parentPrefecture = communeToPrefecture.get(value);
+                        if (parentPrefecture) {
+                          setSelectedPrefecture(parentPrefecture);
+                          const parentRegion = prefectureToRegion.get(parentPrefecture);
+                          if (parentRegion) {
+                            setSelectedRegion(parentRegion);
+                          }
+                        }
+                        if (scopeType !== "commune") {
+                          setScopeType("commune");
+                        }
+                      }}
                     >
                       <option value="">Selectionner une commune</option>
                       {availableCommunes.map((commune) => (

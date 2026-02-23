@@ -25,6 +25,7 @@ import {
 import type { EmailCampaignActionState } from "./actions";
 
 type CampagnesEmailClientProps = {
+  canManage: boolean;
   communes: CommuneOption[];
   initialQuery: string;
   items: EmailCampaignItem[];
@@ -65,6 +66,7 @@ function scopeText(
 }
 
 export function CampagnesEmailClient({
+  canManage,
   communes,
   initialQuery,
   items,
@@ -91,12 +93,24 @@ export function CampagnesEmailClient({
     }),
     [communes, prefectures, regions],
   );
+  const prefectureToRegion = useMemo(
+    () => new Map(prefectures.map((item) => [String(item.id), String(item.region_id)])),
+    [prefectures],
+  );
+  const communeToPrefecture = useMemo(
+    () => new Map(communes.map((item) => [String(item.id), String(item.prefecture_id)])),
+    [communes],
+  );
   const availablePrefectures = selectedRegion
     ? prefectures.filter((item) => String(item.region_id) === selectedRegion)
     : prefectures;
   const availableCommunes = selectedPrefecture
     ? communes.filter((item) => String(item.prefecture_id) === selectedPrefecture)
-    : communes;
+    : selectedRegion
+      ? communes.filter(
+          (item) => prefectureToRegion.get(String(item.prefecture_id)) === selectedRegion,
+        )
+      : communes;
 
   return (
     <div className="space-y-6">
@@ -108,8 +122,18 @@ export function CampagnesEmailClient({
             Envoi cible a toutes les regions, ou par region/prefecture/commune.
           </CardDescription>
         </div>
-        <Button onClick={() => setOpen(true)}>Nouvelle campagne</Button>
+        <Button disabled={!canManage} onClick={() => canManage && setOpen(true)}>
+          Nouvelle campagne
+        </Button>
       </div>
+
+      {!canManage ? (
+        <Card>
+          <CardDescription className="text-amber-700">
+            Acces reserve a admin/ca/cn/pf/equipe communication. Role detecte: {role ?? "member"}.
+          </CardDescription>
+        </Card>
+      ) : null}
 
       {role ? (
         <Card>
@@ -224,7 +248,7 @@ export function CampagnesEmailClient({
         </Card>
       )}
 
-      {open ? (
+      {open && canManage ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <Card className="w-full max-w-2xl space-y-4">
             <div className="flex items-center justify-between">
@@ -268,10 +292,19 @@ export function CampagnesEmailClient({
                   Ciblage
                 </label>
                 <Select
-                  defaultValue="all"
+                  value={scopeType}
                   id="campaign-scope"
                   name="audience_scope"
-                  onChange={(event) => setScopeType(event.target.value as ScopeLevel)}
+                  onChange={(event) => {
+                    const nextScope = event.target.value as ScopeLevel;
+                    setScopeType(nextScope);
+                    if (nextScope === "all") {
+                      setSelectedRegion("");
+                      setSelectedPrefecture("");
+                    } else if (nextScope === "region") {
+                      setSelectedPrefecture("");
+                    }
+                  }}
                 >
                   <option value="all">Tous les membres</option>
                   <option value="region">Par region</option>
@@ -305,10 +338,16 @@ export function CampagnesEmailClient({
                   Prefecture
                 </label>
                 <Select
-                  disabled={scopeType === "all" || scopeType === "region"}
+                  disabled={scopeType === "all"}
                   id="campaign-prefecture"
                   name="prefecture_id"
-                  onChange={(event) => setSelectedPrefecture(event.target.value)}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setSelectedPrefecture(value);
+                    if (value && scopeType === "region") {
+                      setScopeType("prefecture");
+                    }
+                  }}
                 >
                   <option value="">Selectionner une prefecture</option>
                   {availablePrefectures.map((prefecture) => (
@@ -322,7 +361,26 @@ export function CampagnesEmailClient({
                 <label className="text-sm font-medium" htmlFor="campaign-commune">
                   Commune
                 </label>
-                <Select disabled={scopeType !== "commune"} id="campaign-commune" name="commune_id">
+                <Select
+                  disabled={scopeType === "all"}
+                  id="campaign-commune"
+                  name="commune_id"
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (!value) return;
+                    const parentPrefecture = communeToPrefecture.get(value);
+                    if (parentPrefecture) {
+                      setSelectedPrefecture(parentPrefecture);
+                      const parentRegion = prefectureToRegion.get(parentPrefecture);
+                      if (parentRegion) {
+                        setSelectedRegion(parentRegion);
+                      }
+                    }
+                    if (scopeType !== "commune") {
+                      setScopeType("commune");
+                    }
+                  }}
+                >
                   <option value="">Selectionner une commune</option>
                   {availableCommunes.map((commune) => (
                     <option key={commune.id} value={commune.id}>

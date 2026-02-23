@@ -46,6 +46,15 @@ export async function createCommuniqueAction(
   const prefectureId = formValue(formData, "prefecture_id");
   const communeId = formValue(formData, "commune_id");
   const publishNow = formValue(formData, "is_published") !== "false";
+  let effectiveScope: ScopeLevel = scopeType;
+
+  if (communeId) {
+    effectiveScope = "commune";
+  } else if (prefectureId && (scopeType === "all" || scopeType === "region")) {
+    effectiveScope = "prefecture";
+  } else if (regionId && scopeType === "all") {
+    effectiveScope = "region";
+  }
 
   if (!title || !body) {
     return {
@@ -54,19 +63,19 @@ export async function createCommuniqueAction(
     };
   }
 
-  if (scopeType === "region" && !regionId) {
+  if (effectiveScope === "region" && !regionId) {
     return {
       error: "Selectionnez une region.",
       success: null,
     };
   }
-  if (scopeType === "prefecture" && !prefectureId) {
+  if (effectiveScope === "prefecture" && !prefectureId) {
     return {
       error: "Selectionnez une prefecture.",
       success: null,
     };
   }
-  if (scopeType === "commune" && !communeId) {
+  if (effectiveScope === "commune" && !communeId) {
     return {
       error: "Selectionnez une commune.",
       success: null,
@@ -79,10 +88,10 @@ export async function createCommuniqueAction(
       is_published: publishNow,
       scopes: [
         {
-          commune_id: scopeType === "commune" ? communeId : null,
-          prefecture_id: scopeType === "prefecture" ? prefectureId : null,
-          region_id: scopeType === "region" ? regionId : null,
-          scope_type: scopeType,
+          commune_id: effectiveScope === "commune" ? communeId : null,
+          prefecture_id: effectiveScope === "prefecture" ? prefectureId : null,
+          region_id: effectiveScope === "region" ? regionId : null,
+          scope_type: effectiveScope,
         },
       ],
       title,

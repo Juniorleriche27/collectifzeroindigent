@@ -43,6 +43,15 @@ export async function createConversationAction(
   const regionId = formValue(formData, "region_id");
   const prefectureId = formValue(formData, "prefecture_id");
   const communeId = formValue(formData, "commune_id");
+  let effectiveScope: ScopeLevel = scopeType;
+
+  if (communeId) {
+    effectiveScope = "commune";
+  } else if (prefectureId && (scopeType === "all" || scopeType === "region")) {
+    effectiveScope = "prefecture";
+  } else if (regionId && scopeType === "all") {
+    effectiveScope = "region";
+  }
 
   if (conversationType !== "community" && conversationType !== "direct") {
     return { error: "Type de conversation invalide.", success: null };
@@ -73,23 +82,23 @@ export async function createConversationAction(
     return { error: "Le titre est obligatoire pour un canal communaute.", success: null };
   }
 
-  if (scopeType === "region" && !regionId) {
+  if (effectiveScope === "region" && !regionId) {
     return { error: "Selectionnez une region.", success: null };
   }
-  if (scopeType === "prefecture" && !prefectureId) {
+  if (effectiveScope === "prefecture" && !prefectureId) {
     return { error: "Selectionnez une prefecture.", success: null };
   }
-  if (scopeType === "commune" && !communeId) {
+  if (effectiveScope === "commune" && !communeId) {
     return { error: "Selectionnez une commune.", success: null };
   }
 
   try {
     await createConversation({
-      commune_id: scopeType === "commune" ? communeId : undefined,
+      commune_id: effectiveScope === "commune" ? communeId : undefined,
       conversation_type: "community",
-      prefecture_id: scopeType === "prefecture" ? prefectureId : undefined,
-      region_id: scopeType === "region" ? regionId : undefined,
-      scope_type: scopeType,
+      prefecture_id: effectiveScope === "prefecture" ? prefectureId : undefined,
+      region_id: effectiveScope === "region" ? regionId : undefined,
+      scope_type: effectiveScope,
       title,
     });
   } catch (error) {

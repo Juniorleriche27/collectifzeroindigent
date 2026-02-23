@@ -321,7 +321,7 @@ security definer
 set search_path = public
 as $$
   select
-    public.current_profile_role() in ('admin', 'ca')
+    public.current_profile_role() in ('admin', 'ca', 'cn', 'pf')
     or exists (
       select 1
       from public.communication_team ct
