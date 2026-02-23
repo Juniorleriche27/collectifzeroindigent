@@ -116,3 +116,17 @@ Effet attendu:
 3. Seuls `admin` et `ca` peuvent modifier:
    - `admin`: `member`, `pf`, `cn`, `ca`, `admin`
    - `ca`: `member`, `pf`, `cn`
+
+## Socle communication (phase 3)
+
+Pour preparer les modules annonces, communaute, messagerie privee et campagnes email ciblees, executez:
+
+- `sql/2026-02-23_communication_core.sql`
+
+Ce script cree:
+
+- annonces ciblees (`announcement`, `announcement_scope`)
+- equipe communication (`communication_team`)
+- communaute + direct messages (`conversation`, `conversation_participant`, `message`)
+- campagnes email (`email_campaign`, `email_campaign_recipient`)
+- policies RLS associees
