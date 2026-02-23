@@ -8,8 +8,8 @@ alter table public.member
 
 update public.member
 set cellule_primary = case
-  when lower(coalesce(join_mode, '')) = 'enterprise' then 'entrepreneur'
-  when lower(coalesce(join_mode, '')) = 'association' then 'org_leader'
+  when lower(join_mode::text) = 'enterprise' then 'entrepreneur'
+  when lower(join_mode::text) = 'association' then 'org_leader'
   else 'engaged'
 end
 where cellule_primary is null;
