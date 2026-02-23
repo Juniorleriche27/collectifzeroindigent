@@ -5,6 +5,9 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
   Building2,
+  Mail,
+  Megaphone,
+  MessagesSquare,
   CircleHelp,
   CircleUserRound,
   ArrowUpDown,
@@ -27,6 +30,9 @@ const navItems: NavItem[] = [
   { href: "/app/membres", icon: UsersRound, label: "Membres" },
   { href: "/app/profils", icon: CircleUserRound, label: "Profils" },
   { href: "/app/organisations", icon: Building2, label: "Organisations" },
+  { href: "/app/communiques", icon: Megaphone, label: "Communiques" },
+  { href: "/app/communaute", icon: MessagesSquare, label: "Communaute" },
+  { href: "/app/campagnes-email", icon: Mail, label: "Campagnes email" },
   { href: "/app/communes-regions", icon: MapPin, label: "Communes/Regions" },
   { href: "/app/import-export", icon: ArrowUpDown, label: "Import/Export" },
   { href: "/app/parametres", icon: Settings, label: "Parametres" },
