@@ -12,6 +12,13 @@ function paramValue(value: string | string[] | undefined): string {
   return value ?? "";
 }
 
+function toErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim();
+  }
+  return fallback;
+}
+
 export default async function CampagnesEmailPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const query = paramValue(params.q).trim();
@@ -36,7 +43,7 @@ export default async function CampagnesEmailPage({ searchParams }: { searchParam
       communes = locationData.communes;
     } catch (error) {
       console.error("Unable to load email campaigns", error);
-      loadError = "Impossible de charger les campagnes email.";
+      loadError = toErrorMessage(error, "Impossible de charger les campagnes email.");
     }
   } else {
     loadError = "Supabase non configure.";

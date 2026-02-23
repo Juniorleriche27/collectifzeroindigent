@@ -12,6 +12,13 @@ function paramValue(value: string | string[] | undefined): string {
   return value ?? "";
 }
 
+function toErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim();
+  }
+  return fallback;
+}
+
 export default async function CommuniquesPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const query = paramValue(params.q).trim();
@@ -38,7 +45,7 @@ export default async function CommuniquesPage({ searchParams }: { searchParams: 
       role = result.role;
     } catch (error) {
       console.error("Unable to load announcements", error);
-      loadError = "Impossible de charger les communiques.";
+      loadError = toErrorMessage(error, "Impossible de charger les communiques.");
     }
   } else {
     loadError = "Supabase non configure.";

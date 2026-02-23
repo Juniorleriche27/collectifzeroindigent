@@ -330,6 +330,37 @@ as $$
     );
 $$;
 
+create or replace function public.can_read_announcement_scope(
+  announcement_uuid uuid,
+  scope_kind public.scope_level,
+  scope_region_id uuid,
+  scope_prefecture_id uuid,
+  scope_commune_id uuid
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    public.is_communication_manager()
+    or (
+      exists (
+        select 1
+        from public.announcement a
+        where a.id = announcement_uuid
+          and a.is_published = true
+      )
+      and public.scope_matches_member(
+        scope_kind,
+        scope_region_id,
+        scope_prefecture_id,
+        scope_commune_id
+      )
+    );
+$$;
+
 create or replace function public.can_access_conversation(conversation_uuid uuid)
 returns boolean
 language plpgsql
@@ -429,6 +460,7 @@ grant execute on function public.current_member_prefecture_id() to authenticated
 grant execute on function public.current_member_commune_id() to authenticated;
 grant execute on function public.scope_matches_member(public.scope_level, uuid, uuid, uuid) to authenticated;
 grant execute on function public.is_communication_manager() to authenticated;
+grant execute on function public.can_read_announcement_scope(uuid, public.scope_level, uuid, uuid, uuid) to authenticated;
 grant execute on function public.can_access_conversation(uuid) to authenticated;
 grant execute on function public.can_post_conversation(uuid, uuid) to authenticated;
 
@@ -511,11 +543,12 @@ create policy announcement_scope_select
 on public.announcement_scope
 for select
 using (
-  exists (
-    select 1
-    from public.announcement a
-    where a.id = announcement_scope.announcement_id
-      and a.is_published = true
+  public.can_read_announcement_scope(
+    announcement_scope.announcement_id,
+    announcement_scope.scope_type,
+    announcement_scope.region_id,
+    announcement_scope.prefecture_id,
+    announcement_scope.commune_id
   )
 );
 
