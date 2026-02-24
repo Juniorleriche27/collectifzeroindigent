@@ -184,6 +184,10 @@ begin
     return false;
   end if;
 
+  if public.is_communication_manager() then
+    return true;
+  end if;
+
   if target_kind = 'czi' then
     return public.current_member_id() is not null;
   end if;
@@ -223,6 +227,7 @@ as $$
 declare
   conversation_kind public.conversation_type;
   community_kind public.conversation_community_kind;
+  conversation_creator uuid;
   parent_conversation_uuid uuid;
   current_member_uuid uuid;
 begin
@@ -235,8 +240,8 @@ begin
     return false;
   end if;
 
-  select c.conversation_type, c.community_kind, c.parent_conversation_id
-  into conversation_kind, community_kind, parent_conversation_uuid
+  select c.conversation_type, c.community_kind, c.created_by, c.parent_conversation_id
+  into conversation_kind, community_kind, conversation_creator, parent_conversation_uuid
   from public.conversation c
   where c.id = conversation_uuid;
 
@@ -251,7 +256,8 @@ begin
     return public.member_in_community_kind(community_kind);
   end if;
 
-  return exists (
+  return conversation_creator = auth.uid()
+    or exists (
     select 1
     from public.conversation_participant cp
     where cp.conversation_id = conversation_uuid
