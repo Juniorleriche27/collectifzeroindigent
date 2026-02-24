@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { createConversation, postConversationMessage, type ScopeLevel } from "@/lib/backend/api";
+import { createConversation, postConversationMessage } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export type ConversationActionState = {
@@ -21,13 +21,6 @@ function toErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-function parseScopeType(value: string): ScopeLevel {
-  if (value === "region" || value === "prefecture" || value === "commune") {
-    return value;
-  }
-  return "all";
-}
-
 export async function createConversationAction(
   _previousState: ConversationActionState,
   formData: FormData,
@@ -39,19 +32,6 @@ export async function createConversationAction(
   const conversationType = formValue(formData, "conversation_type");
   const title = formValue(formData, "title");
   const participantMemberId = formValue(formData, "participant_member_id");
-  const scopeType = parseScopeType(formValue(formData, "scope_type"));
-  const regionId = formValue(formData, "region_id");
-  const prefectureId = formValue(formData, "prefecture_id");
-  const communeId = formValue(formData, "commune_id");
-  let effectiveScope: ScopeLevel = scopeType;
-
-  if (communeId) {
-    effectiveScope = "commune";
-  } else if (prefectureId && (scopeType === "all" || scopeType === "region")) {
-    effectiveScope = "prefecture";
-  } else if (regionId && scopeType === "all") {
-    effectiveScope = "region";
-  }
 
   if (conversationType !== "community" && conversationType !== "direct") {
     return { error: "Type de conversation invalide.", success: null };
@@ -82,23 +62,9 @@ export async function createConversationAction(
     return { error: "Le titre est obligatoire pour un canal communaute.", success: null };
   }
 
-  if (effectiveScope === "region" && !regionId) {
-    return { error: "Selectionnez une region.", success: null };
-  }
-  if (effectiveScope === "prefecture" && !prefectureId) {
-    return { error: "Selectionnez une prefecture.", success: null };
-  }
-  if (effectiveScope === "commune" && !communeId) {
-    return { error: "Selectionnez une commune.", success: null };
-  }
-
   try {
     await createConversation({
-      commune_id: effectiveScope === "commune" ? communeId : undefined,
       conversation_type: "community",
-      prefecture_id: effectiveScope === "prefecture" ? prefectureId : undefined,
-      region_id: effectiveScope === "region" ? regionId : undefined,
-      scope_type: effectiveScope,
       title,
     });
   } catch (error) {

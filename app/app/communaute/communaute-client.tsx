@@ -16,7 +16,6 @@ import type {
   MemberRecord,
   PrefectureOption,
   RegionOption,
-  ScopeLevel,
 } from "@/lib/backend/api";
 
 import { createConversationAction, postConversationMessageAction } from "./actions";
@@ -91,9 +90,6 @@ export function CommunauteClient({
   );
   const [open, setOpen] = useState(false);
   const [createType, setCreateType] = useState<"community" | "direct">("community");
-  const [scopeType, setScopeType] = useState<ScopeLevel>("all");
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedPrefecture, setSelectedPrefecture] = useState("");
 
   const selectedConversation =
     items.find((item) => item.id === selectedConversationId) ?? null;
@@ -107,25 +103,10 @@ export function CommunauteClient({
     }),
     [communes, prefectures, regions],
   );
-  const prefectureToRegion = useMemo(
-    () => new Map(prefectures.map((item) => [String(item.id), String(item.region_id)])),
-    [prefectures],
-  );
-  const communeToPrefecture = useMemo(
-    () => new Map(communes.map((item) => [String(item.id), String(item.prefecture_id)])),
-    [communes],
-  );
-
-  const availablePrefectures = selectedRegion
-    ? prefectures.filter((item) => String(item.region_id) === selectedRegion)
-    : prefectures;
-  const availableCommunes = selectedPrefecture
-    ? communes.filter((item) => String(item.prefecture_id) === selectedPrefecture)
-    : selectedRegion
-      ? communes.filter(
-          (item) => prefectureToRegion.get(String(item.prefecture_id)) === selectedRegion,
-        )
-      : communes;
+  function openCreateDialog() {
+    setCreateType("community");
+    setOpen(true);
+  }
 
   return (
     <div className="space-y-6">
@@ -137,7 +118,7 @@ export function CommunauteClient({
             Canaux communautaires et messagerie privee entre membres.
           </CardDescription>
         </div>
-        <Button onClick={() => setOpen(true)}>Nouvelle discussion</Button>
+        <Button onClick={openCreateDialog}>Nouvelle discussion</Button>
       </div>
 
       <Card className="space-y-3">
@@ -279,7 +260,7 @@ export function CommunauteClient({
                   Type
                 </label>
                 <Select
-                  defaultValue="community"
+                  value={createType}
                   id="create-conversation-type"
                   name="conversation_type"
                   onChange={(event) =>
@@ -304,107 +285,10 @@ export function CommunauteClient({
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="create-community-scope">
-                      Portee
-                    </label>
-                    <Select
-                      value={scopeType}
-                      id="create-community-scope"
-                      name="scope_type"
-                      onChange={(event) => {
-                        const nextScope = event.target.value as ScopeLevel;
-                        setScopeType(nextScope);
-                        if (nextScope === "all") {
-                          setSelectedRegion("");
-                          setSelectedPrefecture("");
-                        } else if (nextScope === "region") {
-                          setSelectedPrefecture("");
-                        }
-                      }}
-                    >
-                      <option value="all">National</option>
-                      <option value="region">Par region</option>
-                      <option value="prefecture">Par prefecture</option>
-                      <option value="commune">Par commune</option>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="create-community-region">
-                      Region
-                    </label>
-                    <Select
-                      disabled={scopeType === "all"}
-                      id="create-community-region"
-                      name="region_id"
-                      onChange={(event) => {
-                        setSelectedRegion(event.target.value);
-                        setSelectedPrefecture("");
-                      }}
-                    >
-                      <option value="">Selectionner une region</option>
-                      {regions.map((region) => (
-                        <option key={region.id} value={region.id}>
-                          {region.name}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="create-community-prefecture">
-                      Prefecture
-                    </label>
-                    <Select
-                      disabled={scopeType === "all"}
-                      id="create-community-prefecture"
-                      name="prefecture_id"
-                      onChange={(event) => {
-                        const value = event.target.value;
-                        setSelectedPrefecture(value);
-                        if (value && scopeType === "region") {
-                          setScopeType("prefecture");
-                        }
-                      }}
-                    >
-                      <option value="">Selectionner une prefecture</option>
-                      {availablePrefectures.map((prefecture) => (
-                        <option key={prefecture.id} value={prefecture.id}>
-                          {prefecture.name}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium" htmlFor="create-community-commune">
-                      Commune
-                    </label>
-                    <Select
-                      disabled={scopeType === "all"}
-                      id="create-community-commune"
-                      name="commune_id"
-                      onChange={(event) => {
-                        const value = event.target.value;
-                        if (!value) return;
-                        const parentPrefecture = communeToPrefecture.get(value);
-                        if (parentPrefecture) {
-                          setSelectedPrefecture(parentPrefecture);
-                          const parentRegion = prefectureToRegion.get(parentPrefecture);
-                          if (parentRegion) {
-                            setSelectedRegion(parentRegion);
-                          }
-                        }
-                        if (scopeType !== "commune") {
-                          setScopeType("commune");
-                        }
-                      }}
-                    >
-                      <option value="">Selectionner une commune</option>
-                      {availableCommunes.map((commune) => (
-                        <option key={commune.id} value={commune.id}>
-                          {commune.name}
-                        </option>
-                      ))}
-                    </Select>
+                    <p className="rounded-md border border-border bg-muted-surface px-3 py-2 text-sm text-muted">
+                      Ce canal sera visible et accessible a tous les membres.
+                    </p>
                   </div>
                 </>
               ) : (

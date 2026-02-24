@@ -3,13 +3,12 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 import {
-  assertCommunicationManager,
   getCurrentMemberId,
   requireUserId,
 } from '../common/supabase-auth-context';
-import { normalizeSingleScope, type ScopeInput } from '../common/scope.util';
 import { SupabaseDataService } from '../infra/supabase-data.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -152,9 +151,9 @@ export class ConversationsService {
         .single();
 
       if (createError || !conversation) {
-        throw (
-          createError ??
-          new BadRequestException('Conversation directe invalide.')
+        throw this.mapConversationCreateError(
+          createError,
+          'Conversation directe invalide.',
         );
       }
 
@@ -172,7 +171,10 @@ export class ConversationsService {
 
       if (participantError) {
         await client.from('conversation').delete().eq('id', conversation.id);
-        throw participantError;
+        throw this.mapConversationCreateError(
+          participantError,
+          'Impossible de creer les participants de la conversation.',
+        );
       }
 
       return {
@@ -188,14 +190,6 @@ export class ConversationsService {
       };
     }
 
-    await assertCommunicationManager(client);
-    const scope = normalizeSingleScope({
-      commune_id: payload.commune_id ?? null,
-      prefecture_id: payload.prefecture_id ?? null,
-      region_id: payload.region_id ?? null,
-      scope_type: (payload.scope_type ?? 'all') as ScopeInput['scope_type'],
-    });
-
     const title = payload.title?.trim() ?? '';
     if (!title) {
       throw new BadRequestException(
@@ -206,20 +200,21 @@ export class ConversationsService {
     const { data: conversation, error } = await client
       .from('conversation')
       .insert({
-        commune_id: scope.commune_id ?? null,
+        commune_id: null,
         conversation_type: 'community',
         created_by: userId,
-        prefecture_id: scope.prefecture_id ?? null,
-        region_id: scope.region_id ?? null,
-        scope_type: scope.scope_type,
+        prefecture_id: null,
+        region_id: null,
+        scope_type: 'all',
         title,
       })
       .select(this.conversationSelect)
       .single();
 
     if (error || !conversation) {
-      throw (
-        error ?? new BadRequestException('Conversation communaute invalide.')
+      throw this.mapConversationCreateError(
+        error,
+        'Conversation communaute invalide.',
       );
     }
 
@@ -309,6 +304,33 @@ export class ConversationsService {
       item: data,
       message: 'Message envoye.',
     };
+  }
+
+  private mapConversationCreateError(
+    error: PostgrestError | null,
+    fallbackMessage: string,
+  ): Error {
+    if (!error) {
+      return new BadRequestException(fallbackMessage);
+    }
+
+    if (error.code === '42501') {
+      return new ForbiddenException(
+        'Permission insuffisante pour creer cette conversation.',
+      );
+    }
+
+    if (error.code === '23514') {
+      return new BadRequestException(
+        'Parametres de conversation invalides (scope/type).',
+      );
+    }
+
+    if (error.message?.trim()) {
+      return new BadRequestException(error.message.trim());
+    }
+
+    return new BadRequestException(fallbackMessage);
   }
 
   private normalizeParticipantIds(

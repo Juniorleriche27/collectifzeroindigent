@@ -202,6 +202,7 @@ export default async function MemberDetailPage({
               actorRole={currentRole}
               currentRole={targetRole}
               memberId={member.id}
+              targetEmail={member.email}
               targetUserId={member.user_id}
             />
           </Card>

@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
+import { OWNER_ADMIN_EMAIL } from "@/lib/constants/governance";
 
 import { updateMemberRole } from "./actions";
 import type { MemberRoleState } from "./actions";
@@ -13,6 +14,7 @@ type MemberRoleFormProps = {
   actorRole: string;
   currentRole: string | null;
   memberId: string;
+  targetEmail: string | null;
   targetUserId: string;
 };
 
@@ -59,6 +61,7 @@ export function MemberRoleForm({
   actorRole,
   currentRole,
   memberId,
+  targetEmail,
   targetUserId,
 }: MemberRoleFormProps) {
   const normalizedActorRole = normalizeRole(actorRole);
@@ -67,11 +70,18 @@ export function MemberRoleForm({
   const canEditRole = roleOptions.length > 0;
   const safeTargetUserId = targetUserId || "__missing_target_user_id__";
 
+  const normalizedTargetEmail = (targetEmail ?? "").trim().toLowerCase();
+  const isOwnerProtected = normalizedTargetEmail === OWNER_ADMIN_EMAIL;
   const initialRoleState: MemberRoleState = {
     error: null,
     success: null,
   };
-  const updateMemberRoleAction = updateMemberRole.bind(null, memberId, safeTargetUserId);
+  const updateMemberRoleAction = updateMemberRole.bind(
+    null,
+    memberId,
+    safeTargetUserId,
+    normalizedTargetEmail || null,
+  );
   const [state, formAction, isPending] = useActionState(
     updateMemberRoleAction,
     initialRoleState,
@@ -89,6 +99,19 @@ export function MemberRoleForm({
         </p>
         <p className="text-sm text-muted">
           Ce role ne permet pas de modifier les roles gouvernance.
+        </p>
+      </div>
+    );
+  }
+
+  if (isOwnerProtected) {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm text-muted">
+          Role actuel: <Badge>{roleLabels[normalizedCurrentRole] ?? normalizedCurrentRole}</Badge>
+        </p>
+        <p className="text-sm text-muted">
+          Compte proprietaire technique (`{OWNER_ADMIN_EMAIL}`): role admin verrouille en interface.
         </p>
       </div>
     );

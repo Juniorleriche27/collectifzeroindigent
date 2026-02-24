@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { updateMemberById, validateMemberById } from "@/lib/backend/api";
+import { OWNER_ADMIN_EMAIL } from "@/lib/constants/governance";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
   getProfileRoleByAuthUser,
@@ -150,6 +151,7 @@ export async function updateMember(
 export async function updateMemberRole(
   memberId: string,
   targetUserId: string,
+  targetEmail: string | null,
   _previousState: MemberRoleState,
   formData: FormData,
 ): Promise<MemberRoleState> {
@@ -192,6 +194,14 @@ export async function updateMemberRole(
   if (targetUserId === user.id && nextRole !== actorRole && actorRole === "ca") {
     return {
       error: "Un role CA ne peut pas modifier son propre role.",
+      success: null,
+    };
+  }
+
+  const normalizedTargetEmail = (targetEmail ?? "").trim().toLowerCase();
+  if (normalizedTargetEmail === OWNER_ADMIN_EMAIL && nextRole !== "admin") {
+    return {
+      error: `Le compte proprietaire ${OWNER_ADMIN_EMAIL} doit conserver le role admin.`,
       success: null,
     };
   }
