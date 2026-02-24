@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -61,6 +62,17 @@ export class AnnouncementsController {
       request.supabaseAccessToken,
       announcementId,
       payload,
+    );
+  }
+
+  @Delete(':id')
+  async remove(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') announcementId: string,
+  ) {
+    return this.announcementsService.remove(
+      request.supabaseAccessToken,
+      announcementId,
     );
   }
 }

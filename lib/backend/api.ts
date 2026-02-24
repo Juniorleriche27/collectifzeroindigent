@@ -463,6 +463,40 @@ export async function createAnnouncement(payload: {
   });
 }
 
+export async function updateAnnouncement(
+  announcementId: string,
+  payload: {
+    body?: string;
+    is_published?: boolean;
+    scopes?: Array<{
+      commune_id?: string | null;
+      prefecture_id?: string | null;
+      region_id?: string | null;
+      scope_type: ScopeLevel;
+    }>;
+    title?: string;
+  },
+) {
+  return requestBackend<{
+    item: AnnouncementItem | null;
+    message: string;
+  }>(`/announcements/${announcementId}`, {
+    body: JSON.stringify(payload),
+    fallbackError: "Impossible de modifier le communique.",
+    method: "PATCH",
+  });
+}
+
+export async function deleteAnnouncement(announcementId: string) {
+  return requestBackend<{
+    deleted: boolean;
+    message: string;
+  }>(`/announcements/${announcementId}`, {
+    fallbackError: "Impossible de supprimer le communique.",
+    method: "DELETE",
+  });
+}
+
 export async function listConversations(filters?: {
   conversation_type?: ConversationType;
   q?: string;

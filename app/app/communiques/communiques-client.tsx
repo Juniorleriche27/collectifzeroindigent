@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useState, type FormEvent } from "react";
 import { Megaphone } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +17,16 @@ import type {
   ScopeLevel,
 } from "@/lib/backend/api";
 
-import { createCommuniqueAction } from "./actions";
-import type { CommuniqueCreateState } from "./actions";
+import {
+  createCommuniqueAction,
+  deleteCommuniqueAction,
+  updateCommuniqueAction,
+} from "./actions";
+import type {
+  CommuniqueCreateState,
+  CommuniqueDeleteState,
+  CommuniqueUpdateState,
+} from "./actions";
 
 type CommuniquesClientProps = {
   canManage: boolean;
@@ -52,6 +60,24 @@ function scopeLabel(
   return `Commune: ${maps.communes.get(String(scope.commune_id)) ?? "-"}`;
 }
 
+function primaryScope(item: AnnouncementItem): {
+  communeId: string;
+  prefectureId: string;
+  regionId: string;
+  scopeType: ScopeLevel;
+} {
+  const first = item.scopes[0];
+  if (!first) {
+    return { communeId: "", prefectureId: "", regionId: "", scopeType: "all" };
+  }
+  return {
+    communeId: first.commune_id ? String(first.commune_id) : "",
+    prefectureId: first.prefecture_id ? String(first.prefecture_id) : "",
+    regionId: first.region_id ? String(first.region_id) : "",
+    scopeType: first.scope_type,
+  };
+}
+
 export function CommuniquesClient({
   canManage,
   communes,
@@ -62,15 +88,35 @@ export function CommuniquesClient({
   regions,
   role,
 }: CommuniquesClientProps) {
-  const initialState: CommuniqueCreateState = { error: null, success: null };
+  const initialCreateState: CommuniqueCreateState = { error: null, success: null };
+  const initialUpdateState: CommuniqueUpdateState = { error: null, success: null };
+  const initialDeleteState: CommuniqueDeleteState = { error: null, success: null };
+
   const [createState, createAction, createPending] = useActionState(
     createCommuniqueAction,
-    initialState,
+    initialCreateState,
   );
-  const [open, setOpen] = useState(false);
-  const [scopeType, setScopeType] = useState<ScopeLevel>("all");
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedPrefecture, setSelectedPrefecture] = useState("");
+  const [updateState, updateAction, updatePending] = useActionState(
+    updateCommuniqueAction,
+    initialUpdateState,
+  );
+  const [deleteState, deleteAction, deletePending] = useActionState(
+    deleteCommuniqueAction,
+    initialDeleteState,
+  );
+
+  const [openCreate, setOpenCreate] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [editingItem, setEditingItem] = useState<AnnouncementItem | null>(null);
+
+  const [createScopeType, setCreateScopeType] = useState<ScopeLevel>("all");
+  const [createSelectedRegion, setCreateSelectedRegion] = useState("");
+  const [createSelectedPrefecture, setCreateSelectedPrefecture] = useState("");
+
+  const [editScopeType, setEditScopeType] = useState<ScopeLevel>("all");
+  const [editSelectedRegion, setEditSelectedRegion] = useState("");
+  const [editSelectedPrefecture, setEditSelectedPrefecture] = useState("");
+  const [editSelectedCommune, setEditSelectedCommune] = useState("");
 
   const maps = useMemo(
     () => ({
@@ -89,16 +135,50 @@ export function CommuniquesClient({
     [communes],
   );
 
-  const availablePrefectures = selectedRegion
-    ? prefectures.filter((item) => String(item.region_id) === selectedRegion)
+  const createAvailablePrefectures = createSelectedRegion
+    ? prefectures.filter((item) => String(item.region_id) === createSelectedRegion)
     : prefectures;
-  const availableCommunes = selectedPrefecture
-    ? communes.filter((item) => String(item.prefecture_id) === selectedPrefecture)
-    : selectedRegion
+  const createAvailableCommunes = createSelectedPrefecture
+    ? communes.filter((item) => String(item.prefecture_id) === createSelectedPrefecture)
+    : createSelectedRegion
       ? communes.filter(
-          (item) => prefectureToRegion.get(String(item.prefecture_id)) === selectedRegion,
+          (item) => prefectureToRegion.get(String(item.prefecture_id)) === createSelectedRegion,
         )
       : communes;
+
+  const editAvailablePrefectures = editSelectedRegion
+    ? prefectures.filter((item) => String(item.region_id) === editSelectedRegion)
+    : prefectures;
+  const editAvailableCommunes = editSelectedPrefecture
+    ? communes.filter((item) => String(item.prefecture_id) === editSelectedPrefecture)
+    : editSelectedRegion
+      ? communes.filter(
+          (item) => prefectureToRegion.get(String(item.prefecture_id)) === editSelectedRegion,
+        )
+      : communes;
+
+  function openCreateDialog() {
+    setCreateScopeType("all");
+    setCreateSelectedRegion("");
+    setCreateSelectedPrefecture("");
+    setOpenCreate(true);
+  }
+
+  function openEditDialog(item: AnnouncementItem) {
+    const scope = primaryScope(item);
+    setEditingItem(item);
+    setEditScopeType(scope.scopeType);
+    setEditSelectedRegion(scope.regionId);
+    setEditSelectedPrefecture(scope.prefectureId);
+    setEditSelectedCommune(scope.communeId);
+    setOpenEdit(true);
+  }
+
+  function confirmDelete(event: FormEvent<HTMLFormElement>) {
+    if (!window.confirm("Supprimer ce communique ?")) {
+      event.preventDefault();
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -110,7 +190,7 @@ export function CommuniquesClient({
             Publication d&apos;annonces ciblees: national, region, prefecture ou commune.
           </CardDescription>
         </div>
-        <Button disabled={!canManage} onClick={() => setOpen(true)}>
+        <Button disabled={!canManage} onClick={openCreateDialog}>
           Nouveau communique
         </Button>
       </div>
@@ -144,6 +224,17 @@ export function CommuniquesClient({
         </form>
         <CardDescription>{items.length} communique(s) visible(s).</CardDescription>
       </Card>
+
+      {deleteState.error ? (
+        <Card>
+          <CardDescription className="text-red-600">{deleteState.error}</CardDescription>
+        </Card>
+      ) : null}
+      {deleteState.success ? (
+        <Card>
+          <CardDescription className="text-emerald-700">{deleteState.success}</CardDescription>
+        </Card>
+      ) : null}
 
       {loadError ? (
         <Card>
@@ -183,17 +274,31 @@ export function CommuniquesClient({
               <CardDescription>
                 Cree le {new Date(item.created_at).toLocaleString("fr-FR")}
               </CardDescription>
+
+              {canManage ? (
+                <div className="flex items-center gap-2">
+                  <Button size="sm" type="button" variant="secondary" onClick={() => openEditDialog(item)}>
+                    Modifier
+                  </Button>
+                  <form action={deleteAction} onSubmit={confirmDelete}>
+                    <input name="announcement_id" type="hidden" value={item.id} />
+                    <Button size="sm" type="submit" variant="ghost" disabled={deletePending}>
+                      {deletePending ? "Suppression..." : "Supprimer"}
+                    </Button>
+                  </form>
+                </div>
+              ) : null}
             </Card>
           ))}
         </section>
       )}
 
-      {open ? (
+      {openCreate ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <Card className="w-full max-w-2xl space-y-4">
             <div className="flex items-center justify-between">
               <CardTitle>Nouveau communique</CardTitle>
-              <Button size="sm" type="button" variant="ghost" onClick={() => setOpen(false)}>
+              <Button size="sm" type="button" variant="ghost" onClick={() => setOpenCreate(false)}>
                 Fermer
               </Button>
             </div>
@@ -221,17 +326,17 @@ export function CommuniquesClient({
                   Portee
                 </label>
                 <Select
-                  value={scopeType}
+                  value={createScopeType}
                   id="communique-scope-type"
                   name="scope_type"
                   onChange={(event) => {
                     const nextScope = event.target.value as ScopeLevel;
-                    setScopeType(nextScope);
+                    setCreateScopeType(nextScope);
                     if (nextScope === "all") {
-                      setSelectedRegion("");
-                      setSelectedPrefecture("");
+                      setCreateSelectedRegion("");
+                      setCreateSelectedPrefecture("");
                     } else if (nextScope === "region") {
-                      setSelectedPrefecture("");
+                      setCreateSelectedPrefecture("");
                     }
                   }}
                 >
@@ -255,12 +360,12 @@ export function CommuniquesClient({
                   Region
                 </label>
                 <Select
-                  disabled={scopeType === "all"}
+                  disabled={createScopeType === "all"}
                   id="communique-region"
                   name="region_id"
                   onChange={(event) => {
-                    setSelectedRegion(event.target.value);
-                    setSelectedPrefecture("");
+                    setCreateSelectedRegion(event.target.value);
+                    setCreateSelectedPrefecture("");
                   }}
                 >
                   <option value="">Selectionner une region</option>
@@ -276,19 +381,19 @@ export function CommuniquesClient({
                   Prefecture
                 </label>
                 <Select
-                  disabled={scopeType === "all"}
+                  disabled={createScopeType === "all"}
                   id="communique-prefecture"
                   name="prefecture_id"
                   onChange={(event) => {
                     const value = event.target.value;
-                    setSelectedPrefecture(value);
-                    if (value && scopeType === "region") {
-                      setScopeType("prefecture");
+                    setCreateSelectedPrefecture(value);
+                    if (value && createScopeType === "region") {
+                      setCreateScopeType("prefecture");
                     }
                   }}
                 >
                   <option value="">Selectionner une prefecture</option>
-                  {availablePrefectures.map((prefecture) => (
+                  {createAvailablePrefectures.map((prefecture) => (
                     <option key={prefecture.id} value={prefecture.id}>
                       {prefecture.name}
                     </option>
@@ -300,7 +405,7 @@ export function CommuniquesClient({
                   Commune
                 </label>
                 <Select
-                  disabled={scopeType === "all"}
+                  disabled={createScopeType === "all"}
                   id="communique-commune"
                   name="commune_id"
                   onChange={(event) => {
@@ -308,19 +413,19 @@ export function CommuniquesClient({
                     if (!value) return;
                     const parentPrefecture = communeToPrefecture.get(value);
                     if (parentPrefecture) {
-                      setSelectedPrefecture(parentPrefecture);
+                      setCreateSelectedPrefecture(parentPrefecture);
                       const parentRegion = prefectureToRegion.get(parentPrefecture);
                       if (parentRegion) {
-                        setSelectedRegion(parentRegion);
+                        setCreateSelectedRegion(parentRegion);
                       }
                     }
-                    if (scopeType !== "commune") {
-                      setScopeType("commune");
+                    if (createScopeType !== "commune") {
+                      setCreateScopeType("commune");
                     }
                   }}
                 >
                   <option value="">Selectionner une commune</option>
-                  {availableCommunes.map((commune) => (
+                  {createAvailableCommunes.map((commune) => (
                     <option key={commune.id} value={commune.id}>
                       {commune.name}
                     </option>
@@ -336,6 +441,185 @@ export function CommuniquesClient({
               <div className="md:col-span-2">
                 <Button disabled={createPending} type="submit">
                   {createPending ? "Publication..." : "Publier le communique"}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      ) : null}
+
+      {openEdit && editingItem ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <Card className="w-full max-w-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <CardTitle>Modifier le communique</CardTitle>
+              <Button size="sm" type="button" variant="ghost" onClick={() => setOpenEdit(false)}>
+                Fermer
+              </Button>
+            </div>
+            <form
+              key={editingItem.id}
+              action={updateAction}
+              className="grid gap-4 md:grid-cols-2"
+            >
+              <input name="announcement_id" type="hidden" value={editingItem.id} />
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium" htmlFor="edit-communique-title">
+                  Titre
+                </label>
+                <Input
+                  defaultValue={editingItem.title}
+                  id="edit-communique-title"
+                  name="title"
+                  placeholder="Titre du communique"
+                  required
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium" htmlFor="edit-communique-body">
+                  Contenu
+                </label>
+                <textarea
+                  className="min-h-[140px] w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-4 focus:ring-primary/20"
+                  defaultValue={editingItem.body}
+                  id="edit-communique-body"
+                  name="body"
+                  placeholder="Ecrivez votre annonce..."
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="edit-communique-scope-type">
+                  Portee
+                </label>
+                <Select
+                  value={editScopeType}
+                  id="edit-communique-scope-type"
+                  name="scope_type"
+                  onChange={(event) => {
+                    const nextScope = event.target.value as ScopeLevel;
+                    setEditScopeType(nextScope);
+                    if (nextScope === "all") {
+                      setEditSelectedRegion("");
+                      setEditSelectedPrefecture("");
+                      setEditSelectedCommune("");
+                    } else if (nextScope === "region") {
+                      setEditSelectedPrefecture("");
+                      setEditSelectedCommune("");
+                    }
+                  }}
+                >
+                  <option value="all">National</option>
+                  <option value="region">Par region</option>
+                  <option value="prefecture">Par prefecture</option>
+                  <option value="commune">Par commune</option>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="edit-communique-is-published">
+                  Publication
+                </label>
+                <Select
+                  defaultValue={editingItem.is_published ? "true" : "false"}
+                  id="edit-communique-is-published"
+                  name="is_published"
+                >
+                  <option value="true">Publier maintenant</option>
+                  <option value="false">Enregistrer en brouillon</option>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="edit-communique-region">
+                  Region
+                </label>
+                <Select
+                  disabled={editScopeType === "all"}
+                  id="edit-communique-region"
+                  name="region_id"
+                  value={editSelectedRegion}
+                  onChange={(event) => {
+                    setEditSelectedRegion(event.target.value);
+                    setEditSelectedPrefecture("");
+                    setEditSelectedCommune("");
+                  }}
+                >
+                  <option value="">Selectionner une region</option>
+                  {regions.map((region) => (
+                    <option key={region.id} value={region.id}>
+                      {region.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="edit-communique-prefecture">
+                  Prefecture
+                </label>
+                <Select
+                  disabled={editScopeType === "all"}
+                  id="edit-communique-prefecture"
+                  name="prefecture_id"
+                  value={editSelectedPrefecture}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setEditSelectedPrefecture(value);
+                    setEditSelectedCommune("");
+                    if (value && editScopeType === "region") {
+                      setEditScopeType("prefecture");
+                    }
+                  }}
+                >
+                  <option value="">Selectionner une prefecture</option>
+                  {editAvailablePrefectures.map((prefecture) => (
+                    <option key={prefecture.id} value={prefecture.id}>
+                      {prefecture.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium" htmlFor="edit-communique-commune">
+                  Commune
+                </label>
+                <Select
+                  disabled={editScopeType === "all"}
+                  id="edit-communique-commune"
+                  name="commune_id"
+                  value={editSelectedCommune}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setEditSelectedCommune(value);
+                    if (!value) return;
+                    const parentPrefecture = communeToPrefecture.get(value);
+                    if (parentPrefecture) {
+                      setEditSelectedPrefecture(parentPrefecture);
+                      const parentRegion = prefectureToRegion.get(parentPrefecture);
+                      if (parentRegion) {
+                        setEditSelectedRegion(parentRegion);
+                      }
+                    }
+                    if (editScopeType !== "commune") {
+                      setEditScopeType("commune");
+                    }
+                  }}
+                >
+                  <option value="">Selectionner une commune</option>
+                  {editAvailableCommunes.map((commune) => (
+                    <option key={commune.id} value={commune.id}>
+                      {commune.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              {updateState.error ? (
+                <p className="text-sm text-red-600 md:col-span-2">{updateState.error}</p>
+              ) : null}
+              {updateState.success ? (
+                <p className="text-sm text-emerald-700 md:col-span-2">{updateState.success}</p>
+              ) : null}
+              <div className="md:col-span-2">
+                <Button disabled={updatePending} type="submit">
+                  {updatePending ? "Mise a jour..." : "Enregistrer les modifications"}
                 </Button>
               </div>
             </form>

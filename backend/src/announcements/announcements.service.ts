@@ -205,6 +205,29 @@ export class AnnouncementsService {
     };
   }
 
+  async remove(accessToken: string, announcementId: string) {
+    const client = this.supabaseDataService.forUser(accessToken);
+    await assertCommunicationManager(client);
+
+    const { data, error } = await client
+      .from('announcement')
+      .delete()
+      .eq('id', announcementId)
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      deleted: Boolean(data),
+      message: data
+        ? 'Annonce supprimee.'
+        : 'Annonce introuvable ou deja supprimee.',
+    };
+  }
+
   private async attachScopes(
     client: ReturnType<SupabaseDataService['forUser']>,
     items: AnnouncementRow[],
