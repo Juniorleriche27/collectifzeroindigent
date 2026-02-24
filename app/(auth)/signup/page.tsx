@@ -39,10 +39,12 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const supabase = createClient();
+      const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent("/onboarding")}`;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: callbackUrl,
           data: {
             join_mode: joinMode,
           },
