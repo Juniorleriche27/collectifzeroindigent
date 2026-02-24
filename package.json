@@ -10,7 +10,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify:rls": "node scripts/verify-rls.mjs",
-    "seed:locations": "node scripts/seed-locations-from-csv.mjs"
+    "seed:locations": "node scripts/seed-locations-from-csv.mjs",
+    "dryrun:delivery": "node scripts/run-delivery-pack-dry-run.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
@@ -29,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "pg": "^8.18.0",
     "prettier": "^3.8.1",
     "tailwindcss": "^4",
     "typescript": "^5"

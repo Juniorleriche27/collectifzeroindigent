@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
-import { MessageCircleMore } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,10 +35,6 @@ type CommunauteClientProps = {
   regions: RegionOption[];
   selectedConversationId: string | null;
 };
-
-function paramValue(value: string | undefined | null): string {
-  return value ?? "";
-}
 
 function conversationLabel(item: ConversationItem, currentMemberId: string | null): string {
   if (item.title) return item.title;
