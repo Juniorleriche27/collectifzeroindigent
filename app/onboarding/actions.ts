@@ -294,6 +294,7 @@ export async function submitOnboarding(
       mobility,
       mobility_zones: mobilityZones || undefined,
       odd_priorities: oddPriorities,
+      occupation_status: occupationStatus,
       org_name: orgName || undefined,
       org_name_declared: orgNameDeclared || undefined,
       org_role: orgRole || undefined,

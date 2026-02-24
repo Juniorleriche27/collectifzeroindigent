@@ -379,6 +379,7 @@ export async function completeOnboarding(payload: {
   contact_preference?: "whatsapp" | "email" | "call";
   last_name: string;
   education_level?: string;
+  occupation_status?: string;
   engagement_domains?: string[];
   engagement_frequency?: string;
   engagement_recent_action?: string;
