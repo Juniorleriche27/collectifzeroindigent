@@ -138,8 +138,16 @@ export async function submitOnboarding(
   const consentAnalytics = formBoolean(formData, "consent_analytics");
   const consentAiTrainingAgg = formBoolean(formData, "consent_ai_training_agg");
 
-  if (!firstName || !lastName || !phone || !regionId || !prefectureId || !communeId || !joinMode) {
-    return { error: "Tous les champs obligatoires doivent etre renseignes." };
+  if (!firstName || !lastName || !phone) {
+    return { error: "Etape 1 incomplete: renseignez prenom, nom et telephone." };
+  }
+
+  if (!regionId || !prefectureId || !communeId) {
+    return { error: "Etape 2 incomplete: selectionnez region, prefecture et commune." };
+  }
+
+  if (!joinMode) {
+    return { error: "Etape 3 incomplete: selectionnez le type d'inscription." };
   }
 
   if (!joinModes.has(joinMode)) {

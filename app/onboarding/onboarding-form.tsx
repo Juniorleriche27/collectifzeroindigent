@@ -55,6 +55,7 @@ const onboardingContactPreferenceValues = new Set(["whatsapp", "email", "call"])
 const onboardingOrgTypes = new Set(["association", "enterprise"]);
 const totalSteps = 6;
 const onboardingDraftStorageKey = "czi.onboarding.draft.v1";
+const onboardingDraftStepKey = "__wizard_step";
 const onboardingStepTitles = [
   "Identite et contact",
   "Localisation",
@@ -247,13 +248,18 @@ export function OnboardingForm({
     return payload;
   }
 
-  function saveDraftProgress() {
+  function persistDraftProgress(stepOverride?: number) {
     if (typeof window === "undefined" || !formRef.current || alreadyOnboarded) {
       return;
     }
 
     const payload = toDraftPayload(formRef.current);
+    payload[onboardingDraftStepKey] = String(stepOverride ?? currentStep);
     window.localStorage.setItem(onboardingDraftStorageKey, JSON.stringify(payload));
+  }
+
+  function saveDraftProgress() {
+    persistDraftProgress();
   }
 
   useEffect(() => {
@@ -269,6 +275,10 @@ export function OnboardingForm({
 
     try {
       const parsed = JSON.parse(rawDraft) as Record<string, unknown>;
+      const parsedStep = Number.parseInt(String(parsed[onboardingDraftStepKey] ?? ""), 10);
+      if (Number.isInteger(parsedStep)) {
+        setCurrentStep(Math.min(totalSteps, Math.max(1, parsedStep)));
+      }
 
       const draftJoinMode =
         typeof parsed.join_mode === "string" && onboardingJoinModeValues.has(parsed.join_mode)
@@ -517,6 +527,17 @@ export function OnboardingForm({
     return null;
   }
 
+  function validateAllSteps(): { error: string; step: number } | null {
+    for (let step = 1; step <= totalSteps; step += 1) {
+      const validationError = validateStep(step);
+      if (validationError) {
+        return { error: validationError, step };
+      }
+    }
+
+    return null;
+  }
+
   function goToNextStep() {
     const validationError = validateStep(currentStep);
     if (validationError) {
@@ -524,15 +545,18 @@ export function OnboardingForm({
       return;
     }
 
-    saveDraftProgress();
     setStepError(null);
-    setCurrentStep((previous) => Math.min(previous + 1, totalSteps));
+    const nextStep = Math.min(currentStep + 1, totalSteps);
+    persistDraftProgress(nextStep);
+    setCurrentStep(nextStep);
     window.scrollTo({ behavior: "smooth", top: 0 });
   }
 
   function goToPreviousStep() {
     setStepError(null);
-    setCurrentStep((previous) => Math.max(previous - 1, 1));
+    const previousStep = Math.max(currentStep - 1, 1);
+    persistDraftProgress(previousStep);
+    setCurrentStep(previousStep);
     window.scrollTo({ behavior: "smooth", top: 0 });
   }
 
@@ -542,15 +566,18 @@ export function OnboardingForm({
       return;
     }
 
-    const validationError = validateStep(currentStep);
-    if (validationError) {
+    const firstInvalidStep = validateAllSteps();
+    if (firstInvalidStep) {
       event.preventDefault();
-      setStepError(validationError);
+      setCurrentStep(firstInvalidStep.step);
+      setStepError(firstInvalidStep.error);
+      persistDraftProgress(firstInvalidStep.step);
+      window.scrollTo({ behavior: "smooth", top: 0 });
       return;
     }
 
     setStepError(null);
-    saveDraftProgress();
+    persistDraftProgress(totalSteps);
   }
 
   return (
@@ -1109,7 +1136,9 @@ export function OnboardingForm({
         </p>
       ) : null}
       {stepError ? <p className="text-sm text-red-600">{stepError}</p> : null}
-      {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
+      {currentStep === totalSteps && state.error ? (
+        <p className="text-sm text-red-600">{state.error}</p>
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-xs text-muted-foreground">
