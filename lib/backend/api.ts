@@ -88,6 +88,7 @@ export type ConversationParticipant = {
   conversation_id: string;
   id: string;
   joined_at: string;
+  last_read_at: string | null;
   member: {
     email: string | null;
     first_name: string | null;
@@ -136,6 +137,7 @@ export type ConversationItem = {
   region_id: string | null;
   scope_type: ScopeLevel;
   title: string | null;
+  unread_count: number;
   updated_at: string;
 };
 

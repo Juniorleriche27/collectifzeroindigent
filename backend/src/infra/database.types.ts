@@ -53,11 +53,22 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      mark_conversation_read: {
+        Args: { conversation_uuid: string };
+        Returns: boolean;
+      };
       member_in_community_kind: {
         Args: {
           target_kind: Database['public']['Enums']['conversation_community_kind'];
         };
         Returns: boolean;
+      };
+      unread_direct_counts: {
+        Args: { conversation_ids: string[] };
+        Returns: {
+          conversation_id: string;
+          unread_count: number;
+        }[];
       };
       scope_matches_member: {
         Args: {
@@ -232,6 +243,7 @@ export type Database = {
           conversation_id: string;
           id?: string;
           joined_at?: string;
+          last_read_at?: string | null;
           member_id: string;
         };
         Relationships: [];
@@ -240,6 +252,7 @@ export type Database = {
           conversation_id: string;
           id: string;
           joined_at: string;
+          last_read_at: string | null;
           member_id: string;
         };
         Update: {
@@ -247,6 +260,7 @@ export type Database = {
           conversation_id?: string;
           id?: string;
           joined_at?: string;
+          last_read_at?: string | null;
           member_id?: string;
         };
       };

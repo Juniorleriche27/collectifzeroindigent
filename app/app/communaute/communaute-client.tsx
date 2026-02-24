@@ -276,7 +276,17 @@ export function CommunauteClient({
             <div className="rounded-xl border border-border bg-background/70 p-3">
               <p className="text-sm font-semibold">Discussions privees</p>
               <div className="mt-2 space-y-2">
-                {directList.map((item) => <Link className={cn("block rounded-md border px-3 py-2 text-sm", item.id === selectedConversationId ? "border-primary/30 bg-primary/10" : "border-border bg-muted-surface/50")} href={link(item.id)} key={item.id}>{conversationLabel(item, currentMemberId)}</Link>)}
+                {directList.map((item) => {
+                  const unreadCount = item.id === selectedConversationId ? 0 : item.unread_count;
+                  return (
+                    <Link className={cn("block rounded-md border px-3 py-2 text-sm", item.id === selectedConversationId ? "border-primary/30 bg-primary/10" : "border-border bg-muted-surface/50")} href={link(item.id)} key={item.id}>
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="truncate">{conversationLabel(item, currentMemberId)}</span>
+                        {unreadCount > 0 ? <Badge variant="warning">{unreadCount}</Badge> : null}
+                      </span>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </Card>

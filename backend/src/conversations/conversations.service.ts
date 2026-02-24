@@ -51,6 +51,7 @@ type ParticipantRow = {
   conversation_id: string;
   id: string;
   joined_at: string;
+  last_read_at: string | null;
   member_id: string;
 };
 
@@ -88,7 +89,7 @@ export class ConversationsService {
   private readonly conversationSelect =
     'id, conversation_type, title, created_by, scope_type, region_id, prefecture_id, commune_id, community_kind, parent_conversation_id, created_at, updated_at';
   private readonly participantSelect =
-    'id, conversation_id, member_id, can_post, joined_at';
+    'id, conversation_id, member_id, can_post, joined_at, last_read_at';
   private readonly messageSelect =
     'id, conversation_id, sender_member_id, parent_message_id, body, mention_member_ids, created_at, updated_at, edited_at, deleted_at';
 
@@ -123,6 +124,7 @@ export class ConversationsService {
     const filteredItems = this.applyConversationFilters(normalizedItems, query);
     const ids = filteredItems.map((item) => item.id);
     const participants = await this.loadParticipants(client, ids);
+    const unreadCounts = await this.loadUnreadCounts(client, ids);
     const latestMessages = await this.loadLatestMessages(client, ids);
 
     const result = filteredItems
@@ -132,6 +134,7 @@ export class ConversationsService {
           item.conversation_type === 'community' &&
           item.parent_conversation_id !== null &&
           (item.created_by === userId || canManageCommunication),
+        unread_count: unreadCounts.get(item.id) ?? 0,
         latest_message: latestMessages.get(item.id) ?? null,
         participants: participants.get(item.id) ?? [],
       }))
@@ -225,6 +228,7 @@ export class ConversationsService {
       return {
         item: {
           can_delete: false,
+          unread_count: 0,
           ...conversation,
           latest_message: null,
           participants: await this.loadConversationParticipants(
@@ -314,6 +318,7 @@ export class ConversationsService {
       item: {
         ...conversation,
         can_delete: true,
+        unread_count: 0,
         latest_message: null,
         participants: [],
       },
@@ -414,6 +419,7 @@ export class ConversationsService {
       messageIds,
       currentMemberId,
     );
+    await this.markConversationAsRead(client, conversationId);
 
     return {
       items: rows.map((row) => ({
@@ -767,6 +773,26 @@ export class ConversationsService {
     return code === '42P01' && message.includes('message_like');
   }
 
+  private isMissingUnreadTrackingModelError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const value = error as Partial<PostgrestError>;
+    const code = value.code ?? '';
+    const message = value.message ?? '';
+
+    if (code === '42703' && message.includes('last_read_at')) {
+      return true;
+    }
+
+    return (
+      code === '42883' &&
+      (message.includes('mark_conversation_read') ||
+        message.includes('unread_direct_counts'))
+    );
+  }
+
   private normalizeConversationFeed(
     items: ConversationRow[],
   ): ConversationRow[] {
@@ -1059,6 +1085,72 @@ export class ConversationsService {
       return Boolean(firstValue);
     }
     return Boolean(value);
+  }
+
+  private async markConversationAsRead(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    conversationId: string,
+  ): Promise<void> {
+    const { error } = await client.rpc('mark_conversation_read', {
+      conversation_uuid: conversationId,
+    });
+    if (!error) {
+      return;
+    }
+    if (this.isMissingUnreadTrackingModelError(error)) {
+      throw new BadRequestException(
+        'Schema unread non a jour. Executez sql/2026-02-25_direct_message_unread.sql.',
+      );
+    }
+  }
+
+  private async loadUnreadCounts(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    conversationIds: string[],
+  ): Promise<Map<string, number>> {
+    if (!conversationIds.length) {
+      return new Map<string, number>();
+    }
+
+    const { data, error } = await client.rpc('unread_direct_counts', {
+      conversation_ids: conversationIds,
+    });
+    if (error) {
+      if (this.isMissingUnreadTrackingModelError(error)) {
+        throw new BadRequestException(
+          'Schema unread non a jour. Executez sql/2026-02-25_direct_message_unread.sql.',
+        );
+      }
+      throw error;
+    }
+
+    const rows = Array.isArray(data) ? (data as Record<string, unknown>[]) : [];
+    const unreadMap = new Map<string, number>();
+    for (const row of rows) {
+      const rawConversationId = row.conversation_id;
+      if (typeof rawConversationId !== 'string') {
+        continue;
+      }
+      const conversationId = rawConversationId.trim();
+      if (!conversationId) {
+        continue;
+      }
+      const rawUnreadCount = row.unread_count;
+      const unreadCount =
+        typeof rawUnreadCount === 'number'
+          ? rawUnreadCount
+          : typeof rawUnreadCount === 'string'
+            ? Number(rawUnreadCount)
+            : 0;
+      unreadMap.set(
+        conversationId,
+        Number.isFinite(unreadCount) && unreadCount > 0
+          ? Math.floor(unreadCount)
+          : 0,
+      );
+    }
+
+    return unreadMap;
   }
 
   private firstRecordValue(record: Record<string, unknown>): unknown {
