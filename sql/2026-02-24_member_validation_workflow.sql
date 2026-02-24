@@ -1,5 +1,53 @@
 begin;
 
+do $$
+declare
+  status_udt_name text;
+  status_udt_schema text;
+begin
+  select c.udt_name, c.udt_schema
+  into status_udt_name, status_udt_schema
+  from information_schema.columns c
+  where c.table_schema = 'public'
+    and c.table_name = 'member'
+    and c.column_name = 'status';
+
+  if status_udt_name is null then
+    return;
+  end if;
+
+  if exists (
+    select 1
+    from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where n.nspname = status_udt_schema
+      and t.typname = status_udt_name
+      and t.typtype = 'e'
+  ) then
+    execute format(
+      'alter type %I.%I add value if not exists ''pending''',
+      status_udt_schema,
+      status_udt_name
+    );
+    execute format(
+      'alter type %I.%I add value if not exists ''active''',
+      status_udt_schema,
+      status_udt_name
+    );
+    execute format(
+      'alter type %I.%I add value if not exists ''rejected''',
+      status_udt_schema,
+      status_udt_name
+    );
+    execute format(
+      'alter type %I.%I add value if not exists ''suspended''',
+      status_udt_schema,
+      status_udt_name
+    );
+  end if;
+end
+$$;
+
 alter table public.member
   add column if not exists validated_by uuid,
   add column if not exists validated_at timestamptz,
@@ -34,8 +82,8 @@ where c.table_schema = 'public'
 order by c.column_name;
 
 select
-  count(*) filter (where status = 'pending') as pending_count,
-  count(*) filter (where status = 'active') as active_count,
-  count(*) filter (where status = 'rejected') as rejected_count,
-  count(*) filter (where status = 'suspended') as suspended_count
+  count(*) filter (where status::text = 'pending') as pending_count,
+  count(*) filter (where status::text = 'active') as active_count,
+  count(*) filter (where status::text = 'rejected') as rejected_count,
+  count(*) filter (where status::text = 'suspended') as suspended_count
 from public.member;
