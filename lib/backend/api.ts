@@ -81,6 +81,7 @@ export type AnnouncementItem = {
 };
 
 export type ConversationType = "community" | "direct";
+export type CommunityKind = "czi" | "engaged" | "entrepreneur" | "org_leader";
 
 export type ConversationParticipant = {
   can_post: boolean;
@@ -116,11 +117,13 @@ export type ConversationMessage = {
 
 export type ConversationItem = {
   commune_id: string | null;
+  community_kind: CommunityKind | null;
   conversation_type: ConversationType;
   created_at: string;
   created_by: string;
   id: string;
   latest_message: ConversationMessage | null;
+  parent_conversation_id: string | null;
   participants: ConversationParticipant[];
   prefecture_id: string | null;
   region_id: string | null;
@@ -515,12 +518,9 @@ export async function listConversations(filters?: {
 }
 
 export async function createConversation(payload: {
-  commune_id?: string;
   conversation_type: ConversationType;
+  parent_conversation_id?: string;
   participant_member_ids?: string[];
-  prefecture_id?: string;
-  region_id?: string;
-  scope_type?: ScopeLevel;
   title?: string;
 }) {
   return requestBackend<{

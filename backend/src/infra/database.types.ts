@@ -10,6 +10,11 @@ export type Database = {
   public: {
     CompositeTypes: Record<string, never>;
     Enums: {
+      conversation_community_kind:
+        | 'czi'
+        | 'engaged'
+        | 'entrepreneur'
+        | 'org_leader';
       conversation_type: 'community' | 'direct';
       email_campaign_status: 'draft' | 'queued' | 'sent' | 'failed';
       email_recipient_status: 'pending' | 'sent' | 'failed' | 'skipped';
@@ -46,6 +51,12 @@ export type Database = {
       };
       is_communication_manager: {
         Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      member_in_community_kind: {
+        Args: {
+          target_kind: Database['public']['Enums']['conversation_community_kind'];
+        };
         Returns: boolean;
       };
       scope_matches_member: {
@@ -167,10 +178,14 @@ export type Database = {
       conversation: {
         Insert: {
           commune_id?: string | null;
+          community_kind?:
+            | Database['public']['Enums']['conversation_community_kind']
+            | null;
           conversation_type: Database['public']['Enums']['conversation_type'];
           created_at?: string;
           created_by: string;
           id?: string;
+          parent_conversation_id?: string | null;
           prefecture_id?: string | null;
           region_id?: string | null;
           scope_type?: Database['public']['Enums']['scope_level'];
@@ -180,10 +195,14 @@ export type Database = {
         Relationships: [];
         Row: {
           commune_id: string | null;
+          community_kind:
+            | Database['public']['Enums']['conversation_community_kind']
+            | null;
           conversation_type: Database['public']['Enums']['conversation_type'];
           created_at: string;
           created_by: string;
           id: string;
+          parent_conversation_id: string | null;
           prefecture_id: string | null;
           region_id: string | null;
           scope_type: Database['public']['Enums']['scope_level'];
@@ -192,10 +211,14 @@ export type Database = {
         };
         Update: {
           commune_id?: string | null;
+          community_kind?:
+            | Database['public']['Enums']['conversation_community_kind']
+            | null;
           conversation_type?: Database['public']['Enums']['conversation_type'];
           created_at?: string;
           created_by?: string;
           id?: string;
+          parent_conversation_id?: string | null;
           prefecture_id?: string | null;
           region_id?: string | null;
           scope_type?: Database['public']['Enums']['scope_level'];

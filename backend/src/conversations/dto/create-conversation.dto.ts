@@ -4,6 +4,7 @@ import {
   IsIn,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -17,20 +18,8 @@ export class CreateConversationDto {
   title?: string;
 
   @IsOptional()
-  @IsIn(['all', 'region', 'prefecture', 'commune'])
-  scope_type?: 'all' | 'region' | 'prefecture' | 'commune';
-
-  @IsOptional()
-  @IsString()
-  region_id?: string;
-
-  @IsOptional()
-  @IsString()
-  prefecture_id?: string;
-
-  @IsOptional()
-  @IsString()
-  commune_id?: string;
+  @IsUUID()
+  parent_conversation_id?: string;
 
   @IsOptional()
   @IsArray()

@@ -32,6 +32,7 @@ export async function createConversationAction(
   const conversationType = formValue(formData, "conversation_type");
   const title = formValue(formData, "title");
   const participantMemberId = formValue(formData, "participant_member_id");
+  const parentConversationId = formValue(formData, "parent_conversation_id");
 
   if (conversationType !== "community" && conversationType !== "direct") {
     return { error: "Type de conversation invalide.", success: null };
@@ -59,23 +60,28 @@ export async function createConversationAction(
   }
 
   if (!title) {
-    return { error: "Le titre est obligatoire pour un canal communaute.", success: null };
+    return { error: "Le titre est obligatoire pour une sous-communaute.", success: null };
+  }
+
+  if (!parentConversationId) {
+    return { error: "Selectionnez une communaute de cellule.", success: null };
   }
 
   try {
     await createConversation({
       conversation_type: "community",
+      parent_conversation_id: parentConversationId,
       title,
     });
   } catch (error) {
     return {
-      error: toErrorMessage(error, "Impossible de creer le canal communaute."),
+      error: toErrorMessage(error, "Impossible de creer la sous-communaute."),
       success: null,
     };
   }
 
   revalidatePath("/app/communaute");
-  return { error: null, success: "Canal communaute cree." };
+  return { error: null, success: "Sous-communaute creee." };
 }
 
 export async function postConversationMessageAction(

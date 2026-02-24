@@ -1,5 +1,4 @@
 import {
-  getLocations,
   listConversationMessages,
   listConversations,
   listMembers,
@@ -35,22 +34,9 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
   let items: Awaited<ReturnType<typeof listConversations>>["items"] = [];
   let messages: Awaited<ReturnType<typeof listConversationMessages>>["items"] = [];
   let members: Awaited<ReturnType<typeof listMembers>>["rows"] = [];
-  let regions: Awaited<ReturnType<typeof getLocations>>["regions"] = [];
-  let prefectures: Awaited<ReturnType<typeof getLocations>>["prefectures"] = [];
-  let communes: Awaited<ReturnType<typeof getLocations>>["communes"] = [];
   let selectedConversationId: string | null = null;
 
   if (isSupabaseConfigured) {
-    try {
-      const locationData = await getLocations();
-      regions = locationData.regions;
-      prefectures = locationData.prefectures;
-      communes = locationData.communes;
-    } catch (error) {
-      console.error("Unable to load locations for communaute", error);
-      loadError = toErrorMessage(error, "Impossible de charger les localisations.");
-    }
-
     try {
       const [conversationData, memberData] = await Promise.all([
         listConversations({
@@ -87,7 +73,6 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
 
   return (
     <CommunauteClient
-      communes={communes}
       currentMemberId={currentMemberId}
       initialConversationType={conversationType}
       initialQuery={query}
@@ -95,8 +80,6 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
       loadError={loadError}
       members={members}
       messages={messages}
-      prefectures={prefectures}
-      regions={regions}
       selectedConversationId={selectedConversationId}
     />
   );
