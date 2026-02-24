@@ -27,7 +27,9 @@ begin
     update public.profile
     set role = 'admin'
     where user_id = owner_user_uuid;
-  elsif exists (
+  end if;
+
+  if exists (
     select 1
     from information_schema.columns
     where table_schema = 'public'
@@ -37,7 +39,15 @@ begin
     update public.profile
     set role = 'admin'
     where id = owner_user_uuid;
-  else
+  end if;
+
+  if not exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'profile'
+      and column_name in ('user_id', 'id')
+  ) then
     raise exception 'public.profile must contain user_id or id.';
   end if;
 end

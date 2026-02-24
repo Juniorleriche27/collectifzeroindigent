@@ -51,6 +51,20 @@ export async function getProfileMemberIdByAuthUser(
     if (byUserId.data?.member_id) {
       return { error: null, memberId: byUserId.data.member_id };
     }
+
+    const byIdFallback = await supabase
+      .from("profile")
+      .select("member_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (byIdFallback.error) {
+      return { error: byIdFallback.error, memberId: null };
+    }
+    if (byIdFallback.data?.member_id) {
+      return { error: null, memberId: byIdFallback.data.member_id };
+    }
+
     return lookupMemberIdByUserId(supabase, userId);
   }
 
@@ -80,7 +94,27 @@ export async function updateProfileMemberIdByAuthUser(
     .eq("user_id", userId);
 
   if (!isMissingUserIdColumn(updateByUserId.error)) {
-    return updateByUserId.error;
+    if (updateByUserId.error) {
+      return updateByUserId.error;
+    }
+
+    const verifyByUserId = await supabase
+      .from("profile")
+      .select("member_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (verifyByUserId.error) {
+      return verifyByUserId.error;
+    }
+    if (verifyByUserId.data) {
+      return null;
+    }
+
+    const updateByIdFallback = await supabase
+      .from("profile")
+      .update({ member_id: memberId })
+      .eq("id", userId);
+    return updateByIdFallback.error;
   }
 
   const updateById = await supabase
@@ -102,7 +136,19 @@ export async function getProfileRoleByAuthUser(
     .maybeSingle();
 
   if (!isMissingUserIdColumn(byUserId.error)) {
-    return { error: byUserId.error, role: byUserId.data?.role ?? null };
+    if (byUserId.error) {
+      return { error: byUserId.error, role: null };
+    }
+    if (byUserId.data?.role) {
+      return { error: null, role: byUserId.data.role };
+    }
+
+    const byIdFallback = await supabase
+      .from("profile")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+    return { error: byIdFallback.error, role: byIdFallback.data?.role ?? null };
   }
 
   const byId = await supabase
@@ -133,7 +179,14 @@ export async function updateProfileRoleByAuthUser(
     if (updateByUserId.data?.role) {
       return { error: null, role: updateByUserId.data.role };
     }
-    return { error: null, role: null };
+
+    const updateByIdFallback = await supabase
+      .from("profile")
+      .update({ role })
+      .eq("id", userId)
+      .select("role")
+      .maybeSingle();
+    return { error: updateByIdFallback.error, role: updateByIdFallback.data?.role ?? null };
   }
 
   const updateById = await supabase

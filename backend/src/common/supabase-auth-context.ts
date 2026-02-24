@@ -41,11 +41,26 @@ export async function getProfileRoleByUserId(
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (!isMissingUserIdColumn(byUserId.error)) {
-    if (byUserId.error) {
-      throw byUserId.error;
+  if (isMissingUserIdColumn(byUserId.error)) {
+    const byId = await client
+      .from('profile')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (byId.error) {
+      throw byId.error;
     }
-    return normalizeRole(byUserId.data?.role);
+
+    return normalizeRole(byId.data?.role);
+  }
+
+  if (byUserId.error) {
+    throw byUserId.error;
+  }
+
+  if (byUserId.data) {
+    return normalizeRole(byUserId.data.role);
   }
 
   const byId = await client

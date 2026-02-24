@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import type { PostgrestError } from '@supabase/supabase-js';
 
 import {
@@ -138,19 +139,17 @@ export class ConversationsService {
         payload.participant_member_ids,
         memberId,
       );
+      const conversationId = randomUUID();
 
-      const { data: conversation, error: createError } = await client
-        .from('conversation')
-        .insert({
-          conversation_type: 'direct',
-          created_by: userId,
-          scope_type: 'all',
-          title: payload.title?.trim() || null,
-        })
-        .select(this.conversationSelect)
-        .single();
+      const { error: createError } = await client.from('conversation').insert({
+        id: conversationId,
+        conversation_type: 'direct',
+        created_by: userId,
+        scope_type: 'all',
+        title: payload.title?.trim() || null,
+      });
 
-      if (createError || !conversation) {
+      if (createError) {
         throw this.mapConversationCreateError(
           createError,
           'Conversation directe invalide.',
@@ -160,7 +159,7 @@ export class ConversationsService {
       const participantRows = [memberId, ...participantIds].map(
         (participantMemberId) => ({
           can_post: true,
-          conversation_id: conversation.id,
+          conversation_id: conversationId,
           member_id: participantMemberId,
         }),
       );
@@ -170,10 +169,25 @@ export class ConversationsService {
         .insert(participantRows);
 
       if (participantError) {
-        await client.from('conversation').delete().eq('id', conversation.id);
+        await client.from('conversation').delete().eq('id', conversationId);
         throw this.mapConversationCreateError(
           participantError,
           'Impossible de creer les participants de la conversation.',
+        );
+      }
+
+      let conversation: ConversationRow | null = null;
+      try {
+        conversation = await this.loadConversationById(client, conversationId);
+      } catch (error) {
+        throw this.mapConversationCreateError(
+          this.toPostgrestError(error),
+          'Conversation directe invalide.',
+        );
+      }
+      if (!conversation) {
+        throw new ForbiddenException(
+          'Conversation creee mais inaccessible avec les regles actuelles.',
         );
       }
 
@@ -183,7 +197,7 @@ export class ConversationsService {
           latest_message: null,
           participants: await this.loadConversationParticipants(
             client,
-            conversation.id,
+            conversationId,
           ),
         },
         message: 'Conversation directe creee.',
@@ -196,25 +210,38 @@ export class ConversationsService {
         'Le titre est obligatoire pour une conversation communaute.',
       );
     }
+    const conversationId = randomUUID();
 
-    const { data: conversation, error } = await client
-      .from('conversation')
-      .insert({
-        commune_id: null,
-        conversation_type: 'community',
-        created_by: userId,
-        prefecture_id: null,
-        region_id: null,
-        scope_type: 'all',
-        title,
-      })
-      .select(this.conversationSelect)
-      .single();
+    const { error } = await client.from('conversation').insert({
+      id: conversationId,
+      commune_id: null,
+      conversation_type: 'community',
+      created_by: userId,
+      prefecture_id: null,
+      region_id: null,
+      scope_type: 'all',
+      title,
+    });
 
-    if (error || !conversation) {
+    if (error) {
       throw this.mapConversationCreateError(
         error,
         'Conversation communaute invalide.',
+      );
+    }
+
+    let conversation: ConversationRow | null = null;
+    try {
+      conversation = await this.loadConversationById(client, conversationId);
+    } catch (loadError) {
+      throw this.mapConversationCreateError(
+        this.toPostgrestError(loadError),
+        'Conversation communaute invalide.',
+      );
+    }
+    if (!conversation) {
+      throw new ForbiddenException(
+        'Conversation creee mais inaccessible avec les regles actuelles.',
       );
     }
 
@@ -333,6 +360,22 @@ export class ConversationsService {
     return new BadRequestException(fallbackMessage);
   }
 
+  private toPostgrestError(error: unknown): PostgrestError | null {
+    if (!error || typeof error !== 'object') {
+      return null;
+    }
+
+    const maybeError = error as Partial<PostgrestError>;
+    if (
+      typeof maybeError.code === 'string' &&
+      typeof maybeError.message === 'string'
+    ) {
+      return maybeError as PostgrestError;
+    }
+
+    return null;
+  }
+
   private normalizeParticipantIds(
     participantMemberIds: string[] | undefined,
     currentMemberId: string,
@@ -355,6 +398,23 @@ export class ConversationsService {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || parsed < 1) return 50;
     return Math.min(Math.floor(parsed), 200);
+  }
+
+  private async loadConversationById(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    conversationId: string,
+  ): Promise<ConversationRow | null> {
+    const { data, error } = await client
+      .from('conversation')
+      .select(this.conversationSelect)
+      .eq('id', conversationId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return (data as ConversationRow | null) ?? null;
   }
 
   private async loadMembersById(
