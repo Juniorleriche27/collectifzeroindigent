@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Param,
   Post,
   Query,
@@ -14,6 +15,7 @@ import type { AuthenticatedRequest } from '../common/types/authenticated-request
 import { ConversationsService } from './conversations.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { UpdateMessageDto } from './dto/update-message.dto';
 
 @Controller('conversations')
 @UseGuards(JwtAuthGuard)
@@ -67,6 +69,34 @@ export class ConversationsController {
       request.supabaseAccessToken,
       conversationId,
       payload,
+    );
+  }
+
+  @Patch(':id/messages/:messageId')
+  async updateMessage(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') conversationId: string,
+    @Param('messageId') messageId: string,
+    @Body() payload: UpdateMessageDto,
+  ) {
+    return this.conversationsService.updateMessage(
+      request.supabaseAccessToken,
+      conversationId,
+      messageId,
+      payload,
+    );
+  }
+
+  @Post(':id/messages/:messageId/likes/toggle')
+  async toggleMessageLike(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') conversationId: string,
+    @Param('messageId') messageId: string,
+  ) {
+    return this.conversationsService.toggleMessageLike(
+      request.supabaseAccessToken,
+      conversationId,
+      messageId,
     );
   }
 }

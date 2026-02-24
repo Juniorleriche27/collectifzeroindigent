@@ -103,7 +103,12 @@ export type ConversationMessage = {
   conversation_id: string;
   created_at: string;
   deleted_at: string | null;
+  edited_at: string | null;
   id: string;
+  like_count: number;
+  liked_by_me: boolean;
+  mention_member_ids: string[];
+  parent_message_id: string | null;
   sender?: {
     email: string | null;
     first_name: string | null;
@@ -552,13 +557,52 @@ export async function listConversationMessages(
   );
 }
 
-export async function postConversationMessage(conversationId: string, payload: { body: string }) {
+export async function postConversationMessage(
+  conversationId: string,
+  payload: {
+    body: string;
+    mention_member_ids?: string[];
+    parent_message_id?: string;
+  },
+) {
   return requestBackend<{
     item: ConversationMessage;
     message: string;
   }>(`/conversations/${conversationId}/messages`, {
     body: JSON.stringify(payload),
     fallbackError: "Impossible d'envoyer le message.",
+    method: "POST",
+  });
+}
+
+export async function updateConversationMessage(
+  conversationId: string,
+  messageId: string,
+  payload: {
+    body: string;
+    mention_member_ids?: string[];
+  },
+) {
+  return requestBackend<{
+    item: ConversationMessage;
+    message: string;
+  }>(`/conversations/${conversationId}/messages/${messageId}`, {
+    body: JSON.stringify(payload),
+    fallbackError: "Impossible de modifier le message.",
+    method: "PATCH",
+  });
+}
+
+export async function toggleConversationMessageLike(
+  conversationId: string,
+  messageId: string,
+) {
+  return requestBackend<{
+    like_count: number;
+    liked: boolean;
+    message: string;
+  }>(`/conversations/${conversationId}/messages/${messageId}/likes/toggle`, {
+    fallbackError: "Impossible de mettre a jour le like.",
     method: "POST",
   });
 }

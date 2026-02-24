@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { PostgrestError } from '@supabase/supabase-js';
@@ -13,6 +14,7 @@ import {
 import { SupabaseDataService } from '../infra/supabase-data.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { UpdateMessageDto } from './dto/update-message.dto';
 
 type ConversationRow = {
   commune_id: string | null;
@@ -65,9 +67,18 @@ type MessageRow = {
   conversation_id: string;
   created_at: string;
   deleted_at: string | null;
+  edited_at: string | null;
   id: string;
+  mention_member_ids: string[] | null;
+  parent_message_id: string | null;
   sender_member_id: string;
   updated_at: string;
+};
+
+type MessageLikeRow = {
+  member_id: string;
+  message_id: string;
+  reaction: 'like';
 };
 
 @Injectable()
@@ -79,7 +90,7 @@ export class ConversationsService {
   private readonly participantSelect =
     'id, conversation_id, member_id, can_post, joined_at';
   private readonly messageSelect =
-    'id, conversation_id, sender_member_id, body, created_at, updated_at, deleted_at';
+    'id, conversation_id, sender_member_id, parent_message_id, body, mention_member_ids, created_at, updated_at, edited_at, deleted_at';
 
   async list(
     accessToken: string,
@@ -304,7 +315,8 @@ export class ConversationsService {
     query: { before?: string; limit?: string },
   ) {
     const client = this.supabaseDataService.forUser(accessToken);
-    await requireUserId(client);
+    const userId = await requireUserId(client);
+    const currentMemberId = await getCurrentMemberId(client, userId);
 
     const limit = this.normalizeLimit(query.limit);
     let dbQuery = client
@@ -321,6 +333,11 @@ export class ConversationsService {
 
     const { data, error } = await dbQuery;
     if (error) {
+      if (this.isMissingSocialMessageModelError(error)) {
+        throw new BadRequestException(
+          'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+        );
+      }
       throw error;
     }
 
@@ -329,10 +346,19 @@ export class ConversationsService {
       new Set(rows.map((row) => row.sender_member_id).filter(Boolean)),
     );
     const membersById = await this.loadMembersById(client, memberIds);
+    const messageIds = rows.map((row) => row.id);
+    const likeStats = await this.loadMessageLikeStats(
+      client,
+      messageIds,
+      currentMemberId,
+    );
 
     return {
       items: rows.map((row) => ({
         ...row,
+        like_count: likeStats.countByMessage.get(row.id) ?? 0,
+        liked_by_me: likeStats.likedByMessage.has(row.id),
+        mention_member_ids: row.mention_member_ids ?? [],
         sender: membersById.get(row.sender_member_id) ?? null,
       })),
     };
@@ -356,18 +382,35 @@ export class ConversationsService {
     if (!body) {
       throw new BadRequestException('Le message ne peut pas etre vide.');
     }
+    const parentMessageId = payload.parent_message_id?.trim() ?? null;
+    const mentionMemberIds = this.normalizeMentionMemberIds(
+      payload.mention_member_ids,
+    );
+    await this.ensureParentMessage(
+      client,
+      conversationId,
+      parentMessageId,
+      'Message parent introuvable.',
+    );
 
     const { data, error } = await client
       .from('message')
       .insert({
         body,
         conversation_id: conversationId,
+        mention_member_ids: mentionMemberIds,
+        parent_message_id: parentMessageId,
         sender_member_id: memberId,
       })
       .select(this.messageSelect)
       .single();
 
     if (error) {
+      if (this.isMissingSocialMessageModelError(error)) {
+        throw new BadRequestException(
+          'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+        );
+      }
       throw error;
     }
     if (!data) {
@@ -377,6 +420,151 @@ export class ConversationsService {
     return {
       item: data,
       message: 'Message envoye.',
+    };
+  }
+
+  async updateMessage(
+    accessToken: string,
+    conversationId: string,
+    messageId: string,
+    payload: UpdateMessageDto,
+  ) {
+    const client = this.supabaseDataService.forUser(accessToken);
+    const userId = await requireUserId(client);
+    const memberId = await getCurrentMemberId(client, userId);
+    if (!memberId) {
+      throw new BadRequestException(
+        'Aucun profil membre lie au compte courant.',
+      );
+    }
+
+    const body = payload.body.trim();
+    if (!body) {
+      throw new BadRequestException('Le message ne peut pas etre vide.');
+    }
+    const mentionMemberIds = this.normalizeMentionMemberIds(
+      payload.mention_member_ids,
+    );
+
+    const { data, error } = await client
+      .from('message')
+      .update({
+        body,
+        edited_at: new Date().toISOString(),
+        mention_member_ids: mentionMemberIds,
+      })
+      .eq('conversation_id', conversationId)
+      .eq('id', messageId)
+      .select(this.messageSelect)
+      .single();
+
+    if (error) {
+      if (this.isMissingSocialMessageModelError(error)) {
+        throw new BadRequestException(
+          'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+        );
+      }
+      if (error.code === '42501') {
+        throw new ForbiddenException(
+          'Permission insuffisante pour modifier ce message.',
+        );
+      }
+      throw error;
+    }
+    if (!data) {
+      throw new NotFoundException('Message introuvable.');
+    }
+
+    return {
+      item: data,
+      message: 'Message modifie.',
+    };
+  }
+
+  async toggleMessageLike(
+    accessToken: string,
+    conversationId: string,
+    messageId: string,
+  ) {
+    const client = this.supabaseDataService.forUser(accessToken);
+    const userId = await requireUserId(client);
+    const memberId = await getCurrentMemberId(client, userId);
+    if (!memberId) {
+      throw new BadRequestException(
+        'Aucun profil membre lie au compte courant.',
+      );
+    }
+
+    await this.ensureMessageExists(client, conversationId, messageId);
+
+    const existingLike = await client
+      .from('message_like')
+      .select('id')
+      .eq('message_id', messageId)
+      .eq('member_id', memberId)
+      .eq('reaction', 'like')
+      .maybeSingle();
+
+    if (existingLike.error) {
+      if (this.isMissingSocialMessageModelError(existingLike.error)) {
+        throw new BadRequestException(
+          'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+        );
+      }
+      throw existingLike.error;
+    }
+
+    let liked = false;
+    if (existingLike.data?.id) {
+      const { error: unlikeError } = await client
+        .from('message_like')
+        .delete()
+        .eq('id', existingLike.data.id);
+      if (unlikeError) {
+        if (this.isMissingSocialMessageModelError(unlikeError)) {
+          throw new BadRequestException(
+            'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+          );
+        }
+        throw unlikeError;
+      }
+      liked = false;
+    } else {
+      const { error: likeError } = await client.from('message_like').insert({
+        member_id: memberId,
+        message_id: messageId,
+        reaction: 'like',
+      });
+      if (likeError) {
+        if (this.isMissingSocialMessageModelError(likeError)) {
+          throw new BadRequestException(
+            'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+          );
+        }
+        throw likeError;
+      }
+      liked = true;
+    }
+
+    const { count, error: countError } = await client
+      .from('message_like')
+      .select('id', { count: 'exact', head: true })
+      .eq('message_id', messageId)
+      .eq('reaction', 'like');
+
+    if (countError) {
+      if (this.isMissingSocialMessageModelError(countError)) {
+        throw new BadRequestException(
+          'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+        );
+      }
+      throw countError;
+    }
+
+    return {
+      liked,
+      like_count: count ?? 0,
+      message: liked ? 'Message aime.' : 'Like retire.',
     };
   }
 
@@ -450,6 +638,27 @@ export class ConversationsService {
       message.includes('community_kind') ||
       message.includes('parent_conversation_id')
     );
+  }
+
+  private isMissingSocialMessageModelError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const value = error as Partial<PostgrestError>;
+    const code = value.code ?? '';
+    const message = value.message ?? '';
+
+    if (
+      code === '42703' &&
+      (message.includes('parent_message_id') ||
+        message.includes('mention_member_ids') ||
+        message.includes('edited_at'))
+    ) {
+      return true;
+    }
+
+    return code === '42P01' && message.includes('message_like');
   }
 
   private normalizeConversationFeed(
@@ -567,6 +776,120 @@ export class ConversationsService {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || parsed < 1) return 50;
     return Math.min(Math.floor(parsed), 200);
+  }
+
+  private normalizeMentionMemberIds(values: string[] | undefined): string[] {
+    const cleaned = (values ?? [])
+      .map((value) => value.trim())
+      .filter((value) => Boolean(value));
+
+    return Array.from(new Set(cleaned)).slice(0, 30);
+  }
+
+  private async ensureParentMessage(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    conversationId: string,
+    parentMessageId: string | null,
+    errorMessage: string,
+  ) {
+    if (!parentMessageId) {
+      return;
+    }
+
+    const { data, error } = await client
+      .from('message')
+      .select('id, conversation_id, deleted_at')
+      .eq('id', parentMessageId)
+      .maybeSingle();
+
+    if (error) {
+      if (this.isMissingSocialMessageModelError(error)) {
+        throw new BadRequestException(
+          'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+        );
+      }
+      throw error;
+    }
+
+    if (
+      !data ||
+      data.conversation_id !== conversationId ||
+      data.deleted_at !== null
+    ) {
+      throw new BadRequestException(errorMessage);
+    }
+  }
+
+  private async ensureMessageExists(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    conversationId: string,
+    messageId: string,
+  ) {
+    const { data, error } = await client
+      .from('message')
+      .select('id')
+      .eq('conversation_id', conversationId)
+      .eq('id', messageId)
+      .maybeSingle();
+
+    if (error) {
+      if (this.isMissingSocialMessageModelError(error)) {
+        throw new BadRequestException(
+          'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+        );
+      }
+      throw error;
+    }
+    if (!data) {
+      throw new NotFoundException('Message introuvable.');
+    }
+  }
+
+  private async loadMessageLikeStats(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    messageIds: string[],
+    currentMemberId: string | null,
+  ): Promise<{
+    countByMessage: Map<string, number>;
+    likedByMessage: Set<string>;
+  }> {
+    if (!messageIds.length) {
+      return {
+        countByMessage: new Map<string, number>(),
+        likedByMessage: new Set<string>(),
+      };
+    }
+
+    const { data, error } = await client
+      .from('message_like')
+      .select('message_id, member_id, reaction')
+      .in('message_id', messageIds)
+      .eq('reaction', 'like');
+
+    if (error) {
+      if (this.isMissingSocialMessageModelError(error)) {
+        throw new BadRequestException(
+          'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+        );
+      }
+      throw error;
+    }
+
+    const rows = (data ?? []) as MessageLikeRow[];
+    const countByMessage = new Map<string, number>();
+    const likedByMessage = new Set<string>();
+
+    for (const row of rows) {
+      countByMessage.set(
+        row.message_id,
+        (countByMessage.get(row.message_id) ?? 0) + 1,
+      );
+      if (currentMemberId && row.member_id === currentMemberId) {
+        likedByMessage.add(row.message_id);
+      }
+    }
+
+    return { countByMessage, likedByMessage };
   }
 
   private async loadConversationById(

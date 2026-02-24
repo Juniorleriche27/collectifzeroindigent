@@ -499,7 +499,10 @@ export type Database = {
           conversation_id: string;
           created_at?: string;
           deleted_at?: string | null;
+          edited_at?: string | null;
           id?: string;
+          mention_member_ids?: string[] | null;
+          parent_message_id?: string | null;
           sender_member_id: string;
           updated_at?: string;
         };
@@ -509,7 +512,10 @@ export type Database = {
           conversation_id: string;
           created_at: string;
           deleted_at: string | null;
+          edited_at: string | null;
           id: string;
+          mention_member_ids: string[] | null;
+          parent_message_id: string | null;
           sender_member_id: string;
           updated_at: string;
         };
@@ -518,9 +524,36 @@ export type Database = {
           conversation_id?: string;
           created_at?: string;
           deleted_at?: string | null;
+          edited_at?: string | null;
           id?: string;
+          mention_member_ids?: string[] | null;
+          parent_message_id?: string | null;
           sender_member_id?: string;
           updated_at?: string;
+        };
+      };
+      message_like: {
+        Insert: {
+          created_at?: string;
+          id?: string;
+          member_id: string;
+          message_id: string;
+          reaction?: string;
+        };
+        Relationships: [];
+        Row: {
+          created_at: string;
+          id: string;
+          member_id: string;
+          message_id: string;
+          reaction: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          member_id?: string;
+          message_id?: string;
+          reaction?: string;
         };
       };
       organisation: {

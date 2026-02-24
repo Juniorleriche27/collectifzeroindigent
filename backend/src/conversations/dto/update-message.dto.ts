@@ -7,14 +7,10 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class CreateMessageDto {
+export class UpdateMessageDto {
   @IsString()
   @MaxLength(5000)
   body!: string;
-
-  @IsOptional()
-  @IsUUID()
-  parent_message_id?: string;
 
   @IsOptional()
   @IsArray()
