@@ -16,6 +16,12 @@ Copier `backend/.env.example` vers `backend/.env.local` (ou utiliser `../.env.lo
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (optionnel)
+- `EMAIL_PROVIDER` (`resend` | `sendgrid` | `mailgun`)
+- `EMAIL_FROM` (adresse expediteur valide)
+- `RESEND_API_KEY` (si provider `resend`)
+- `SENDGRID_API_KEY` (si provider `sendgrid`)
+- `MAILGUN_API_KEY`, `MAILGUN_DOMAIN` (si provider `mailgun`)
+- `MAILGUN_BASE_URL` (optionnel, default `https://api.mailgun.net/v3`)
 
 ## Lancer en local
 

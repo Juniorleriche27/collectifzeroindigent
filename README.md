@@ -22,6 +22,12 @@ Renseigner ensuite les variables dans `.env.local` :
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_BACKEND_URL` (ex: `http://127.0.0.1:4000`)
 
+Pour activer l'envoi email reel des campagnes (`/app/campagnes-email`), ajouter aussi les variables backend:
+
+- `EMAIL_PROVIDER` (`resend` | `sendgrid` | `mailgun`)
+- `EMAIL_FROM`
+- `RESEND_API_KEY` ou `SENDGRID_API_KEY` ou `MAILGUN_API_KEY` + `MAILGUN_DOMAIN`
+
 ## Lancer le projet
 
 Terminal 1 (backend REST):

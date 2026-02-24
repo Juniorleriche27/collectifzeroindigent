@@ -235,7 +235,7 @@ export function CampagnesEmailClient({
                         <form action={sendEmailCampaignAction}>
                           <input name="campaign_id" type="hidden" value={item.id} />
                           <Button size="sm" type="submit" variant="secondary">
-                            Marquer envoye
+                            Envoyer maintenant
                           </Button>
                         </form>
                       ) : null}

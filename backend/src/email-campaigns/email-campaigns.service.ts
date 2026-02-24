@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import {
   assertCommunicationManager,
@@ -32,9 +33,20 @@ type CampaignStats = {
   total: number;
 };
 
+type EmailProvider = 'mailgun' | 'resend' | 'sendgrid';
+type DeliveryOutcome = {
+  error_message: string | null;
+  recipient_id: string;
+  sent_at: string | null;
+  status: EmailCampaignRecipientRow['status'];
+};
+
 @Injectable()
 export class EmailCampaignsService {
-  constructor(private readonly supabaseDataService: SupabaseDataService) {}
+  constructor(
+    private readonly supabaseDataService: SupabaseDataService,
+    private readonly configService: ConfigService,
+  ) {}
 
   private readonly campaignSelect =
     'id, subject, body, audience_scope, region_id, prefecture_id, commune_id, status, provider, scheduled_at, sent_at, created_by, created_at, updated_at';
@@ -317,38 +329,77 @@ export class EmailCampaignsService {
   async markSent(accessToken: string, campaignId: string) {
     const client = this.supabaseDataService.forUser(accessToken);
     await assertCommunicationManager(client);
-
-    const nowIso = new Date().toISOString();
-    const { error: recipientsError } = await client
-      .from('email_campaign_recipient')
-      .update({
-        sent_at: nowIso,
-        status: 'sent',
-      })
-      .eq('campaign_id', campaignId)
-      .eq('status', 'pending');
-
-    if (recipientsError) {
-      throw recipientsError;
-    }
-
-    const { error: campaignError } = await client
+    const { data: campaign, error: campaignError } = await client
       .from('email_campaign')
-      .update({
-        sent_at: nowIso,
-        status: 'sent',
-      })
-      .eq('id', campaignId);
+      .select(this.campaignSelect)
+      .eq('id', campaignId)
+      .maybeSingle();
 
     if (campaignError) {
       throw campaignError;
     }
+    if (!campaign) {
+      return null;
+    }
+    if (campaign.status === 'sent') {
+      throw new BadRequestException('Cette campagne a deja ete envoyee.');
+    }
+
+    const pendingRecipients = await this.loadPendingRecipients(
+      client,
+      campaignId,
+    );
+    if (!pendingRecipients.length) {
+      throw new BadRequestException(
+        'Aucun destinataire pending. Mettez la campagne en file avant envoi.',
+      );
+    }
+
+    const provider = this.resolveProvider(campaign.provider);
+    const fromEmail = this.resolveFromEmail();
+    const outcomes = await this.sendPendingRecipients({
+      campaign: campaign as EmailCampaignRow,
+      fromEmail,
+      pendingRecipients,
+      provider,
+    });
+
+    await this.persistDeliveryOutcomes(client, outcomes);
 
     const refreshed = await this.getById(accessToken, campaignId);
+    if (!refreshed) {
+      throw new BadRequestException(
+        "Campagne introuvable apres tentative d'envoi.",
+      );
+    }
+
+    const nextStatus =
+      refreshed.stats.pending > 0
+        ? 'queued'
+        : refreshed.stats.failed > 0
+          ? 'failed'
+          : 'sent';
+
+    const { error: updateCampaignError } = await client
+      .from('email_campaign')
+      .update({
+        provider,
+        sent_at:
+          refreshed.stats.sent > 0 && refreshed.stats.pending === 0
+            ? new Date().toISOString()
+            : null,
+        status: nextStatus,
+      })
+      .eq('id', campaignId);
+
+    if (updateCampaignError) {
+      throw updateCampaignError;
+    }
+
+    const finalState = await this.getById(accessToken, campaignId);
     return {
-      ...refreshed,
-      message:
-        "Campagne marquee comme envoyee (envoi SMTP/API sera branche a l'etape suivante).",
+      ...finalState,
+      message: `Envoi termine via ${provider}: ${refreshed.stats.sent} envoyes, ${refreshed.stats.failed} echecs, ${refreshed.stats.pending} en attente.`,
     };
   }
 
@@ -395,6 +446,256 @@ export class EmailCampaignsService {
     }
 
     return Array.from(recipients.values());
+  }
+
+  private async loadPendingRecipients(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    campaignId: string,
+  ) {
+    const { data, error } = await client
+      .from('email_campaign_recipient')
+      .select(this.recipientSelect)
+      .eq('campaign_id', campaignId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(10000);
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []) as EmailCampaignRecipientRow[];
+  }
+
+  private async sendPendingRecipients(args: {
+    campaign: EmailCampaignRow;
+    fromEmail: string;
+    pendingRecipients: EmailCampaignRecipientRow[];
+    provider: EmailProvider;
+  }) {
+    const { campaign, fromEmail, pendingRecipients, provider } = args;
+    const outcomes: DeliveryOutcome[] = [];
+
+    for (const recipient of pendingRecipients) {
+      try {
+        await this.sendEmailWithProvider({
+          body: campaign.body,
+          fromEmail,
+          provider,
+          subject: campaign.subject,
+          toEmail: recipient.recipient_email,
+        });
+
+        outcomes.push({
+          error_message: null,
+          recipient_id: recipient.id,
+          sent_at: new Date().toISOString(),
+          status: 'sent',
+        });
+      } catch (error) {
+        outcomes.push({
+          error_message: this.toDeliveryErrorMessage(error),
+          recipient_id: recipient.id,
+          sent_at: null,
+          status: 'failed',
+        });
+      }
+    }
+
+    return outcomes;
+  }
+
+  private async persistDeliveryOutcomes(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    outcomes: DeliveryOutcome[],
+  ) {
+    for (const outcome of outcomes) {
+      const { error } = await client
+        .from('email_campaign_recipient')
+        .update({
+          error_message: outcome.error_message,
+          sent_at: outcome.sent_at,
+          status: outcome.status,
+        })
+        .eq('id', outcome.recipient_id);
+
+      if (error) {
+        throw error;
+      }
+    }
+  }
+
+  private async sendEmailWithProvider(args: {
+    body: string;
+    fromEmail: string;
+    provider: EmailProvider;
+    subject: string;
+    toEmail: string;
+  }) {
+    const { body, fromEmail, provider, subject, toEmail } = args;
+    if (provider === 'resend') {
+      await this.sendWithResend({ body, fromEmail, subject, toEmail });
+      return;
+    }
+    if (provider === 'sendgrid') {
+      await this.sendWithSendgrid({ body, fromEmail, subject, toEmail });
+      return;
+    }
+    await this.sendWithMailgun({ body, fromEmail, subject, toEmail });
+  }
+
+  private async sendWithResend(args: {
+    body: string;
+    fromEmail: string;
+    subject: string;
+    toEmail: string;
+  }) {
+    const apiKey = this.requireEnv('RESEND_API_KEY');
+    const response = await fetch('https://api.resend.com/emails', {
+      body: JSON.stringify({
+        from: args.fromEmail,
+        subject: args.subject,
+        text: args.body,
+        to: [args.toEmail],
+      }),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      throw new Error(await this.extractProviderError('resend', response));
+    }
+  }
+
+  private async sendWithSendgrid(args: {
+    body: string;
+    fromEmail: string;
+    subject: string;
+    toEmail: string;
+  }) {
+    const apiKey = this.requireEnv('SENDGRID_API_KEY');
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      body: JSON.stringify({
+        content: [{ type: 'text/plain', value: args.body }],
+        from: { email: args.fromEmail },
+        personalizations: [{ to: [{ email: args.toEmail }] }],
+        subject: args.subject,
+      }),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      throw new Error(await this.extractProviderError('sendgrid', response));
+    }
+  }
+
+  private async sendWithMailgun(args: {
+    body: string;
+    fromEmail: string;
+    subject: string;
+    toEmail: string;
+  }) {
+    const apiKey = this.requireEnv('MAILGUN_API_KEY');
+    const domain = this.requireEnv('MAILGUN_DOMAIN');
+    const baseUrl =
+      this.configService.get<string>('MAILGUN_BASE_URL')?.trim() ||
+      'https://api.mailgun.net/v3';
+
+    const response = await fetch(`${baseUrl}/${domain}/messages`, {
+      body: new URLSearchParams({
+        from: args.fromEmail,
+        subject: args.subject,
+        text: args.body,
+        to: args.toEmail,
+      }),
+      headers: {
+        Authorization: `Basic ${Buffer.from(`api:${apiKey}`).toString('base64')}`,
+      },
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      throw new Error(await this.extractProviderError('mailgun', response));
+    }
+  }
+
+  private resolveProvider(campaignProvider: string | null): EmailProvider {
+    const rawProvider = (
+      campaignProvider?.trim() ||
+      this.configService.get<string>('EMAIL_PROVIDER')?.trim() ||
+      'resend'
+    ).toLowerCase();
+
+    if (rawProvider === 'resend') return 'resend';
+    if (rawProvider === 'sendgrid') return 'sendgrid';
+    if (rawProvider === 'mailgun') return 'mailgun';
+
+    throw new BadRequestException(
+      `Provider email non supporte: ${rawProvider}. Utilisez resend, sendgrid ou mailgun.`,
+    );
+  }
+
+  private resolveFromEmail(): string {
+    const fromEmail =
+      this.configService.get<string>('EMAIL_FROM')?.trim() ||
+      this.configService.get<string>('MAIL_FROM')?.trim() ||
+      '';
+
+    if (!fromEmail || !fromEmail.includes('@')) {
+      throw new BadRequestException(
+        "EMAIL_FROM manquant ou invalide. Configurez l'adresse expediteur dans le backend.",
+      );
+    }
+
+    return fromEmail;
+  }
+
+  private requireEnv(name: string): string {
+    const value = this.configService.get<string>(name)?.trim() ?? '';
+    if (!value) {
+      throw new BadRequestException(
+        `${name} manquant. Configurez les variables du provider email dans le backend.`,
+      );
+    }
+    return value;
+  }
+
+  private async extractProviderError(provider: string, response: Response) {
+    const rawBody = await response.text();
+    if (!rawBody) {
+      return `${provider}: HTTP ${response.status}`;
+    }
+
+    try {
+      const parsed = JSON.parse(rawBody) as {
+        error?: unknown;
+        message?: unknown;
+      };
+      if (typeof parsed.message === 'string' && parsed.message.trim()) {
+        return `${provider}: ${parsed.message.trim()}`;
+      }
+      if (typeof parsed.error === 'string' && parsed.error.trim()) {
+        return `${provider}: ${parsed.error.trim()}`;
+      }
+    } catch {
+      // Ignore JSON parsing errors and return the raw text.
+    }
+
+    return `${provider}: ${rawBody.slice(0, 240)}`;
+  }
+
+  private toDeliveryErrorMessage(error: unknown): string {
+    if (error instanceof Error && error.message.trim()) {
+      return error.message.trim().slice(0, 500);
+    }
+    return 'Erreur envoi provider.';
   }
 
   private async loadRecipients(
