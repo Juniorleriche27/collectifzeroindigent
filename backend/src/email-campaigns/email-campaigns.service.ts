@@ -32,10 +32,6 @@ type CampaignStats = {
   total: number;
 };
 
-type CampaignWithStats = EmailCampaignRow & {
-  stats: CampaignStats;
-};
-
 @Injectable()
 export class EmailCampaignsService {
   constructor(private readonly supabaseDataService: SupabaseDataService) {}
@@ -78,7 +74,10 @@ export class EmailCampaignsService {
     }
 
     const items = (data ?? []) as EmailCampaignRow[];
-    const statsByCampaign = await this.loadCampaignStats(client, items.map((item) => item.id));
+    const statsByCampaign = await this.loadCampaignStats(
+      client,
+      items.map((item) => item.id),
+    );
 
     return {
       can_manage: true,
@@ -130,7 +129,9 @@ export class EmailCampaignsService {
     const subject = payload.subject.trim();
     const body = payload.body.trim();
     if (!subject || !body) {
-      throw new BadRequestException('Sujet et contenu du mail sont obligatoires.');
+      throw new BadRequestException(
+        'Sujet et contenu du mail sont obligatoires.',
+      );
     }
 
     const { data: campaign, error } = await client
@@ -150,7 +151,9 @@ export class EmailCampaignsService {
       .single();
 
     if (error || !campaign) {
-      throw error ?? new BadRequestException('Impossible de creer la campagne.');
+      throw (
+        error ?? new BadRequestException('Impossible de creer la campagne.')
+      );
     }
 
     return {
@@ -188,7 +191,8 @@ export class EmailCampaignsService {
       );
     }
 
-    const updatePayload: Database['public']['Tables']['email_campaign']['Update'] = {};
+    const updatePayload: Database['public']['Tables']['email_campaign']['Update'] =
+      {};
     if (typeof payload.subject === 'string') {
       updatePayload.subject = payload.subject.trim();
     }
@@ -215,9 +219,12 @@ export class EmailCampaignsService {
           payload.prefecture_id !== undefined
             ? payload.prefecture_id
             : current.prefecture_id,
-        region_id: payload.region_id !== undefined ? payload.region_id : current.region_id,
-        scope_type:
-          (payload.audience_scope ?? current.audience_scope) as ScopeInput['scope_type'],
+        region_id:
+          payload.region_id !== undefined
+            ? payload.region_id
+            : current.region_id,
+        scope_type: (payload.audience_scope ??
+          current.audience_scope) as ScopeInput['scope_type'],
       });
 
       updatePayload.audience_scope = scope.scope_type;
@@ -267,7 +274,10 @@ export class EmailCampaignsService {
       throw new BadRequestException('Cette campagne a deja ete envoyee.');
     }
 
-    const recipients = await this.resolveRecipients(client, campaign as EmailCampaignRow);
+    const recipients = await this.resolveRecipients(
+      client,
+      campaign as EmailCampaignRow,
+    );
     if (!recipients.length) {
       throw new BadRequestException(
         'Aucun destinataire email valide pour ce ciblage.',
@@ -352,7 +362,10 @@ export class EmailCampaignsService {
 
     if (campaign.audience_scope === 'region' && campaign.region_id) {
       query = query.eq('region_id', campaign.region_id);
-    } else if (campaign.audience_scope === 'prefecture' && campaign.prefecture_id) {
+    } else if (
+      campaign.audience_scope === 'prefecture' &&
+      campaign.prefecture_id
+    ) {
       query = query.eq('prefecture_id', campaign.prefecture_id);
     } else if (campaign.audience_scope === 'commune' && campaign.commune_id) {
       query = query.eq('commune_id', campaign.commune_id);

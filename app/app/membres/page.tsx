@@ -22,6 +22,7 @@ function paramValue(value: string | string[] | undefined): string {
 function statusVariant(status: string | null): "success" | "warning" | "danger" | "default" {
   if (status === "active") return "success";
   if (status === "pending") return "warning";
+  if (status === "rejected") return "danger";
   if (status === "suspended") return "danger";
   return "default";
 }
@@ -186,6 +187,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             <option value="">Tous statuts</option>
             <option value="active">Actif</option>
             <option value="pending">En attente</option>
+            <option value="rejected">Rejete</option>
+            <option value="suspended">Suspendu</option>
           </Select>
           <Select defaultValue={effectiveRegionId} name="region_id">
             <option value="">Toutes regions</option>

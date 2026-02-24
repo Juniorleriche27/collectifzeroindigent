@@ -12,6 +12,7 @@ import {
 import type { AuthenticatedRequest } from '../common/types/authenticated-request';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { ValidateMemberDto } from './dto/validate-member.dto';
 import { MembersService } from './members.service';
 
 @Controller('members')
@@ -58,6 +59,19 @@ export class MembersController {
     @Body() payload: UpdateMemberDto,
   ) {
     return this.membersService.update(
+      request.supabaseAccessToken,
+      memberId,
+      payload,
+    );
+  }
+
+  @Patch(':id/validation')
+  async validate(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') memberId: string,
+    @Body() payload: ValidateMemberDto,
+  ) {
+    return this.membersService.validate(
       request.supabaseAccessToken,
       memberId,
       payload,

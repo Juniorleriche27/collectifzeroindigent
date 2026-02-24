@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../common/types/authenticated-request';
@@ -28,7 +37,10 @@ export class ConversationsController {
     @Req() request: AuthenticatedRequest,
     @Body() payload: CreateConversationDto,
   ) {
-    return this.conversationsService.create(request.supabaseAccessToken, payload);
+    return this.conversationsService.create(
+      request.supabaseAccessToken,
+      payload,
+    );
   }
 
   @Get(':id/messages')

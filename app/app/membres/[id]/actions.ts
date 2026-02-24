@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { updateMemberById } from "@/lib/backend/api";
+import { updateMemberById, validateMemberById } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
   getProfileRoleByAuthUser,
@@ -20,8 +20,15 @@ export type MemberRoleState = {
   success: string | null;
 };
 
+export type MemberValidationState = {
+  error: string | null;
+  success: string | null;
+};
+
 const joinModes = new Set(["personal", "association", "enterprise"]);
-const allowedStatuses = new Set(["active", "pending"]);
+const allowedStatuses = new Set(["active", "pending", "rejected", "suspended"]);
+const allowedValidationDecisions = new Set(["approve", "reject"]);
+const allowedCellules = new Set(["engaged", "entrepreneur", "org_leader"]);
 const allowedRoles = new Set(["member", "pf", "cn", "ca", "admin"]);
 
 function formValue(formData: FormData, key: string): string {
@@ -215,4 +222,66 @@ export async function updateMemberRole(
     error: null,
     success: `Role mis a jour: ${nextRole}.`,
   };
+}
+
+export async function validateMember(
+  memberId: string,
+  _previousState: MemberValidationState,
+  formData: FormData,
+): Promise<MemberValidationState> {
+  if (!isSupabaseConfigured) {
+    return { error: "Supabase non configure.", success: null };
+  }
+
+  const decision = formValue(formData, "decision").toLowerCase();
+  const cellulePrimary = formValue(formData, "cellule_primary");
+  const celluleSecondaryRaw = formValue(formData, "cellule_secondary");
+  const reason = formValue(formData, "reason");
+
+  if (!allowedValidationDecisions.has(decision)) {
+    return { error: "Decision de validation invalide.", success: null };
+  }
+
+  if (!allowedCellules.has(cellulePrimary)) {
+    return { error: "Cellule primaire invalide.", success: null };
+  }
+
+  if (celluleSecondaryRaw && !allowedCellules.has(celluleSecondaryRaw)) {
+    return { error: "Cellule secondaire invalide.", success: null };
+  }
+
+  if (celluleSecondaryRaw && celluleSecondaryRaw === cellulePrimary) {
+    return {
+      error: "La cellule secondaire doit etre differente de la cellule primaire.",
+      success: null,
+    };
+  }
+
+  if (decision === "reject" && !reason) {
+    return { error: "Le motif est obligatoire pour un rejet.", success: null };
+  }
+
+  try {
+    const result = await validateMemberById(memberId, {
+      cellule_primary: cellulePrimary as "engaged" | "entrepreneur" | "org_leader",
+      cellule_secondary: celluleSecondaryRaw
+        ? (celluleSecondaryRaw as "engaged" | "entrepreneur" | "org_leader")
+        : null,
+      decision: decision as "approve" | "reject",
+      reason: reason || undefined,
+    });
+
+    revalidatePath("/app/membres");
+    revalidatePath(`/app/membres/${memberId}`);
+
+    return {
+      error: null,
+      success: result.message,
+    };
+  } catch (error) {
+    return {
+      error: toErrorMessage(error),
+      success: null,
+    };
+  }
 }

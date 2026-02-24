@@ -1,7 +1,19 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import type { PostgrestError } from '@supabase/supabase-js';
 
+import {
+  getProfileRoleByUserId,
+  requireUserId,
+} from '../common/supabase-auth-context';
+import type { Database } from '../infra/database.types';
 import { SupabaseDataService } from '../infra/supabase-data.service';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { ValidateMemberDto } from './dto/validate-member.dto';
 
 type ListMembersQuery = {
   commune_id?: string;
@@ -18,9 +30,20 @@ type ListMembersQuery = {
 @Injectable()
 export class MembersService {
   constructor(private readonly supabaseDataService: SupabaseDataService) {}
-  private readonly allowedStatusFilters = new Set(['active', 'pending']);
+  private readonly allowedStatusFilters = new Set([
+    'active',
+    'pending',
+    'rejected',
+    'suspended',
+  ]);
+  private readonly allowedValidationRoles = new Set([
+    'admin',
+    'ca',
+    'cn',
+    'pf',
+  ]);
   private readonly memberSelectFields =
-    'id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, organisation_id, org_name, created_at';
+    'id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, organisation_id, org_name, cellule_primary, cellule_secondary, validated_by, validated_at, validation_reason, created_at, updated_at';
 
   async list(accessToken: string, query: ListMembersQuery) {
     const client = this.supabaseDataService.forUser(accessToken);
@@ -177,6 +200,104 @@ export class MembersService {
     return data;
   }
 
+  async validate(
+    accessToken: string,
+    memberId: string,
+    payload: ValidateMemberDto,
+  ) {
+    const client = this.supabaseDataService.forUser(accessToken);
+    const actorUserId = await requireUserId(client);
+    const actorRole = await getProfileRoleByUserId(client, actorUserId);
+
+    if (!this.allowedValidationRoles.has(actorRole)) {
+      throw new ForbiddenException(
+        'Validation reservee aux roles admin/ca/cn/pf.',
+      );
+    }
+
+    const reason = payload.reason?.trim() ?? '';
+    if (payload.decision === 'reject' && !reason) {
+      throw new BadRequestException('Un motif est obligatoire pour un rejet.');
+    }
+
+    const { data: member, error: memberError } = await client
+      .from('member')
+      .select('id, status, region_id, cellule_primary, cellule_secondary')
+      .eq('id', memberId)
+      .maybeSingle();
+
+    if (memberError) {
+      throw memberError;
+    }
+    if (!member) {
+      throw new BadRequestException('Membre introuvable ou non visible.');
+    }
+
+    if (actorRole === 'pf') {
+      const actorRegionId = await this.getCurrentMemberRegionId(
+        client,
+        actorUserId,
+      );
+      if (!actorRegionId || actorRegionId !== member.region_id) {
+        throw new ForbiddenException(
+          'Le role PF ne peut valider que les membres de sa propre region.',
+        );
+      }
+    }
+
+    if (this.normalizeStatus(member.status) !== 'pending') {
+      throw new BadRequestException(
+        'Seuls les membres en statut pending peuvent etre valides.',
+      );
+    }
+
+    const nextPrimary =
+      payload.cellule_primary ?? member.cellule_primary ?? null;
+    const nextSecondary =
+      payload.cellule_secondary !== undefined
+        ? payload.cellule_secondary
+        : (member.cellule_secondary ?? null);
+
+    if (nextPrimary && nextSecondary && nextPrimary === nextSecondary) {
+      throw new BadRequestException(
+        'La cellule secondaire doit etre differente de la cellule primaire.',
+      );
+    }
+
+    const updatePayload: Database['public']['Tables']['member']['Update'] = {
+      status: payload.decision === 'approve' ? 'active' : 'rejected',
+      validated_at: new Date().toISOString(),
+      validated_by: actorUserId,
+      validation_reason: reason || null,
+    };
+
+    if (payload.cellule_primary) {
+      updatePayload.cellule_primary = payload.cellule_primary;
+    }
+    if (payload.cellule_secondary !== undefined) {
+      updatePayload.cellule_secondary = payload.cellule_secondary;
+    }
+
+    const { data, error } = await client
+      .from('member')
+      .update(updatePayload)
+      .eq('id', memberId)
+      .select(this.memberSelectFields)
+      .maybeSingle();
+
+    if (error) {
+      throw this.mapMemberValidationError(error);
+    }
+
+    return {
+      member: data,
+      message:
+        payload.decision === 'approve'
+          ? 'Membre valide et active.'
+          : 'Membre rejete.',
+    };
+  }
+
   private positiveInt(
     value: string | undefined,
     fallback: number,
@@ -199,5 +320,50 @@ export class MembersService {
     }
 
     return user.id;
+  }
+
+  private normalizeStatus(status: string | null | undefined): string {
+    return (status ?? '').trim().toLowerCase();
+  }
+
+  private async getCurrentMemberRegionId(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    userId: string,
+  ): Promise<string | null> {
+    const { data, error } = await client
+      .from('member')
+      .select('region_id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data?.region_id ?? null;
+  }
+
+  private mapMemberValidationError(error: PostgrestError): Error {
+    if (
+      error.code === '23514' &&
+      /member_active_profile_requirements_check/i.test(error.message)
+    ) {
+      return new BadRequestException(
+        "Impossible d'approuver ce membre: le profil onboarding est incomplet.",
+      );
+    }
+
+    if (
+      error.code === '23514' &&
+      /member_cellule_secondary_distinct_check/i.test(error.message)
+    ) {
+      return new BadRequestException(
+        'La cellule secondaire doit etre differente de la cellule primaire.',
+      );
+    }
+
+    return error;
   }
 }

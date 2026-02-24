@@ -33,7 +33,13 @@ export type MemberRecord = {
   join_mode: string | null;
   organisation_id: string | null;
   org_name: string | null;
+  cellule_primary: string | null;
+  cellule_secondary: string | null;
+  validated_at?: string | null;
+  validated_by?: string | null;
+  validation_reason?: string | null;
   created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export type OrganisationCardItem = {
@@ -322,6 +328,25 @@ export async function updateCurrentMember(payload: Partial<MemberRecord>) {
   return requestBackend<MemberRecord | null>("/members/me", {
     body: JSON.stringify(payload),
     fallbackError: "Impossible de mettre a jour votre compte.",
+    method: "PATCH",
+  });
+}
+
+export async function validateMemberById(
+  memberId: string,
+  payload: {
+    cellule_primary?: "engaged" | "entrepreneur" | "org_leader";
+    cellule_secondary?: "engaged" | "entrepreneur" | "org_leader" | null;
+    decision: "approve" | "reject";
+    reason?: string;
+  },
+) {
+  return requestBackend<{
+    member: MemberRecord | null;
+    message: string;
+  }>(`/members/${memberId}/validation`, {
+    body: JSON.stringify(payload),
+    fallbackError: "Impossible de valider ce membre.",
     method: "PATCH",
   });
 }

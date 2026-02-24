@@ -9,10 +9,12 @@ import { createClient } from "@/lib/supabase/server";
 
 import { MemberEditForm } from "./member-edit-form";
 import { MemberRoleForm } from "./member-role-form";
+import { MemberValidationForm } from "./member-validation-form";
 
 function statusVariant(status: string | null): "success" | "warning" | "danger" | "default" {
   if (status === "active") return "success";
   if (status === "pending") return "warning";
+  if (status === "rejected") return "danger";
   if (status === "suspended") return "danger";
   return "default";
 }
@@ -158,6 +160,27 @@ export default async function MemberDetailPage({
               Les modifications sont soumises a RLS. Un compte standard ne peut editer que ses
               propres donnees.
             </CardDescription>
+          </Card>
+
+          <Card className="space-y-2">
+            <CardTitle>Validation membre</CardTitle>
+            <CardDescription>
+              Workflow backoffice officiel: transition `pending` vers `active` ou `rejected`,
+              avec motif et ajustement de cellule.
+            </CardDescription>
+            {currentRole === "admin" || currentRole === "ca" || currentRole === "cn" || currentRole === "pf" ? (
+              member.status === "pending" ? (
+                <MemberValidationForm member={member} />
+              ) : (
+                <CardDescription>
+                  Ce membre n&apos;est plus en attente. Decision enregistree: {member.status ?? "unknown"}.
+                </CardDescription>
+              )
+            ) : (
+              <CardDescription>
+                Ce role ne peut pas executer la validation membre.
+              </CardDescription>
+            )}
           </Card>
 
           <Card>

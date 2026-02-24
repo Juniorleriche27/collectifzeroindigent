@@ -27,7 +27,7 @@ export class UpdateMemberDto {
   email?: string;
 
   @IsOptional()
-  @IsIn(['active', 'pending'])
+  @IsIn(['active', 'pending', 'rejected', 'suspended'])
   status?: string;
 
   @IsOptional()

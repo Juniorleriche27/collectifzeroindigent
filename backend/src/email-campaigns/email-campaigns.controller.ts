@@ -22,13 +22,22 @@ export class EmailCampaignsController {
   constructor(private readonly emailCampaignsService: EmailCampaignsService) {}
 
   @Get()
-  async list(@Req() request: AuthenticatedRequest, @Query('q') search?: string) {
+  async list(
+    @Req() request: AuthenticatedRequest,
+    @Query('q') search?: string,
+  ) {
     return this.emailCampaignsService.list(request.supabaseAccessToken, search);
   }
 
   @Get(':id')
-  async getById(@Req() request: AuthenticatedRequest, @Param('id') campaignId: string) {
-    return this.emailCampaignsService.getById(request.supabaseAccessToken, campaignId);
+  async getById(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') campaignId: string,
+  ) {
+    return this.emailCampaignsService.getById(
+      request.supabaseAccessToken,
+      campaignId,
+    );
   }
 
   @Post()
@@ -36,7 +45,10 @@ export class EmailCampaignsController {
     @Req() request: AuthenticatedRequest,
     @Body() payload: CreateEmailCampaignDto,
   ) {
-    return this.emailCampaignsService.create(request.supabaseAccessToken, payload);
+    return this.emailCampaignsService.create(
+      request.supabaseAccessToken,
+      payload,
+    );
   }
 
   @Patch(':id')
@@ -57,7 +69,10 @@ export class EmailCampaignsController {
     @Req() request: AuthenticatedRequest,
     @Param('id') campaignId: string,
   ) {
-    return this.emailCampaignsService.queue(request.supabaseAccessToken, campaignId);
+    return this.emailCampaignsService.queue(
+      request.supabaseAccessToken,
+      campaignId,
+    );
   }
 
   @Post(':id/send')

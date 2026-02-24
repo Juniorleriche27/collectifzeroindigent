@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 
 import {
   assertCommunicationManager,
@@ -74,7 +78,10 @@ export class ConversationsService {
       .order('updated_at', { ascending: false })
       .limit(200);
 
-    if (query.conversation_type === 'community' || query.conversation_type === 'direct') {
+    if (
+      query.conversation_type === 'community' ||
+      query.conversation_type === 'direct'
+    ) {
       dbQuery = dbQuery.eq('conversation_type', query.conversation_type);
     }
 
@@ -100,9 +107,14 @@ export class ConversationsService {
         participants: participants.get(item.id) ?? [],
       }))
       .sort((first, second) => {
-        const firstDate = first.latest_message?.created_at ?? first.updated_at ?? first.created_at;
+        const firstDate =
+          first.latest_message?.created_at ??
+          first.updated_at ??
+          first.created_at;
         const secondDate =
-          second.latest_message?.created_at ?? second.updated_at ?? second.created_at;
+          second.latest_message?.created_at ??
+          second.updated_at ??
+          second.created_at;
         return secondDate.localeCompare(firstDate);
       });
 
@@ -140,14 +152,19 @@ export class ConversationsService {
         .single();
 
       if (createError || !conversation) {
-        throw createError ?? new BadRequestException('Conversation directe invalide.');
+        throw (
+          createError ??
+          new BadRequestException('Conversation directe invalide.')
+        );
       }
 
-      const participantRows = [memberId, ...participantIds].map((participantMemberId) => ({
-        can_post: true,
-        conversation_id: conversation.id,
-        member_id: participantMemberId,
-      }));
+      const participantRows = [memberId, ...participantIds].map(
+        (participantMemberId) => ({
+          can_post: true,
+          conversation_id: conversation.id,
+          member_id: participantMemberId,
+        }),
+      );
 
       const { error: participantError } = await client
         .from('conversation_participant')
@@ -201,7 +218,9 @@ export class ConversationsService {
       .single();
 
     if (error || !conversation) {
-      throw error ?? new BadRequestException('Conversation communaute invalide.');
+      throw (
+        error ?? new BadRequestException('Conversation communaute invalide.')
+      );
     }
 
     return {
@@ -343,7 +362,10 @@ export class ConversationsService {
     conversationIds: string[],
   ) {
     if (!conversationIds.length) {
-      return new Map<string, Array<ParticipantRow & { member: MemberLite | null }>>();
+      return new Map<
+        string,
+        Array<ParticipantRow & { member: MemberLite | null }>
+      >();
     }
 
     const { data, error } = await client

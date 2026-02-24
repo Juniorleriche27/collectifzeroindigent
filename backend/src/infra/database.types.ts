@@ -358,6 +358,9 @@ export type Database = {
           skills?: Json | null;
           status?: string | null;
           support_types?: string[] | null;
+          validated_at?: string | null;
+          validated_by?: string | null;
+          validation_reason?: string | null;
           updated_at?: string | null;
           user_id: string;
         };
@@ -408,6 +411,9 @@ export type Database = {
           skills: Json | null;
           status: string | null;
           support_types: string[] | null;
+          validated_at: string | null;
+          validated_by: string | null;
+          validation_reason: string | null;
           updated_at: string | null;
           user_id: string;
         };
@@ -457,6 +463,9 @@ export type Database = {
           skills?: Json | null;
           status?: string | null;
           support_types?: string[] | null;
+          validated_at?: string | null;
+          validated_by?: string | null;
+          validation_reason?: string | null;
           updated_at?: string | null;
           user_id?: string;
         };

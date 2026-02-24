@@ -74,7 +74,9 @@ function normalizeScope(scope: ScopeInput): ScopeInput {
   };
 }
 
-export function normalizeScopes(scopes: ScopeInput[] | undefined): ScopeInput[] {
+export function normalizeScopes(
+  scopes: ScopeInput[] | undefined,
+): ScopeInput[] {
   const raw: ScopeInput[] = scopes?.length
     ? scopes
     : [{ scope_type: 'all' as const }];

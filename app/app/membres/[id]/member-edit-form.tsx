@@ -66,6 +66,12 @@ export function MemberEditForm({
     const category = joinMode === "association" ? "Association" : "Entreprise";
     return organisations.filter((organisation) => organisation.category === category);
   }, [joinMode, organisations]);
+  const normalizedStatus =
+    member.status === "pending" ||
+    member.status === "rejected" ||
+    member.status === "suspended"
+      ? member.status
+      : "active";
 
   const updateMemberAction = updateMember.bind(null, String(member.id));
   const [state, formAction, isPending] = useActionState(
@@ -116,11 +122,13 @@ export function MemberEditForm({
         <Select
           id="member-status"
           name="status"
-          defaultValue={member.status === "pending" ? "pending" : "active"}
+          defaultValue={normalizedStatus}
           required
         >
           <option value="active">Actif</option>
           <option value="pending">En attente</option>
+          <option value="rejected">Rejete</option>
+          <option value="suspended">Suspendu</option>
         </Select>
       </div>
       <div className="space-y-2">
