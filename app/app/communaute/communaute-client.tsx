@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { Heart, MessageCircleReply, Pencil } from "lucide-react";
+import { Heart, MessageCircleReply, Pencil, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import type { CommunityKind, ConversationItem, ConversationMessage, MemberRecord
 
 import {
   createConversationAction,
+  deleteConversationAction,
+  deleteConversationMessageAction,
   editConversationMessageAction,
   postConversationMessageAction,
   toggleConversationMessageLikeAction,
@@ -71,6 +73,8 @@ export function CommunauteClient({
 }: CommunauteClientProps) {
   const baseState: ConversationActionState = { error: null, success: null };
   const [createState, createAction, createPending] = useActionState(createConversationAction, baseState);
+  const [deleteConversationState, deleteConversationFormAction, deleteConversationPending] = useActionState(deleteConversationAction, baseState);
+  const [deleteMessageState, deleteMessageAction, deleteMessagePending] = useActionState(deleteConversationMessageAction, baseState);
   const [postState, postAction, postPending] = useActionState(postConversationMessageAction, baseState);
   const [editState, editAction, editPending] = useActionState(editConversationMessageAction, baseState);
 
@@ -207,6 +211,20 @@ export function CommunauteClient({
             {own ? (
               <Button onClick={() => { setEditingId(message.id); setEditingBody(message.body); setEditingMentions(message.mention_member_ids ?? []); }} size="sm" type="button" variant="ghost"><Pencil size={14} />Modifier</Button>
             ) : null}
+            {message.can_delete ? (
+              <form action={deleteMessageAction} onSubmit={(event) => {
+                if (!window.confirm("Supprimer ce message ? Cette action est definitive.")) {
+                  event.preventDefault();
+                }
+              }}>
+                <input name="conversation_id" type="hidden" value={selectedConversation?.id ?? ""} />
+                <input name="message_id" type="hidden" value={message.id} />
+                <Button disabled={deleteMessagePending} size="sm" type="submit" variant="danger">
+                  <Trash2 size={14} />
+                  Supprimer
+                </Button>
+              </form>
+            ) : null}
             {message.edited_at ? <Badge variant="default">modifie</Badge> : null}
           </div>
         </div>
@@ -264,9 +282,24 @@ export function CommunauteClient({
           </Card>
 
           <Card className="space-y-4">
-            <div>
-              <CardTitle>{selectedConversation ? conversationLabel(selectedConversation, currentMemberId) : "Selectionnez une conversation"}</CardTitle>
-              <CardDescription className="mt-1">{selectedConversation ? "Fil social de la conversation." : "Choisissez une communaute ou discussion privee."}</CardDescription>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <CardTitle>{selectedConversation ? conversationLabel(selectedConversation, currentMemberId) : "Selectionnez une conversation"}</CardTitle>
+                <CardDescription className="mt-1">{selectedConversation ? "Fil social de la conversation." : "Choisissez une communaute ou discussion privee."}</CardDescription>
+              </div>
+              {selectedConversation?.can_delete ? (
+                <form action={deleteConversationFormAction} onSubmit={(event) => {
+                  if (!window.confirm("Supprimer cette sous-communaute ? Cette action est definitive.")) {
+                    event.preventDefault();
+                  }
+                }}>
+                  <input name="conversation_id" type="hidden" value={selectedConversation.id} />
+                  <Button disabled={deleteConversationPending} size="sm" type="submit" variant="danger">
+                    <Trash2 size={14} />
+                    Supprimer la sous-communaute
+                  </Button>
+                </form>
+              ) : null}
             </div>
             <div className="max-h-[460px] space-y-3 overflow-y-auto rounded-xl border border-border bg-background/60 p-3">
               {!selectedConversation ? <CardDescription>Aucune conversation selectionnee.</CardDescription> : rootMessages.length === 0 ? <CardDescription>Aucun message.</CardDescription> : rootMessages.map((m) => renderNode(m))}
@@ -283,6 +316,10 @@ export function CommunauteClient({
                 {postState.success ? <p className="text-sm text-emerald-700">{postState.success}</p> : null}
                 {editState.error ? <p className="text-sm text-red-600">{editState.error}</p> : null}
                 {editState.success ? <p className="text-sm text-emerald-700">{editState.success}</p> : null}
+                {deleteMessageState.error ? <p className="text-sm text-red-600">{deleteMessageState.error}</p> : null}
+                {deleteMessageState.success ? <p className="text-sm text-emerald-700">{deleteMessageState.success}</p> : null}
+                {deleteConversationState.error ? <p className="text-sm text-red-600">{deleteConversationState.error}</p> : null}
+                {deleteConversationState.success ? <p className="text-sm text-emerald-700">{deleteConversationState.success}</p> : null}
                 <Button disabled={postPending} type="submit">{postPending ? "Envoi..." : replyTo ? "Repondre" : "Publier"}</Button>
               </form>
             ) : null}

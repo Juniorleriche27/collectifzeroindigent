@@ -100,6 +100,7 @@ export type ConversationParticipant = {
 
 export type ConversationMessage = {
   body: string;
+  can_delete: boolean;
   conversation_id: string;
   created_at: string;
   deleted_at: string | null;
@@ -121,6 +122,7 @@ export type ConversationMessage = {
 };
 
 export type ConversationItem = {
+  can_delete: boolean;
   commune_id: string | null;
   community_kind: CommunityKind | null;
   conversation_type: ConversationType;
@@ -538,6 +540,16 @@ export async function createConversation(payload: {
   });
 }
 
+export async function deleteConversation(conversationId: string) {
+  return requestBackend<{
+    deleted: boolean;
+    message: string;
+  }>(`/conversations/${conversationId}`, {
+    fallbackError: "Impossible de supprimer cette sous-communaute.",
+    method: "DELETE",
+  });
+}
+
 export async function listConversationMessages(
   conversationId: string,
   options?: { before?: string; limit?: number },
@@ -604,6 +616,19 @@ export async function toggleConversationMessageLike(
   }>(`/conversations/${conversationId}/messages/${messageId}/likes/toggle`, {
     fallbackError: "Impossible de mettre a jour le like.",
     method: "POST",
+  });
+}
+
+export async function deleteConversationMessage(
+  conversationId: string,
+  messageId: string,
+) {
+  return requestBackend<{
+    deleted: boolean;
+    message: string;
+  }>(`/conversations/${conversationId}/messages/${messageId}`, {
+    fallbackError: "Impossible de supprimer ce message.",
+    method: "DELETE",
   });
 }
 

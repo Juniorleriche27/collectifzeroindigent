@@ -99,6 +99,8 @@ export class ConversationsService {
     const client = this.supabaseDataService.forUser(accessToken);
     const userId = await requireUserId(client);
     const memberId = await getCurrentMemberId(client, userId);
+    const canManageCommunication =
+      await this.resolveCanManageCommunication(client);
 
     const dbQuery = client
       .from('conversation')
@@ -126,6 +128,10 @@ export class ConversationsService {
     const result = filteredItems
       .map((item) => ({
         ...item,
+        can_delete:
+          item.conversation_type === 'community' &&
+          item.parent_conversation_id !== null &&
+          (item.created_by === userId || canManageCommunication),
         latest_message: latestMessages.get(item.id) ?? null,
         participants: participants.get(item.id) ?? [],
       }))
@@ -218,6 +224,7 @@ export class ConversationsService {
 
       return {
         item: {
+          can_delete: false,
           ...conversation,
           latest_message: null,
           participants: await this.loadConversationParticipants(
@@ -304,8 +311,61 @@ export class ConversationsService {
     }
 
     return {
-      item: { ...conversation, latest_message: null, participants: [] },
+      item: {
+        ...conversation,
+        can_delete: true,
+        latest_message: null,
+        participants: [],
+      },
       message: 'Sous-communaute creee.',
+    };
+  }
+
+  async deleteConversation(accessToken: string, conversationId: string) {
+    const client = this.supabaseDataService.forUser(accessToken);
+    await requireUserId(client);
+
+    const conversation = await this.loadConversationById(
+      client,
+      conversationId,
+    );
+    if (!conversation) {
+      throw new NotFoundException('Conversation introuvable.');
+    }
+
+    if (
+      conversation.conversation_type !== 'community' ||
+      conversation.parent_conversation_id === null
+    ) {
+      throw new BadRequestException(
+        'Seules les sous-communautes peuvent etre supprimees.',
+      );
+    }
+
+    const { data, error } = await client
+      .from('conversation')
+      .delete()
+      .eq('id', conversationId)
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === '42501') {
+        throw new ForbiddenException(
+          'Permission insuffisante pour supprimer cette sous-communaute.',
+        );
+      }
+      throw error;
+    }
+    if (!data) {
+      throw new ForbiddenException(
+        'Permission insuffisante pour supprimer cette sous-communaute.',
+      );
+    }
+
+    return {
+      deleted: true,
+      message: 'Sous-communaute supprimee.',
     };
   }
 
@@ -317,6 +377,8 @@ export class ConversationsService {
     const client = this.supabaseDataService.forUser(accessToken);
     const userId = await requireUserId(client);
     const currentMemberId = await getCurrentMemberId(client, userId);
+    const canManageCommunication =
+      await this.resolveCanManageCommunication(client);
 
     const limit = this.normalizeLimit(query.limit);
     let dbQuery = client
@@ -355,6 +417,8 @@ export class ConversationsService {
 
     return {
       items: rows.map((row) => ({
+        can_delete:
+          row.sender_member_id === currentMemberId || canManageCommunication,
         ...row,
         like_count: likeStats.countByMessage.get(row.id) ?? 0,
         liked_by_me: likeStats.likedByMessage.has(row.id),
@@ -565,6 +629,48 @@ export class ConversationsService {
       liked,
       like_count: count ?? 0,
       message: liked ? 'Message aime.' : 'Like retire.',
+    };
+  }
+
+  async deleteMessage(
+    accessToken: string,
+    conversationId: string,
+    messageId: string,
+  ) {
+    const client = this.supabaseDataService.forUser(accessToken);
+    await requireUserId(client);
+    await this.ensureMessageExists(client, conversationId, messageId);
+
+    const { data, error } = await client
+      .from('message')
+      .delete()
+      .eq('conversation_id', conversationId)
+      .eq('id', messageId)
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      if (this.isMissingSocialMessageModelError(error)) {
+        throw new BadRequestException(
+          'Schema message social non a jour. Executez sql/2026-02-25_message_social_features.sql.',
+        );
+      }
+      if (error.code === '42501') {
+        throw new ForbiddenException(
+          'Permission insuffisante pour supprimer ce message.',
+        );
+      }
+      throw error;
+    }
+    if (!data) {
+      throw new ForbiddenException(
+        'Permission insuffisante pour supprimer ce message.',
+      );
+    }
+
+    return {
+      deleted: true,
+      message: 'Message supprime.',
     };
   }
 
@@ -912,6 +1018,55 @@ export class ConversationsService {
     }
 
     return (data as ConversationRow | null) ?? null;
+  }
+
+  private async resolveCanManageCommunication(
+    client: ReturnType<SupabaseDataService['forUser']>,
+  ): Promise<boolean> {
+    const { data, error } = await client.rpc('is_communication_manager');
+    if (error) {
+      return false;
+    }
+    const value: unknown = data;
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    if (Array.isArray(value)) {
+      const rows = value as unknown[];
+      if (!rows.length) {
+        return false;
+      }
+      const firstRow: unknown = rows[0];
+      if (typeof firstRow === 'boolean') {
+        return firstRow;
+      }
+      if (
+        firstRow &&
+        typeof firstRow === 'object' &&
+        !Array.isArray(firstRow)
+      ) {
+        const firstValue = this.firstRecordValue(
+          firstRow as Record<string, unknown>,
+        );
+        return Boolean(firstValue);
+      }
+      return Boolean(firstRow);
+    }
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      const firstValue = this.firstRecordValue(
+        value as Record<string, unknown>,
+      );
+      return Boolean(firstValue);
+    }
+    return Boolean(value);
+  }
+
+  private firstRecordValue(record: Record<string, unknown>): unknown {
+    const keys = Object.keys(record);
+    if (!keys.length) {
+      return null;
+    }
+    return record[keys[0]];
   }
 
   private async loadMembersById(

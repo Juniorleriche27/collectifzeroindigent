@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import {
   createConversation,
+  deleteConversation,
+  deleteConversationMessage,
   postConversationMessage,
   toggleConversationMessageLike,
   updateConversationMessage,
@@ -184,4 +186,58 @@ export async function toggleConversationMessageLikeAction(
   await toggleConversationMessageLike(conversationId, messageId);
   revalidatePath("/app/communaute");
   revalidatePath(`/app/communaute?conversation=${conversationId}`);
+}
+
+export async function deleteConversationAction(
+  _previousState: ConversationActionState,
+  formData: FormData,
+): Promise<ConversationActionState> {
+  if (!isSupabaseConfigured) {
+    return { error: "Supabase non configure.", success: null };
+  }
+
+  const conversationId = formValue(formData, "conversation_id");
+  if (!conversationId) {
+    return { error: "Conversation invalide.", success: null };
+  }
+
+  try {
+    await deleteConversation(conversationId);
+  } catch (error) {
+    return {
+      error: toErrorMessage(error, "Impossible de supprimer cette sous-communaute."),
+      success: null,
+    };
+  }
+
+  revalidatePath("/app/communaute");
+  return { error: null, success: "Sous-communaute supprimee." };
+}
+
+export async function deleteConversationMessageAction(
+  _previousState: ConversationActionState,
+  formData: FormData,
+): Promise<ConversationActionState> {
+  if (!isSupabaseConfigured) {
+    return { error: "Supabase non configure.", success: null };
+  }
+
+  const conversationId = formValue(formData, "conversation_id");
+  const messageId = formValue(formData, "message_id");
+  if (!conversationId || !messageId) {
+    return { error: "Message invalide.", success: null };
+  }
+
+  try {
+    await deleteConversationMessage(conversationId, messageId);
+  } catch (error) {
+    return {
+      error: toErrorMessage(error, "Impossible de supprimer ce message."),
+      success: null,
+    };
+  }
+
+  revalidatePath("/app/communaute");
+  revalidatePath(`/app/communaute?conversation=${conversationId}`);
+  return { error: null, success: "Message supprime." };
 }

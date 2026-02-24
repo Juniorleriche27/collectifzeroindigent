@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Patch,
   Param,
@@ -42,6 +43,17 @@ export class ConversationsController {
     return this.conversationsService.create(
       request.supabaseAccessToken,
       payload,
+    );
+  }
+
+  @Delete(':id')
+  async deleteConversation(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') conversationId: string,
+  ) {
+    return this.conversationsService.deleteConversation(
+      request.supabaseAccessToken,
+      conversationId,
     );
   }
 
@@ -94,6 +106,19 @@ export class ConversationsController {
     @Param('messageId') messageId: string,
   ) {
     return this.conversationsService.toggleMessageLike(
+      request.supabaseAccessToken,
+      conversationId,
+      messageId,
+    );
+  }
+
+  @Delete(':id/messages/:messageId')
+  async deleteMessage(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') conversationId: string,
+    @Param('messageId') messageId: string,
+  ) {
+    return this.conversationsService.deleteMessage(
       request.supabaseAccessToken,
       conversationId,
       messageId,
