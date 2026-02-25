@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { MemberContactLink } from "@/components/app/member-contact-link";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { getCurrentMember, getLocations, listMembers, listOrganisations } from "@/lib/backend/api";
@@ -296,23 +297,29 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                   </td>
                   <td className="px-4 py-3 text-sm text-muted">
                     {member.phone ? (
-                      <a
+                      <MemberContactLink
+                        channel="phone"
                         className="hover:text-foreground hover:underline"
+                        memberId={member.id}
+                        source="members_list"
                         href={`tel:${member.phone.replace(/\s+/g, "")}`}
                       >
                         {member.phone}
-                      </a>
+                      </MemberContactLink>
                     ) : (
                       "-"
                     )}
                     <br />
                     {member.email ? (
-                      <a
+                      <MemberContactLink
+                        channel="email"
                         className="hover:text-foreground hover:underline"
+                        memberId={member.id}
+                        source="members_list"
                         href={`mailto:${member.email}`}
                       >
                         {member.email}
-                      </a>
+                      </MemberContactLink>
                     ) : (
                       "-"
                     )}
@@ -338,19 +345,25 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                         Voir
                       </Link>
                       {member.email ? (
-                        <a
+                        <MemberContactLink
+                          channel="email"
                           className="text-sm font-medium text-muted hover:text-foreground"
+                          memberId={member.id}
+                          source="members_list"
                           href={`mailto:${member.email}`}
                         >
                           Contacter
-                        </a>
+                        </MemberContactLink>
                       ) : member.phone ? (
-                        <a
+                        <MemberContactLink
+                          channel="phone"
                           className="text-sm font-medium text-muted hover:text-foreground"
+                          memberId={member.id}
+                          source="members_list"
                           href={`tel:${member.phone.replace(/\s+/g, "")}`}
                         >
                           Appeler
-                        </a>
+                        </MemberContactLink>
                       ) : null}
                       {currentRole !== "member" ? (
                         <Link

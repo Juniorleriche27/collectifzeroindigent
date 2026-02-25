@@ -8,10 +8,12 @@ import type { PostgrestError } from '@supabase/supabase-js';
 
 import {
   getProfileRoleByUserId,
+  getCurrentMemberId,
   requireUserId,
 } from '../common/supabase-auth-context';
 import type { Database } from '../infra/database.types';
 import { SupabaseDataService } from '../infra/supabase-data.service';
+import { LogMemberContactActionDto } from './dto/log-member-contact-action.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { ValidateMemberDto } from './dto/validate-member.dto';
 
@@ -295,6 +297,69 @@ export class MembersService {
         payload.decision === 'approve'
           ? 'Membre valide et active.'
           : 'Membre rejete.',
+    };
+  }
+
+  async logContactAction(
+    accessToken: string,
+    payload: LogMemberContactActionDto,
+  ) {
+    const client = this.supabaseDataService.forUser(accessToken);
+    const actorUserId = await requireUserId(client);
+    const actorMemberId = await getCurrentMemberId(client, actorUserId);
+
+    const { data: targetMember, error: targetError } = await client
+      .from('member')
+      .select('id, email, phone')
+      .eq('id', payload.member_id)
+      .maybeSingle();
+
+    if (targetError) {
+      throw targetError;
+    }
+    if (!targetMember) {
+      throw new BadRequestException('Membre cible introuvable ou non visible.');
+    }
+
+    const channel = payload.channel;
+    const targetEmail = targetMember.email?.trim() ?? null;
+    const targetPhone = targetMember.phone?.trim() ?? null;
+
+    if (channel === 'email' && !targetEmail) {
+      throw new BadRequestException('Aucun email disponible pour ce membre.');
+    }
+    if (channel === 'phone' && !targetPhone) {
+      throw new BadRequestException('Aucun numero de telephone disponible.');
+    }
+
+    const source = payload.source?.trim() || 'unknown';
+
+    const { error: insertError } = await client
+      .from('member_contact_action')
+      .insert({
+        actor_member_id: actorMemberId,
+        actor_user_id: actorUserId,
+        channel,
+        source,
+        target_email: channel === 'email' ? targetEmail : null,
+        target_member_id: targetMember.id,
+        target_phone: channel === 'phone' ? targetPhone : null,
+      });
+
+    if (insertError) {
+      if (insertError.code === '42P01') {
+        return {
+          logged: false,
+          message:
+            'Table audit manquante. Executez sql/2026-02-25_member_contact_action_audit.sql.',
+        };
+      }
+      throw insertError;
+    }
+
+    return {
+      logged: true,
+      message: 'Action de contact enregistree.',
     };
   }
 

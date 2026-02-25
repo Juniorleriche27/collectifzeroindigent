@@ -348,6 +348,45 @@ export type Database = {
           status?: Database['public']['Enums']['email_recipient_status'];
         };
       };
+      member_contact_action: {
+        Insert: {
+          actor_member_id?: string | null;
+          actor_user_id: string;
+          channel: string;
+          created_at?: string;
+          id?: string;
+          metadata?: Json | null;
+          source?: string;
+          target_email?: string | null;
+          target_member_id: string;
+          target_phone?: string | null;
+        };
+        Relationships: [];
+        Row: {
+          actor_member_id: string | null;
+          actor_user_id: string;
+          channel: string;
+          created_at: string;
+          id: string;
+          metadata: Json | null;
+          source: string;
+          target_email: string | null;
+          target_member_id: string;
+          target_phone: string | null;
+        };
+        Update: {
+          actor_member_id?: string | null;
+          actor_user_id?: string;
+          channel?: string;
+          created_at?: string;
+          id?: string;
+          metadata?: Json | null;
+          source?: string;
+          target_email?: string | null;
+          target_member_id?: string;
+          target_phone?: string | null;
+        };
+      };
       support_ai_chat: {
         Insert: {
           answer: string;

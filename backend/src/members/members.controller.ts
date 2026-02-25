@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   Req,
   UseGuards,
@@ -11,6 +12,7 @@ import {
 
 import type { AuthenticatedRequest } from '../common/types/authenticated-request';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { LogMemberContactActionDto } from './dto/log-member-contact-action.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { ValidateMemberDto } from './dto/validate-member.dto';
 import { MembersService } from './members.service';
@@ -74,6 +76,17 @@ export class MembersController {
     return this.membersService.validate(
       request.supabaseAccessToken,
       memberId,
+      payload,
+    );
+  }
+
+  @Post('contact-actions')
+  async logContactAction(
+    @Req() request: AuthenticatedRequest,
+    @Body() payload: LogMemberContactActionDto,
+  ) {
+    return this.membersService.logContactAction(
+      request.supabaseAccessToken,
       payload,
     );
   }

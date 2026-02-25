@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { MemberContactLink } from "@/components/app/member-contact-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { getLocations, getMemberById, listOrganisations } from "@/lib/backend/api";
@@ -131,20 +132,26 @@ export default async function MemberDetailPage({
             <CardTitle>Contacter ce membre</CardTitle>
             <div className="flex flex-wrap items-center gap-3">
               {member.phone ? (
-                <a
+                <MemberContactLink
+                  channel="phone"
                   className="rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted-surface"
+                  memberId={member.id}
+                  source="member_detail"
                   href={`tel:${member.phone.replace(/\s+/g, "")}`}
                 >
                   Appeler
-                </a>
+                </MemberContactLink>
               ) : null}
               {member.email ? (
-                <a
+                <MemberContactLink
+                  channel="email"
                   className="rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted-surface"
+                  memberId={member.id}
+                  source="member_detail"
                   href={`mailto:${member.email}`}
                 >
                   Envoyer un email
-                </a>
+                </MemberContactLink>
               ) : null}
               {!member.phone && !member.email ? (
                 <CardDescription>Aucun contact disponible pour ce membre.</CardDescription>
