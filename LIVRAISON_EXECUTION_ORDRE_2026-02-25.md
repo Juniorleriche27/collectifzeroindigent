@@ -57,6 +57,18 @@ where n.nspname = 'public'
 order by proname;
 ```
 
+## 5. Revue securite / RLS (nouveau)
+
+Executer ensuite:
+
+1. `sql/2026-02-25_rls_security_review.sql`
+
+Ce script sort:
+- etat RLS/policies par table critique
+- PASS/FAIL global (tables, RLS, policies)
+- privileges `anon/authenticated` visibles
+- presence des fonctions critiques
+
 ## 5. Note email (report officiel)
 
 Le branchement email provider reel est reporte jusqu a disponibilite:
