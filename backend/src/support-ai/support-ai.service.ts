@@ -190,7 +190,7 @@ export class SupportAiService {
     const response = await fetch('https://api.cohere.ai/v1/chat', {
       body: JSON.stringify({
         chat_history: chatHistory,
-        max_tokens: this.readPositiveIntEnv('SUPPORT_AI_MAX_TOKENS', 450),
+        max_tokens: this.readCohereMaxTokens(),
         message: args.question,
         model: args.model,
         preamble: this.supportSystemPrompt(),
@@ -288,7 +288,7 @@ export class SupportAiService {
       'CZI est constitue officiellement le 17 avril 2020 par 15 associations/ONG de jeunesse.',
       'Vision: contribuer a l atteinte des ODD par la synergie des actions des jeunes, avec priorite a l ODD 1.',
       'Mission: orientation, formation, insertion professionnelle, entrepreneuriat et engagement citoyen des jeunes.',
-      'Format obligatoire de sortie: un seul paragraphe, 3 a 5 phrases, maximum 90 mots.',
+      'Format obligatoire de sortie: un seul paragraphe, 3 a 4 phrases, maximum 70 mots.',
       'Interdictions de forme: pas de markdown, pas de titres, pas de liste, pas de numerotation, pas de symbole **.',
       'Style attendu: francais simple, precis, direct, actionnable.',
       'Si une information manque, le dire clairement sans inventer.',
@@ -309,11 +309,17 @@ export class SupportAiService {
       return '';
     }
 
-    if (withoutMarkdown.length <= 900) {
+    const words = withoutMarkdown.split(/\s+/).filter(Boolean);
+    if (words.length <= 80) {
       return withoutMarkdown;
     }
 
-    return `${withoutMarkdown.slice(0, 900).trim()}...`;
+    return `${words.slice(0, 80).join(' ')}...`;
+  }
+
+  private readCohereMaxTokens(): number {
+    const envValue = this.readPositiveIntEnv('SUPPORT_AI_MAX_TOKENS', 180);
+    return Math.min(envValue, 260);
   }
 
   private readPositiveIntEnv(name: string, fallback: number): number {
