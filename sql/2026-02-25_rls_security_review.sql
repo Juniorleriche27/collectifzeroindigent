@@ -141,7 +141,6 @@ where n.nspname = 'public'
     'member_in_community_kind',
     'enforce_conversation_structure',
     'enforce_message_thread_consistency',
-    'log_member_contact_action',
     'log_member_update'
   )
 order by p.proname;
