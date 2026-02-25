@@ -22,6 +22,14 @@ Copier `backend/.env.example` vers `backend/.env.local` (ou utiliser `../.env.lo
 - `SENDGRID_API_KEY` (si provider `sendgrid`)
 - `MAILGUN_API_KEY`, `MAILGUN_DOMAIN` (si provider `mailgun`)
 - `MAILGUN_BASE_URL` (optionnel, default `https://api.mailgun.net/v3`)
+- `EMAIL_BLOCKED_DOMAINS` (optionnel, liste CSV des domaines bloques)
+- `EMAIL_CAMPAIGN_MAX_RECIPIENTS` (optionnel, default `5000`)
+- `EMAIL_CAMPAIGN_MAX_CREATE_PER_HOUR` (optionnel, default `20`)
+- `EMAIL_CAMPAIGN_MAX_QUEUE_PER_HOUR` (optionnel, default `20`)
+- `EMAIL_CAMPAIGN_MAX_SEND_PER_HOUR` (optionnel, default `8`)
+- `EMAIL_CAMPAIGN_MAX_SEND_PER_DAY` (optionnel, default `40`)
+- `EMAIL_CAMPAIGN_MIN_SECONDS_BETWEEN_SENDS` (optionnel, default `20`)
+- `EMAIL_SEND_BATCH_SIZE` (optionnel, default `500`)
 
 ## Lancer en local
 

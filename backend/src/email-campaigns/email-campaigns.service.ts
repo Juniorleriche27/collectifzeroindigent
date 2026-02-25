@@ -23,6 +23,7 @@ type MemberEmailRow = {
   id: string;
   prefecture_id: string;
   region_id: string;
+  status: string | null;
 };
 
 type CampaignStats = {
@@ -39,6 +40,12 @@ type DeliveryOutcome = {
   recipient_id: string;
   sent_at: string | null;
   status: EmailCampaignRecipientRow['status'];
+};
+type EmailCampaignRecipientInsert =
+  Database['public']['Tables']['email_campaign_recipient']['Insert'];
+type ResolvedRecipients = {
+  pendingRecipients: EmailCampaignRecipientInsert[];
+  skippedRecipients: EmailCampaignRecipientInsert[];
 };
 
 @Injectable()
@@ -131,6 +138,7 @@ export class EmailCampaignsService {
   async create(accessToken: string, payload: CreateEmailCampaignDto) {
     const client = this.supabaseDataService.forUser(accessToken);
     const actor = await assertCommunicationManager(client);
+    await this.assertCreateRateLimit(client, actor.userId);
     const scope = normalizeSingleScope({
       commune_id: payload.commune_id ?? null,
       prefecture_id: payload.prefecture_id ?? null,
@@ -267,7 +275,8 @@ export class EmailCampaignsService {
 
   async queue(accessToken: string, campaignId: string) {
     const client = this.supabaseDataService.forUser(accessToken);
-    await assertCommunicationManager(client);
+    const actor = await assertCommunicationManager(client);
+    await this.assertQueueRateLimit(client, actor.userId);
 
     const { data: campaign, error: campaignError } = await client
       .from('email_campaign')
@@ -285,26 +294,42 @@ export class EmailCampaignsService {
     if (campaign.status === 'sent') {
       throw new BadRequestException('Cette campagne a deja ete envoyee.');
     }
+    if (campaign.status === 'queued') {
+      throw new BadRequestException('Cette campagne est deja en file.');
+    }
 
-    const recipients = await this.resolveRecipients(
-      client,
-      campaign as EmailCampaignRow,
-    );
-    if (!recipients.length) {
+    const { pendingRecipients, skippedRecipients } =
+      await this.resolveRecipients(client, campaign as EmailCampaignRow);
+    if (!pendingRecipients.length) {
       throw new BadRequestException(
         'Aucun destinataire email valide pour ce ciblage.',
       );
     }
 
+    this.assertRecipientCountWithinLimit(pendingRecipients.length);
+
     const { error: insertError } = await client
       .from('email_campaign_recipient')
-      .upsert(recipients, {
-        ignoreDuplicates: true,
+      .upsert(pendingRecipients, {
+        ignoreDuplicates: false,
         onConflict: 'campaign_id,recipient_email',
       });
 
     if (insertError) {
       throw insertError;
+    }
+
+    if (skippedRecipients.length > 0) {
+      const { error: skippedError } = await client
+        .from('email_campaign_recipient')
+        .upsert(skippedRecipients, {
+          ignoreDuplicates: false,
+          onConflict: 'campaign_id,recipient_email',
+        });
+
+      if (skippedError) {
+        throw skippedError;
+      }
     }
 
     const { error: updateError } = await client
@@ -322,13 +347,14 @@ export class EmailCampaignsService {
     const refreshed = await this.getById(accessToken, campaignId);
     return {
       ...refreshed,
-      message: `Campagne mise en file (${recipients.length} destinataires).`,
+      message: `Campagne mise en file (${pendingRecipients.length} destinataires, ${skippedRecipients.length} ignores).`,
     };
   }
 
   async markSent(accessToken: string, campaignId: string) {
     const client = this.supabaseDataService.forUser(accessToken);
-    await assertCommunicationManager(client);
+    const actor = await assertCommunicationManager(client);
+    await this.assertSendRateLimit(client, actor.userId);
     const { data: campaign, error: campaignError } = await client
       .from('email_campaign')
       .select(this.campaignSelect)
@@ -344,6 +370,11 @@ export class EmailCampaignsService {
     if (campaign.status === 'sent') {
       throw new BadRequestException('Cette campagne a deja ete envoyee.');
     }
+    if (campaign.status !== 'queued') {
+      throw new BadRequestException(
+        'Campagne non queuee. Mettez d abord la campagne en file.',
+      );
+    }
 
     const pendingRecipients = await this.loadPendingRecipients(
       client,
@@ -354,6 +385,8 @@ export class EmailCampaignsService {
         'Aucun destinataire pending. Mettez la campagne en file avant envoi.',
       );
     }
+
+    this.assertRecipientCountWithinLimit(pendingRecipients.length);
 
     const provider = this.resolveProvider(campaign.provider);
     const fromEmail = this.resolveFromEmail();
@@ -409,7 +442,8 @@ export class EmailCampaignsService {
   ) {
     let query = client
       .from('member')
-      .select('id, email, region_id, prefecture_id, commune_id');
+      .select('id, email, region_id, prefecture_id, commune_id, status')
+      .in('status', ['active', 'approved']);
 
     if (campaign.audience_scope === 'region' && campaign.region_id) {
       query = query.eq('region_id', campaign.region_id);
@@ -427,38 +461,54 @@ export class EmailCampaignsService {
       throw error;
     }
 
-    const recipients = new Map<
-      string,
-      Database['public']['Tables']['email_campaign_recipient']['Insert']
-    >();
+    const pendingRecipients = new Map<string, EmailCampaignRecipientInsert>();
+    const skippedRecipients = new Map<string, EmailCampaignRecipientInsert>();
+    const blockedDomains = this.readBlockedEmailDomains();
 
     for (const row of (data ?? []) as MemberEmailRow[]) {
-      const email = this.normalizeEmail(row.email);
+      const email = this.normalizeEmail(row.email, blockedDomains);
       if (!email) {
+        const raw = (row.email ?? '').trim().toLowerCase();
+        if (raw) {
+          skippedRecipients.set(raw, {
+            campaign_id: campaign.id,
+            error_message: 'Email invalide ou domaine bloque.',
+            member_id: row.id,
+            recipient_email: raw,
+            sent_at: null,
+            status: 'skipped',
+          });
+        }
         continue;
       }
-      recipients.set(email, {
+      pendingRecipients.set(email, {
         campaign_id: campaign.id,
+        error_message: null,
         member_id: row.id,
         recipient_email: email,
+        sent_at: null,
         status: 'pending',
       });
     }
 
-    return Array.from(recipients.values());
+    return {
+      pendingRecipients: Array.from(pendingRecipients.values()),
+      skippedRecipients: Array.from(skippedRecipients.values()),
+    } satisfies ResolvedRecipients;
   }
 
   private async loadPendingRecipients(
     client: ReturnType<SupabaseDataService['forUser']>,
     campaignId: string,
   ) {
+    const batchSize = this.readPositiveIntEnv('EMAIL_SEND_BATCH_SIZE', 500);
     const { data, error } = await client
       .from('email_campaign_recipient')
       .select(this.recipientSelect)
       .eq('campaign_id', campaignId)
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
-      .limit(10000);
+      .limit(batchSize);
 
     if (error) {
       throw error;
@@ -698,6 +748,166 @@ export class EmailCampaignsService {
     return 'Erreur envoi provider.';
   }
 
+  private async assertCreateRateLimit(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    userId: string,
+  ) {
+    const maxCreatePerHour = this.readPositiveIntEnv(
+      'EMAIL_CAMPAIGN_MAX_CREATE_PER_HOUR',
+      20,
+    );
+    const createdLastHour = await this.countCampaignsSince(
+      client,
+      userId,
+      'created_at',
+      60,
+    );
+
+    if (createdLastHour >= maxCreatePerHour) {
+      throw new BadRequestException(
+        `Rate limit creation atteint (${maxCreatePerHour}/h). Reessayez plus tard.`,
+      );
+    }
+  }
+
+  private async assertQueueRateLimit(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    userId: string,
+  ) {
+    const maxQueuePerHour = this.readPositiveIntEnv(
+      'EMAIL_CAMPAIGN_MAX_QUEUE_PER_HOUR',
+      20,
+    );
+    const queuedLastHour = await this.countCampaignsSince(
+      client,
+      userId,
+      'scheduled_at',
+      60,
+    );
+
+    if (queuedLastHour >= maxQueuePerHour) {
+      throw new BadRequestException(
+        `Rate limit mise en file atteint (${maxQueuePerHour}/h). Reessayez plus tard.`,
+      );
+    }
+  }
+
+  private async assertSendRateLimit(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    userId: string,
+  ) {
+    const maxSendPerHour = this.readPositiveIntEnv(
+      'EMAIL_CAMPAIGN_MAX_SEND_PER_HOUR',
+      8,
+    );
+    const maxSendPerDay = this.readPositiveIntEnv(
+      'EMAIL_CAMPAIGN_MAX_SEND_PER_DAY',
+      40,
+    );
+    const minSecondsBetweenSends = this.readPositiveIntEnv(
+      'EMAIL_CAMPAIGN_MIN_SECONDS_BETWEEN_SENDS',
+      20,
+    );
+
+    const [sentLastHour, sentLastDay] = await Promise.all([
+      this.countCampaignsSince(client, userId, 'sent_at', 60),
+      this.countCampaignsSince(client, userId, 'sent_at', 60 * 24),
+    ]);
+
+    if (sentLastHour >= maxSendPerHour) {
+      throw new BadRequestException(
+        `Rate limit envoi atteint (${maxSendPerHour}/h). Reessayez plus tard.`,
+      );
+    }
+    if (sentLastDay >= maxSendPerDay) {
+      throw new BadRequestException(
+        `Rate limit envoi quotidien atteint (${maxSendPerDay}/jour). Reessayez demain.`,
+      );
+    }
+
+    const { data, error } = await client
+      .from('email_campaign')
+      .select('sent_at')
+      .eq('created_by', userId)
+      .not('sent_at', 'is', null)
+      .order('sent_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    const latestSentAt = data?.sent_at
+      ? new Date(data.sent_at).getTime()
+      : null;
+    if (!latestSentAt) {
+      return;
+    }
+
+    const elapsedSeconds = Math.floor((Date.now() - latestSentAt) / 1000);
+    if (elapsedSeconds < minSecondsBetweenSends) {
+      throw new BadRequestException(
+        `Envoi trop frequent. Attendez ${minSecondsBetweenSends - elapsedSeconds}s.`,
+      );
+    }
+  }
+
+  private async countCampaignsSince(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    userId: string,
+    timestampColumn: 'created_at' | 'scheduled_at' | 'sent_at',
+    minutes: number,
+  ) {
+    const since = new Date(Date.now() - minutes * 60 * 1000).toISOString();
+    const { count, error } = await client
+      .from('email_campaign')
+      .select('id', { count: 'exact', head: true })
+      .eq('created_by', userId)
+      .not(timestampColumn, 'is', null)
+      .gte(timestampColumn, since);
+
+    if (error) {
+      throw error;
+    }
+
+    return count ?? 0;
+  }
+
+  private assertRecipientCountWithinLimit(count: number) {
+    const maxRecipients = this.readPositiveIntEnv(
+      'EMAIL_CAMPAIGN_MAX_RECIPIENTS',
+      5000,
+    );
+    if (count > maxRecipients) {
+      throw new BadRequestException(
+        `Nombre de destinataires trop eleve (${count}). Maximum autorise: ${maxRecipients}.`,
+      );
+    }
+  }
+
+  private readPositiveIntEnv(name: string, fallback: number): number {
+    const raw = this.configService.get<string>(name);
+    if (!raw) {
+      return fallback;
+    }
+    const value = Number.parseInt(raw, 10);
+    if (!Number.isFinite(value) || value <= 0) {
+      return fallback;
+    }
+    return value;
+  }
+
+  private readBlockedEmailDomains(): Set<string> {
+    const raw = this.configService.get<string>('EMAIL_BLOCKED_DOMAINS') ?? '';
+    return new Set(
+      raw
+        .split(',')
+        .map((item) => item.trim().toLowerCase())
+        .filter(Boolean),
+    );
+  }
+
   private async loadRecipients(
     client: ReturnType<SupabaseDataService['forUser']>,
     campaignId: string,
@@ -776,11 +986,24 @@ export class EmailCampaignsService {
     };
   }
 
-  private normalizeEmail(value: string | null): string | null {
+  private normalizeEmail(
+    value: string | null,
+    blockedDomains: Set<string>,
+  ): string | null {
     const email = (value ?? '').trim().toLowerCase();
-    if (!email || !email.includes('@')) {
+    if (!email) {
       return null;
     }
+    const matchesBasicFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!matchesBasicFormat) {
+      return null;
+    }
+
+    const domain = email.split('@')[1]?.trim().toLowerCase() ?? '';
+    if (!domain || blockedDomains.has(domain)) {
+      return null;
+    }
+
     return email;
   }
 }
