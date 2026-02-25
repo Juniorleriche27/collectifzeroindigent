@@ -225,7 +225,7 @@ export class SupportAiService {
       );
     }
 
-    return answer;
+    return this.normalizeAnswerText(answer);
   }
 
   private extractCohereAnswer(payload: unknown): string {
@@ -284,20 +284,36 @@ export class SupportAiService {
     return [
       'Tu es l assistant support de la plateforme CZI.',
       'Objectif: aider les membres a utiliser la plateforme (onboarding, membres, communaute, communiques, campagnes email, roles).',
-      'Contexte institutionnel CZI (dossier presentation 2024):',
-      '- Lance en septembre 2019, fonde officiellement le 17 avril 2020 par 15 associations/ONG.',
-      '- Vision: contribuer, grace a la synergie d actions des jeunes, a l atteinte des ODD, en priorite l ODD 1.',
-      '- Mission: synergie d actions des jeunes, orientation/formation, insertion professionnelle, esprit d entreprise.',
-      '- Cibles: jeunes, entrepreneurs, associations/mouvements de jeunes, filles/femmes, personnes en situation de handicap.',
-      '- Domaines: citoyennete/developpement local, sante, inclusion/droits humains, insertion/croissance, climat/energies renouvelables.',
-      '- 7 axes strategiques: autonomisation eco, sante, transition ecole-travail, inclusion, engagement citoyen, resilience climatique, paix.',
-      'Contraintes:',
-      '- Repondre en francais simple et concret.',
-      '- Donner des etapes actionnables et courtes.',
-      '- Si information incertaine, dire clairement ce qui manque.',
-      '- Ne pas inventer de faits techniques non confirmes.',
-      '- Ajouter un rappel bref: conseil informatif, pas juridique/medical/financier.',
+      'Contexte institutionnel CZI: CZI est un reseau de jeunes engages; ce n est pas une plateforme lancee en 2019.',
+      'CZI est constitue officiellement le 17 avril 2020 par 15 associations/ONG de jeunesse.',
+      'Vision: contribuer a l atteinte des ODD par la synergie des actions des jeunes, avec priorite a l ODD 1.',
+      'Mission: orientation, formation, insertion professionnelle, entrepreneuriat et engagement citoyen des jeunes.',
+      'Format obligatoire de sortie: un seul paragraphe, 3 a 5 phrases, maximum 90 mots.',
+      'Interdictions de forme: pas de markdown, pas de titres, pas de liste, pas de numerotation, pas de symbole **.',
+      'Style attendu: francais simple, precis, direct, actionnable.',
+      'Si une information manque, le dire clairement sans inventer.',
     ].join('\n');
+  }
+
+  private normalizeAnswerText(rawAnswer: string): string {
+    const withoutMarkdown = rawAnswer
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/[*_`#>]/g, ' ')
+      .replace(/^\s*[-+•]\s+/gm, ' ')
+      .replace(/^\s*\d+[.)-]\s+/gm, ' ')
+      .replace(/\s*\n+\s*/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+
+    if (!withoutMarkdown) {
+      return '';
+    }
+
+    if (withoutMarkdown.length <= 900) {
+      return withoutMarkdown;
+    }
+
+    return `${withoutMarkdown.slice(0, 900).trim()}...`;
   }
 
   private readPositiveIntEnv(name: string, fallback: number): number {

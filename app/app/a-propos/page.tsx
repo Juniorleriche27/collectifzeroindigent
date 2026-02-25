@@ -1,112 +1,101 @@
+import { Compass, Handshake, Target, Users } from "lucide-react";
+
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
-const fundamentals = [
+const pillars = [
   {
-    title: "Creation",
+    icon: Users,
+    label: "Identite",
     value:
-      "Lance en septembre 2019, officiellement fonde le 17 avril 2020 par 15 associations et ONG.",
+      "CZI est un reseau de jeunes engages au service des ODD, organise autour de la cooperation entre acteurs de jeunesse.",
   },
   {
-    title: "Vision",
+    icon: Handshake,
+    label: "Constitution",
     value:
-      "Contribuer, grace a la synergie d actions des jeunes, a l atteinte des ODD, en priorite l ODD 1.",
+      "Le reseau est constitue officiellement le 17 avril 2020 par 15 associations et ONG de jeunesse.",
   },
   {
-    title: "Slogan",
-    value: "Faire de chaque jeune un acteur engage dans l atteinte des ODD.",
+    icon: Target,
+    label: "Priorite",
+    value:
+      "La priorite strategique est l ODD 1, avec des actions concretes pour l inclusion, l insertion et l autonomisation.",
   },
 ];
 
-const missions = [
-  "Creer une synergie de reflexion et d actions entre les jeunes.",
-  "Fournir des outils d orientation et de formation pour l insertion professionnelle.",
-  "Promouvoir la creativite, l innovation et l esprit d entreprise.",
-];
-
-const targets = [
-  "Les jeunes",
-  "Les entrepreneurs",
-  "Les associations et mouvements de jeunes",
-  "Les filles et les femmes",
-  "Les personnes en situation de handicap",
-];
-
-const domains = [
+const focusAreas = [
   "Citoyennete et developpement local",
   "Sante et bien-etre",
-  "Inclusion, securite et droits humains",
+  "Inclusion et droits humains",
   "Insertion professionnelle et croissance economique",
-  "Rechauffement climatique et energies renouvelables",
+  "Climat et energies renouvelables",
 ];
 
-const strategicAxes = [
-  "Autonomisation economique des femmes et des jeunes.",
-  "Sante des populations et lutte contre les maladies.",
-  "Transition ecole-marche du travail des jeunes.",
-  "Inclusion des filles, femmes et personnes vivant avec un handicap.",
-  "Engagement citoyen, leadership et bonne gouvernance.",
-  "Resilience climatique et adaptation des zones vulnerables.",
-  "Collaboration Etat-jeunesse pour la paix et la cohesion sociale.",
+const axes = [
+  "Autonomisation economique des jeunes et des femmes",
+  "Sante communautaire et prevention",
+  "Transition ecole-emploi",
+  "Inclusion des publics vulnerables",
+  "Leadership citoyen et gouvernance",
+  "Resilience climatique",
+  "Paix et cohesion sociale",
 ];
 
 export default function AProposPage() {
   return (
     <div className="space-y-6">
-      <div>
+      <section className="rounded-2xl border border-border bg-[linear-gradient(130deg,rgba(12,111,149,0.22),rgba(46,142,99,0.16))] p-8 shadow-soft">
         <p className="text-sm font-semibold uppercase tracking-wider text-primary">A propos</p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight">Collectif Zero Indigent (CZI)</h2>
-        <CardDescription className="mt-2">
-          Presentation institutionnelle basee sur le dossier CZI 2024.
-        </CardDescription>
-      </div>
+        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+          Collectif Zero Indigent (CZI)
+        </h2>
+        <p className="mt-3 max-w-4xl text-sm leading-relaxed text-foreground/85">
+          CZI est un reseau de jeunes qui mobilise la synergie d actions pour accelerer l atteinte
+          des Objectifs de Developpement Durable. Le cadre institutionnel met l accent sur
+          l accompagnement, la formation, l insertion et l entrepreneuriat des jeunes.
+        </p>
+      </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        {fundamentals.map((item) => (
-          <Card className="space-y-2" key={item.title}>
-            <CardTitle className="text-base">{item.title}</CardTitle>
-            <CardDescription>{item.value}</CardDescription>
-          </Card>
-        ))}
+        {pillars.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Card className="space-y-3 bg-surface/95" key={item.label}>
+              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                <Icon size={14} />
+                {item.label}
+              </div>
+              <CardDescription className="leading-relaxed text-foreground/85">{item.value}</CardDescription>
+            </Card>
+          );
+        })}
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <Card className="space-y-3">
-          <CardTitle className="text-base">Mission</CardTitle>
-          <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-            {missions.map((item) => (
-              <li key={item}>{item}</li>
+      <section className="grid gap-4 xl:grid-cols-2">
+        <Card className="space-y-3 bg-surface/95">
+          <CardTitle className="text-base">Domaines d action</CardTitle>
+          <div className="flex flex-wrap gap-2">
+            {focusAreas.map((item) => (
+              <span
+                className="rounded-full border border-border bg-muted-surface/80 px-3 py-1 text-sm text-foreground"
+                key={item}
+              >
+                {item}
+              </span>
             ))}
-          </ul>
+          </div>
         </Card>
-        <Card className="space-y-3">
-          <CardTitle className="text-base">Cibles prioritaires</CardTitle>
-          <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-            {targets.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </Card>
-      </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <Card className="space-y-3">
-          <CardTitle className="text-base">Domaines d intervention</CardTitle>
-          <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-            {domains.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </Card>
-        <Card className="space-y-3">
-          <CardTitle className="text-base">7 axes strategiques</CardTitle>
-          <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-            {strategicAxes.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+        <Card className="space-y-3 bg-surface/95">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <Compass size={14} />
+            Axes strategiques
+          </div>
+          <CardDescription className="leading-relaxed text-foreground/85">
+            {axes.join(", ")}.
+          </CardDescription>
         </Card>
       </section>
     </div>
   );
 }
-

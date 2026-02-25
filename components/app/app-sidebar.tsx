@@ -70,47 +70,59 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 border-r border-border bg-surface transition-all duration-200 lg:block",
+        "hidden h-full shrink-0 border-r border-border bg-surface transition-all duration-200 lg:block",
         collapsed ? "w-24" : "w-72",
       )}
     >
-      <div className={cn("flex h-20 items-center border-b border-border", collapsed ? "justify-center px-2" : "justify-between px-6")}>
-        <p className={cn("font-bold tracking-tight text-foreground", collapsed ? "text-xl" : "text-2xl")}>
-          {collapsed ? "CZ" : "CZI"}
-        </p>
-        <Button
-          aria-label={collapsed ? "Agrandir le menu" : "Reduire le menu"}
-          onClick={toggleSidebar}
-          size="sm"
-          type="button"
-          variant="ghost"
+      <div className="flex h-full flex-col overflow-hidden">
+        <div
+          className={cn(
+            "flex h-20 items-center border-b border-border",
+            collapsed ? "justify-center px-2" : "justify-between px-6",
+          )}
         >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </Button>
+          <p
+            className={cn(
+              "font-bold tracking-tight text-foreground",
+              collapsed ? "text-xl" : "text-2xl",
+            )}
+          >
+          {collapsed ? "CZ" : "CZI"}
+          </p>
+          <Button
+            aria-label={collapsed ? "Agrandir le menu" : "Reduire le menu"}
+            onClick={toggleSidebar}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </Button>
+        </div>
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
+          {navItems.map((item) => {
+            const ItemIcon = item.icon;
+            const active = isActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                className={cn(
+                  "flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition-colors",
+                  collapsed ? "justify-center gap-0 px-2" : "gap-3",
+                  active
+                    ? "bg-primary/15 text-primary ring-1 ring-primary/20"
+                    : "text-muted hover:bg-muted-surface hover:text-foreground",
+                )}
+                href={item.href}
+                title={item.label}
+              >
+                <ItemIcon size={20} />
+                {!collapsed ? <span>{item.label}</span> : null}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-      <nav className="space-y-1 px-3 py-6">
-        {navItems.map((item) => {
-          const ItemIcon = item.icon;
-          const active = isActive(pathname, item.href);
-          return (
-            <Link
-              key={item.href}
-              className={cn(
-                "flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition-colors",
-                collapsed ? "justify-center gap-0 px-2" : "gap-3",
-                active
-                  ? "bg-primary/15 text-primary ring-1 ring-primary/20"
-                  : "text-muted hover:bg-muted-surface hover:text-foreground",
-              )}
-              href={item.href}
-              title={item.label}
-            >
-              <ItemIcon size={20} />
-              {!collapsed ? <span>{item.label}</span> : null}
-            </Link>
-          );
-        })}
-      </nav>
     </aside>
   );
 }

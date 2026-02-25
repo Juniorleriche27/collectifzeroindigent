@@ -34,10 +34,10 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex">
+    <div className="h-screen overflow-hidden bg-background">
+      <div className="flex h-full overflow-hidden">
         <AppSidebar />
-        <div className="flex min-h-screen flex-1 flex-col">
+        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
           <header className="border-b border-border bg-surface/95 px-6 backdrop-blur">
             <div className="flex h-20 items-center justify-between gap-4">
               <Input className="max-w-xl" placeholder="Rechercher..." />
@@ -56,7 +56,7 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
               </div>
             </div>
           </header>
-          <main className="flex-1 px-6 py-8">{children}</main>
+          <main className="flex-1 overflow-y-auto px-6 py-8">{children}</main>
         </div>
       </div>
     </div>
