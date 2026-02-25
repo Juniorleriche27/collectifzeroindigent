@@ -69,6 +69,16 @@ Ce script sort:
 - privileges `anon/authenticated` visibles
 - presence des fonctions critiques
 
+## 6. Durcissement privileges table-level (action corrective)
+
+Constat prod le 25 fevrier 2026: grants excessifs `anon/authenticated` detectes
+(`TRUNCATE`, `TRIGGER`, `REFERENCES`, DML trop large).
+
+Executer:
+
+1. `sql/2026-02-25_harden_table_privileges.sql`
+2. Rejouer `sql/2026-02-25_rls_security_review.sql` pour preuve post-correction
+
 ## 5. Note email (report officiel)
 
 Le branchement email provider reel est reporte jusqu a disponibilite:
