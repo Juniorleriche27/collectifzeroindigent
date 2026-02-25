@@ -46,6 +46,9 @@ function toErrorMessage(error: unknown, fallback: string): string {
 
 function normalizedParagraph(value: string): string {
   return value
+    .replace(/\r/g, "")
+    .replace(/^\s*[-+•]\s+/gm, " ")
+    .replace(/^\s*\d+[.)-]\s+/gm, " ")
     .replace(/[*_`#>-]/g, " ")
     .replace(/\s*\n+\s*/g, " ")
     .replace(/\s{2,}/g, " ")
