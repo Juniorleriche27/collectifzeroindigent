@@ -2,6 +2,13 @@
 
 Ce plan regroupe les scripts a executer maintenant pour finaliser la livraison sans la partie email provider (reportee).
 
+## Statut execution (production)
+
+- Execution confirmee le 25 fevrier 2026: lot communaute/messagerie + lot support/audit executes.
+- Verification confirmee:
+  - policies `member_update` presentes (`member_update_insert_internal`, `member_update_select`, `member_update_select_own`)
+  - fonctions communaute presentes (`can_access_conversation`, `can_post_conversation`, `member_in_community_kind`, `enforce_conversation_structure`, `enforce_message_thread_consistency`)
+
 ## 1. Pre-requis (deja executes selon historique)
 
 1. `sql/2026-02-23_delivery_pack.sql`
