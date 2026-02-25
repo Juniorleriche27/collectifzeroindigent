@@ -387,6 +387,42 @@ export type Database = {
           target_phone?: string | null;
         };
       };
+      member_update: {
+        Insert: {
+          actor_member_id?: string | null;
+          actor_user_id?: string | null;
+          after_data?: Json | null;
+          before_data?: Json | null;
+          changed_fields?: string[];
+          created_at?: string;
+          id?: string;
+          member_id: string;
+          operation: string;
+        };
+        Relationships: [];
+        Row: {
+          actor_member_id: string | null;
+          actor_user_id: string | null;
+          after_data: Json | null;
+          before_data: Json | null;
+          changed_fields: string[];
+          created_at: string;
+          id: string;
+          member_id: string;
+          operation: string;
+        };
+        Update: {
+          actor_member_id?: string | null;
+          actor_user_id?: string | null;
+          after_data?: Json | null;
+          before_data?: Json | null;
+          changed_fields?: string[];
+          created_at?: string;
+          id?: string;
+          member_id?: string;
+          operation?: string;
+        };
+      };
       support_ai_chat: {
         Insert: {
           answer: string;

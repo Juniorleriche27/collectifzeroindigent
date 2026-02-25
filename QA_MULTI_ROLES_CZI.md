@@ -41,6 +41,7 @@ Preuves:
 - `[ ]` edition membre (roles autorises)
 - `[ ]` edition role gouvernance (`admin`, `ca` limites)
 - `[ ]` contact direct (email/tel) fiche + liste
+- `[ ]` audit contact membre (`member_contact_action`) enregistre a chaque clic contact
 
 Preuves:
 - 
@@ -70,6 +71,7 @@ Preuves:
 - `[ ]` creation conversation privee 1:1
 - `[ ]` envoi/lecture messages
 - `[ ]` RLS stricte sur conversations privees
+- `[ ]` unread count messages prives (badge + reset lecture)
 
 Preuves:
 - 
@@ -100,6 +102,8 @@ Preuves:
 - `[ ]` `npm run lint` root
 - `[ ]` `npm run test:e2e` backend
 - `[ ]` health backend `/api/health`
+- `[ ]` readiness backend `/api/health/ready`
+- `[ ]` support IA: format reponse paragraphe simple, sans markdown/listes
 
 Preuves:
 - 

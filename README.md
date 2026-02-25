@@ -56,7 +56,8 @@ npm run dev
 - `/app/dashboard`
 - `/app/membres`
 - `/app/membres/[id]`
-- `/app/organisations`
+- `/app/partenariat`
+- `/app/a-propos`
 - `/app/parametres`
 - `/app/profils`
 - `/app/support`
@@ -141,3 +142,20 @@ Ce script cree:
 - communaute + direct messages (`conversation`, `conversation_participant`, `message`)
 - campagnes email (`email_campaign`, `email_campaign_recipient`)
 - policies RLS associees
+
+## Observabilite minimale
+
+- Health backend:
+  - `GET /api/health`
+  - `GET /api/health/ready` (retourne `503` si env/connexion DB non conformes)
+- Logs backend:
+  - chaque requete API est loggee avec `x-request-id`, code HTTP et duree
+
+## Documentation passation
+
+- [GUIDE_ADMIN_CZI.md](./GUIDE_ADMIN_CZI.md)
+- [GUIDE_UTILISATEUR_CZI.md](./GUIDE_UTILISATEUR_CZI.md)
+- [RUNBOOK_INCIDENT_CZI.md](./RUNBOOK_INCIDENT_CZI.md)
+- [RELEASE_CHECKLIST_CZI.md](./RELEASE_CHECKLIST_CZI.md)
+- [CHANGELOG.md](./CHANGELOG.md)
+- [LIVRAISON_EXECUTION_ORDRE_2026-02-25.md](./LIVRAISON_EXECUTION_ORDRE_2026-02-25.md)

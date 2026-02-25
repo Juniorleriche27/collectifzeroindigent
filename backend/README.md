@@ -51,15 +51,26 @@ API disponible sur `http://localhost:4000/api`.
 ## Endpoints MVP
 
 - `GET /api/health`
+- `GET /api/health/ready`
 - `GET /api/locations` (Bearer token requis)
 - `GET /api/members` (Bearer token requis)
 - `GET /api/members/me` (Bearer token requis)
 - `GET /api/members/:id` (Bearer token requis)
 - `PATCH /api/members/me` (Bearer token requis)
 - `PATCH /api/members/:id` (Bearer token requis)
+- `POST /api/members/contact-actions` (Bearer token requis)
 - `POST /api/onboarding` (Bearer token requis)
 - `GET /api/organisations` (Bearer token requis)
 - `POST /api/organisations` (Bearer token requis)
+
+## Observabilite backend
+
+- Chaque requete est loggee avec:
+  - `request_id` (`x-request-id`)
+  - methode, path, status, duree
+- Health endpoints:
+  - `/api/health`: disponibilite service
+  - `/api/health/ready`: readiness env + connectivite Supabase (DB)
 
 ## Auth
 
