@@ -181,6 +181,15 @@ export type EmailCampaignRecipient = {
   status: CampaignRecipientStatus;
 };
 
+export type SupportAiHistoryItem = {
+  answer: string;
+  created_at: string;
+  id: string;
+  model: string | null;
+  provider: string;
+  question: string;
+};
+
 type BackendRequestOptions = RequestInit & {
   fallbackError?: string;
 };
@@ -688,6 +697,38 @@ export async function sendEmailCampaign(campaignId: string) {
     stats: CampaignStats;
   }>(`/email-campaigns/${campaignId}/send`, {
     fallbackError: "Impossible de marquer la campagne comme envoyee.",
+    method: "POST",
+  });
+}
+
+export async function listSupportAiHistory(limit?: number) {
+  const query = new URLSearchParams();
+  if (limit && Number.isFinite(limit)) {
+    query.set("limit", String(limit));
+  }
+  const queryString = query.toString();
+
+  return requestBackend<{
+    daily_limit: number;
+    disclaimer: string;
+    items: SupportAiHistoryItem[];
+    remaining_today: number;
+    used_today: number;
+  }>(queryString ? `/support-ai/history?${queryString}` : "/support-ai/history", {
+    fallbackError: "Impossible de charger l'historique support IA.",
+  });
+}
+
+export async function askSupportAi(question: string) {
+  return requestBackend<{
+    daily_limit: number;
+    disclaimer: string;
+    item: SupportAiHistoryItem;
+    remaining_today: number;
+    used_today: number;
+  }>("/support-ai/ask", {
+    body: JSON.stringify({ question }),
+    fallbackError: "Impossible de contacter le support IA.",
     method: "POST",
   });
 }

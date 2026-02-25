@@ -1,23 +1,35 @@
-import { LifeBuoy } from "lucide-react";
+import { listSupportAiHistory } from "@/lib/backend/api";
 
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { SupportClient } from "./support-client";
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  let items = [] as Awaited<ReturnType<typeof listSupportAiHistory>>["items"];
+  let disclaimer =
+    "Assistant IA informatif uniquement: ne remplace pas un avis juridique, medical ou financier professionnel.";
+  let dailyLimit = 0;
+  let remainingToday = 0;
+  let usedToday = 0;
+  let loadError: string | null = null;
+
+  try {
+    const response = await listSupportAiHistory(30);
+    items = response.items;
+    disclaimer = response.disclaimer;
+    dailyLimit = response.daily_limit;
+    remainingToday = response.remaining_today;
+    usedToday = response.used_today;
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "Erreur chargement support IA.";
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Support</p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight">Centre d&apos;aide</h2>
-      </div>
-      <Card className="flex min-h-[320px] flex-col items-center justify-center text-center">
-        <div className="rounded-full bg-muted-surface p-4 text-muted">
-          <LifeBuoy size={36} />
-        </div>
-        <CardTitle className="mt-6">Support</CardTitle>
-        <CardDescription className="mt-3 max-w-md">
-          Centre d&apos;aide et support - en cours de developpement.
-        </CardDescription>
-      </Card>
-    </div>
+    <SupportClient
+      dailyLimit={dailyLimit}
+      disclaimer={disclaimer}
+      items={items}
+      loadError={loadError}
+      remainingToday={remainingToday}
+      usedToday={usedToday}
+    />
   );
 }

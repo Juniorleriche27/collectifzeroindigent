@@ -30,6 +30,13 @@ Copier `backend/.env.example` vers `backend/.env.local` (ou utiliser `../.env.lo
 - `EMAIL_CAMPAIGN_MAX_SEND_PER_DAY` (optionnel, default `40`)
 - `EMAIL_CAMPAIGN_MIN_SECONDS_BETWEEN_SENDS` (optionnel, default `20`)
 - `EMAIL_SEND_BATCH_SIZE` (optionnel, default `500`)
+- `COHERE_API_KEY` (obligatoire pour le module support IA)
+- `COHERE_MODEL` (optionnel, default `command-r-plus`)
+- `SUPPORT_AI_DAILY_LIMIT` (optionnel, default `20`)
+- `SUPPORT_AI_HISTORY_LIMIT` (optionnel, default `30`)
+- `SUPPORT_AI_CONTEXT_TURNS` (optionnel, default `6`)
+- `SUPPORT_AI_MAX_QUESTION_CHARS` (optionnel, default `1200`)
+- `SUPPORT_AI_MAX_TOKENS` (optionnel, default `450`)
 
 ## Lancer en local
 

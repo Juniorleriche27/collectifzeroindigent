@@ -12,6 +12,7 @@ import { LocationsModule } from './locations/locations.module';
 import { MembersModule } from './members/members.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { OrganisationsModule } from './organisations/organisations.module';
+import { SupportAiModule } from './support-ai/support-ai.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { OrganisationsModule } from './organisations/organisations.module';
     MembersModule,
     OnboardingModule,
     OrganisationsModule,
+    SupportAiModule,
   ],
 })
 export class AppModule {}

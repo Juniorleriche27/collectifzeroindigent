@@ -348,6 +348,39 @@ export type Database = {
           status?: Database['public']['Enums']['email_recipient_status'];
         };
       };
+      support_ai_chat: {
+        Insert: {
+          answer: string;
+          created_at?: string;
+          id?: string;
+          member_id?: string | null;
+          model?: string | null;
+          provider?: string;
+          question: string;
+          user_id: string;
+        };
+        Relationships: [];
+        Row: {
+          answer: string;
+          created_at: string;
+          id: string;
+          member_id: string | null;
+          model: string | null;
+          provider: string;
+          question: string;
+          user_id: string;
+        };
+        Update: {
+          answer?: string;
+          created_at?: string;
+          id?: string;
+          member_id?: string | null;
+          model?: string | null;
+          provider?: string;
+          question?: string;
+          user_id?: string;
+        };
+      };
       member: {
         Insert: {
           age_range?: string | null;

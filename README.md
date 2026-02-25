@@ -28,6 +28,11 @@ Pour activer l'envoi email reel des campagnes (`/app/campagnes-email`), ajouter 
 - `EMAIL_FROM`
 - `RESEND_API_KEY` ou `SENDGRID_API_KEY` ou `MAILGUN_API_KEY` + `MAILGUN_DOMAIN`
 
+Pour activer le support IA (`/app/support`):
+
+- `COHERE_API_KEY`
+- `COHERE_MODEL` (optionnel)
+
 ## Lancer le projet
 
 Terminal 1 (backend REST):
