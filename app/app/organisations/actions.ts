@@ -2,10 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 
-import { createOrganisation } from "@/lib/backend/api";
+import { createOrganisation, updateCurrentMember } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export type OrganisationCreateState = {
+  error: string | null;
+  success: string | null;
+};
+
+export type PartnershipAttachState = {
   error: string | null;
   success: string | null;
 };
@@ -68,9 +73,66 @@ export async function createOrganisationAction(
   }
 
   revalidatePath("/app/organisations");
+  revalidatePath("/app/partenariat");
 
   return {
     error: null,
-    success: "Organisation creee.",
+    success: "Partenaire cree.",
+  };
+}
+
+export async function attachPartnershipAction(
+  _previousState: PartnershipAttachState,
+  formData: FormData,
+): Promise<PartnershipAttachState> {
+  if (!isSupabaseConfigured) {
+    return {
+      error: "Supabase non configure.",
+      success: null,
+    };
+  }
+
+  const mode = formValue(formData, "mode");
+  const selectedName = formValue(formData, "organisation_name");
+  const selectedId = formValue(formData, "organisation_id");
+  const allowId = formValue(formData, "allow_id") === "1";
+
+  if (mode !== "association" && mode !== "enterprise") {
+    return {
+      error: "Mode partenariat invalide.",
+      success: null,
+    };
+  }
+
+  if (!selectedName) {
+    return {
+      error: "Selectionnez un partenaire existant.",
+      success: null,
+    };
+  }
+
+  try {
+    await updateCurrentMember({
+      join_mode: mode,
+      organisation_id: allowId ? selectedId || null : null,
+      org_name: selectedName,
+    });
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error && error.message
+          ? error.message
+          : "Impossible d'ajouter ce partenariat.",
+      success: null,
+    };
+  }
+
+  revalidatePath("/app/organisations");
+  revalidatePath("/app/partenariat");
+  revalidatePath("/app/membres");
+
+  return {
+    error: null,
+    success: "Partenariat ajoute a votre profil.",
   };
 }

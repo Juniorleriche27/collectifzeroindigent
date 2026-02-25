@@ -1,5 +1,5 @@
 import { Card, CardDescription } from "@/components/ui/card";
-import { listOrganisations } from "@/lib/backend/api";
+import { getCurrentMember, listOrganisations } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 import { OrganisationsClient } from "./organisations-client";
@@ -29,14 +29,19 @@ export default async function OrganisationsPage({
 
   let loadError: string | null = null;
   let items: Awaited<ReturnType<typeof listOrganisations>>["items"] = [];
+  let currentMember: Awaited<ReturnType<typeof getCurrentMember>> = null;
   let source = "public.member";
   let note: string | null = null;
   let canCreate = false;
 
   if (isSupabaseConfigured) {
     try {
-      const result = await listOrganisations(query || undefined);
+      const [result, member] = await Promise.all([
+        listOrganisations(query || undefined),
+        getCurrentMember(),
+      ]);
       items = result.items;
+      currentMember = member;
       source = result.source;
       note = result.source_note;
       canCreate = result.can_create;
@@ -58,6 +63,7 @@ export default async function OrganisationsPage({
 
       <OrganisationsClient
         canCreate={canCreate}
+        currentMember={currentMember}
         initialQuery={query}
         items={items}
         sourceLabel={sourceLabel(source)}

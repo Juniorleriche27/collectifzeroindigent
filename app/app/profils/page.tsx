@@ -23,15 +23,15 @@ function roleLabel(role: string): string {
 function roleScope(role: string): string[] {
   switch (role) {
     case "admin":
-      return ["Membres (global)", "Organisations", "Parametres", "Import/Export"];
+      return ["Membres (global)", "Partenariat", "A propos", "Parametres", "Import/Export"];
     case "ca":
-      return ["Dashboard gouvernance", "Membres (lecture globale)", "Support"];
+      return ["Dashboard gouvernance", "Membres (lecture globale)", "Partenariat", "Support"];
     case "cn":
-      return ["Membres (coordination)", "Communes/Regions", "Support"];
+      return ["Membres (coordination)", "Partenariat", "Communes/Regions", "Support"];
     case "pf":
-      return ["Membres (perimetre regional)", "Onboarding", "Support"];
+      return ["Membres (perimetre regional)", "Partenariat", "Onboarding", "Support"];
     default:
-      return ["Membres (RLS personnel)", "Parametres", "Support"];
+      return ["Membres (RLS personnel)", "Partenariat", "A propos", "Parametres", "Support"];
   }
 }
 
