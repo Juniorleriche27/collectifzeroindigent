@@ -14,6 +14,26 @@ create table if not exists public.member_update (
   after_data jsonb null
 );
 
+-- Compatibilite: si la table existe deja avec un schema partiel,
+-- on ajoute les colonnes manquantes.
+alter table public.member_update
+  add column if not exists created_at timestamptz not null default now(),
+  add column if not exists operation text,
+  add column if not exists member_id uuid,
+  add column if not exists actor_user_id uuid,
+  add column if not exists actor_member_id uuid,
+  add column if not exists changed_fields text[] not null default '{}',
+  add column if not exists before_data jsonb,
+  add column if not exists after_data jsonb;
+
+-- Normalisation minimale pour eviter les erreurs sur schemas existants.
+update public.member_update
+set operation = coalesce(operation, 'update')
+where operation is null;
+
+alter table public.member_update
+  alter column operation set not null;
+
 create index if not exists idx_member_update_created_at
   on public.member_update (created_at desc);
 
@@ -46,7 +66,6 @@ begin
     into v_actor_member_id
     from public.member m
     where m.user_id = v_actor_user_id
-    order by m.created_at desc nulls last
     limit 1;
   end if;
 
