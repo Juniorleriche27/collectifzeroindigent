@@ -156,6 +156,7 @@ export class OnboardingService {
         partner_request: payload.partner_request ?? false,
         phone: payload.phone,
         prefecture_id: payload.prefecture_id,
+        occupation_status: normalizedData.occupationStatus,
         profession_title: normalizedData.professionTitle,
         region_id: payload.region_id,
         skills: normalizedData.skills,
