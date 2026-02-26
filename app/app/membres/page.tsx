@@ -54,6 +54,14 @@ function roleVisibilityHint(role: string): string {
   return "RLS membre: seuls vos enregistrements sont visibles.";
 }
 
+function roleLabel(role: string): string {
+  if (role === "admin") return "admin";
+  if (role === "ca") return "ca";
+  if (role === "cn") return "cn";
+  if (role === "pf") return "pf";
+  return "member";
+}
+
 export default async function MembersPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const query = paramValue(params.q).trim();
@@ -86,7 +94,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
       if (user) {
         const roleLookup = await getProfileRoleByAuthUser(supabase, user.id);
         if (!roleLookup.error && roleLookup.role) {
-          currentRole = roleLookup.role;
+          currentRole = roleLookup.role.trim().toLowerCase();
         }
 
         if ((currentRole === "pf" || currentRole === "member") && !hasExplicitRegionFilter) {
@@ -144,6 +152,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   const safePage = Math.min(page, totalPages);
   const hasPreviousPage = safePage > 1;
   const hasNextPage = safePage < totalPages;
+  const canValidateMember =
+    currentRole === "admin" || currentRole === "ca" || currentRole === "cn" || currentRole === "pf";
+  const canManageRoles = currentRole === "admin" || currentRole === "ca";
 
   function buildPageHref(nextPage: number): string {
     const urlParams = new URLSearchParams();
@@ -172,6 +183,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           <p className="text-sm font-semibold uppercase tracking-wider text-primary">Membres</p>
           <h2 className="mt-1 text-3xl font-semibold tracking-tight">Liste & filtres</h2>
           <CardDescription className="mt-2">{roleVisibilityHint(currentRole)}</CardDescription>
+          <CardDescription className="mt-1">
+            Role actif detecte: <span className="font-semibold text-foreground">{roleLabel(currentRole)}</span>
+          </CardDescription>
         </div>
         {currentRole !== "member" ? (
           <Link href="/app/membres">
@@ -342,8 +356,24 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                   <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-3">
                       <Link className="font-semibold text-primary" href={`/app/membres/${member.id}`}>
-                        Voir
+                        Ouvrir fiche
                       </Link>
+                      {canValidateMember && member.status === "pending" ? (
+                        <Link
+                          className="text-sm font-semibold text-amber-700 hover:text-amber-800"
+                          href={`/app/membres/${member.id}#validation-membre`}
+                        >
+                          Valider
+                        </Link>
+                      ) : null}
+                      {canManageRoles ? (
+                        <Link
+                          className="text-sm font-medium text-muted hover:text-foreground"
+                          href={`/app/membres/${member.id}#role-gouvernance`}
+                        >
+                          Gerer role
+                        </Link>
+                      ) : null}
                       {member.email ? (
                         <MemberContactLink
                           channel="email"
@@ -364,14 +394,6 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                         >
                           Appeler
                         </MemberContactLink>
-                      ) : null}
-                      {currentRole !== "member" ? (
-                        <Link
-                          className="text-sm font-medium text-muted hover:text-foreground"
-                          href={`/app/membres/${member.id}`}
-                        >
-                          Modifier
-                        </Link>
                       ) : null}
                     </div>
                   </td>

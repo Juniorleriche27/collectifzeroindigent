@@ -115,6 +115,9 @@ export default async function MemberDetailPage({
           <CardDescription className="mt-1">
             {member.first_name} {member.last_name}
           </CardDescription>
+          <CardDescription className="mt-1">
+            Role actif detecte: <span className="font-semibold text-foreground">{currentRole}</span>
+          </CardDescription>
         </div>
         <Badge variant={statusVariant(member.status)}>{member.status ?? "unknown"}</Badge>
       </div>
@@ -169,7 +172,7 @@ export default async function MemberDetailPage({
             </CardDescription>
           </Card>
 
-          <Card className="space-y-2">
+          <Card className="space-y-2" id="validation-membre">
             <CardTitle>Validation membre</CardTitle>
             <CardDescription>
               Workflow backoffice officiel: transition `pending` vers `active` ou `rejected`,
@@ -200,10 +203,11 @@ export default async function MemberDetailPage({
             />
           </Card>
 
-          <Card className="space-y-2">
+          <Card className="space-y-2" id="role-gouvernance">
             <CardTitle>Role gouvernance</CardTitle>
             <CardDescription>
-              Admin et CA peuvent ajuster le role applicatif de ce compte dans `public.profile`.
+              Admin peut nommer un autre admin et lui retirer ce role. CA peut attribuer
+              uniquement member/pf/cn. Le compte proprietaire technique reste verrouille en admin.
             </CardDescription>
             <MemberRoleForm
               actorRole={currentRole}

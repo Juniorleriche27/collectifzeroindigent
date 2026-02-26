@@ -135,13 +135,6 @@ export default async function DashboardPage() {
           </Card>
         ))}
       </section>
-      <Card>
-        <CardTitle>Prochaine etape</CardTitle>
-        <CardDescription className="mt-2">
-          Connecter les metriques de gouvernance avancees (CA / CN / PF) apres validation des
-          roles metier.
-        </CardDescription>
-      </Card>
     </div>
   );
 }
