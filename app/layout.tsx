@@ -15,6 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CZI Platform",
   description: "MVP web CZI - membres et gouvernance",
+  icons: {
+    apple: "/brand/czi-logo.jpeg",
+    icon: "/brand/czi-logo.jpeg",
+    shortcut: "/brand/czi-logo.jpeg",
+  },
 };
 
 export default function RootLayout({

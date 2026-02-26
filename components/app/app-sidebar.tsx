@@ -23,6 +23,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { CziBrand } from "@/components/branding/czi-brand";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -103,17 +104,10 @@ export function AppSidebar() {
           <div
             className={cn(
               "flex h-20 items-center border-b border-border",
-              collapsed ? "justify-center px-2" : "justify-between px-6",
+              collapsed ? "justify-between px-3" : "justify-between px-6",
             )}
           >
-            <p
-              className={cn(
-                "font-bold tracking-tight text-foreground",
-                collapsed ? "text-xl" : "text-2xl",
-              )}
-            >
-              {collapsed ? "CZ" : "CZI"}
-            </p>
+            <CziBrand compact={collapsed} subtitle={!collapsed} />
             <Button
               aria-label={collapsed ? "Agrandir le menu" : "Reduire le menu"}
               onClick={toggleSidebar}
@@ -183,7 +177,7 @@ export function AppSidebar() {
             )}
           >
             <div className="flex h-16 items-center justify-between border-b border-border px-4">
-              <p className="text-xl font-bold tracking-tight text-foreground">CZI</p>
+              <CziBrand subtitle={false} />
               <Button
                 aria-label="Fermer le menu"
                 onClick={() => setMobileOpen(false)}

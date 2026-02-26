@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { CziBrand } from "@/components/branding/czi-brand";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,7 +52,7 @@ export default function LoginPage() {
 
   return (
     <Card>
-      <p className="text-sm font-semibold uppercase tracking-wider text-primary">CZI</p>
+      <CziBrand subtitle={false} />
       <CardTitle className="mt-2">Connexion</CardTitle>
       <CardDescription className="mt-2">
         Accedez a votre espace membre pour continuer.
