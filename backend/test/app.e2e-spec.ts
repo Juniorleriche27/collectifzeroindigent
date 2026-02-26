@@ -27,4 +27,21 @@ describe('HealthController (e2e)', () => {
         expect(body.service).toBe('czi-backend');
       });
   });
+
+  it('/api/health/ready (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/api/health/ready')
+      .expect((response) => {
+        expect([200, 503]).toContain(response.status);
+        const body = response.body as {
+          checks?: { env?: unknown; supabase?: unknown };
+          service?: string;
+          status?: string;
+        };
+        expect(body.service).toBe('czi-backend');
+        expect(['ready', 'degraded']).toContain(body.status ?? '');
+        expect(body.checks?.env).toBeDefined();
+        expect(body.checks?.supabase).toBeDefined();
+      });
+  });
 });
