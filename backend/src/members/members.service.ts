@@ -411,6 +411,10 @@ export class MembersService {
   }
 
   private mapMemberValidationError(error: PostgrestError): Error {
+    const sqlMessage = (error.message ?? '').trim();
+    const sqlDetails = (error.details ?? '').trim();
+    const sqlHint = (error.hint ?? '').trim();
+
     if (
       error.code === '23514' &&
       /member_active_profile_requirements_check/i.test(error.message)
@@ -429,6 +433,32 @@ export class MembersService {
       );
     }
 
-    return error;
+    if (error.code === '42501') {
+      return new ForbiddenException(
+        'Permission RLS insuffisante pour valider ce membre. Verifiez les policies member_update_by_role et le role courant.',
+      );
+    }
+
+    if (error.code === '42703') {
+      return new BadRequestException(
+        `Schema SQL incomplet pour validation membre (${sqlMessage || 'colonne manquante'}). Reexecutez le pack SQL de livraison.`,
+      );
+    }
+
+    if (error.code === '23503') {
+      return new BadRequestException(
+        `Reference invalide pendant validation membre: ${sqlMessage || 'cle etrangere'}${sqlDetails ? ` (${sqlDetails})` : ''}.`,
+      );
+    }
+
+    const fallback = [
+      sqlMessage || 'Erreur SQL pendant validation membre.',
+      sqlDetails,
+      sqlHint ? `hint: ${sqlHint}` : '',
+    ]
+      .filter(Boolean)
+      .join(' | ');
+
+    return new BadRequestException(fallback);
   }
 }
