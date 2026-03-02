@@ -448,8 +448,7 @@ export class EmailCampaignsService {
   ) {
     let query = client
       .from('member')
-      .select('id, email, region_id, prefecture_id, commune_id, status')
-      .in('status', ['active', 'approved', 'pending', 'rejected', 'suspended']);
+      .select('id, email, region_id, prefecture_id, commune_id, status');
 
     if (campaign.audience_scope === 'region' && campaign.region_id) {
       query = query.eq('region_id', campaign.region_id);
