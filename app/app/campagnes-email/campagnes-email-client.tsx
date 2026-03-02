@@ -80,6 +80,14 @@ export function CampagnesEmailClient({
     createEmailCampaignAction,
     initialState,
   );
+  const [queueState, queueAction, queuePending] = useActionState(
+    queueEmailCampaignAction,
+    initialState,
+  );
+  const [sendState, sendAction, sendPending] = useActionState(
+    sendEmailCampaignAction,
+    initialState,
+  );
   const [open, setOpen] = useState(false);
   const [scopeType, setScopeType] = useState<ScopeLevel>("all");
   const [selectedRegion, setSelectedRegion] = useState("");
@@ -140,6 +148,27 @@ export function CampagnesEmailClient({
           <CardDescription>
             Role actif: <span className="font-semibold text-foreground">{role}</span>
           </CardDescription>
+        </Card>
+      ) : null}
+
+      {queueState.error ? (
+        <Card>
+          <CardDescription className="text-red-600">{queueState.error}</CardDescription>
+        </Card>
+      ) : null}
+      {sendState.error ? (
+        <Card>
+          <CardDescription className="text-red-600">{sendState.error}</CardDescription>
+        </Card>
+      ) : null}
+      {queueState.success ? (
+        <Card>
+          <CardDescription className="text-emerald-700">{queueState.success}</CardDescription>
+        </Card>
+      ) : null}
+      {sendState.success ? (
+        <Card>
+          <CardDescription className="text-emerald-700">{sendState.success}</CardDescription>
         </Card>
       ) : null}
 
@@ -224,18 +253,18 @@ export function CampagnesEmailClient({
                   <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       {item.status === "draft" ? (
-                        <form action={queueEmailCampaignAction}>
+                        <form action={queueAction}>
                           <input name="campaign_id" type="hidden" value={item.id} />
-                          <Button size="sm" type="submit">
-                            Mettre en file
+                          <Button disabled={queuePending} size="sm" type="submit">
+                            {queuePending ? "Mise en file..." : "Mettre en file"}
                           </Button>
                         </form>
                       ) : null}
                       {item.status === "queued" ? (
-                        <form action={sendEmailCampaignAction}>
+                        <form action={sendAction}>
                           <input name="campaign_id" type="hidden" value={item.id} />
-                          <Button size="sm" type="submit" variant="secondary">
-                            Envoyer maintenant
+                          <Button disabled={sendPending} size="sm" type="submit" variant="secondary">
+                            {sendPending ? "Envoi..." : "Envoyer maintenant"}
                           </Button>
                         </form>
                       ) : null}

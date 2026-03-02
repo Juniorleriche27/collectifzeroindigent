@@ -45,6 +45,7 @@ type EmailCampaignRecipientInsert =
   Database['public']['Tables']['email_campaign_recipient']['Insert'];
 type ResolvedRecipients = {
   pendingRecipients: EmailCampaignRecipientInsert[];
+  skippedInactiveCount: number;
   skippedRecipients: EmailCampaignRecipientInsert[];
 };
 
@@ -298,9 +299,14 @@ export class EmailCampaignsService {
       throw new BadRequestException('Cette campagne est deja en file.');
     }
 
-    const { pendingRecipients, skippedRecipients } =
+    const { pendingRecipients, skippedInactiveCount, skippedRecipients } =
       await this.resolveRecipients(client, campaign as EmailCampaignRow);
     if (!pendingRecipients.length) {
+      if (skippedInactiveCount > 0) {
+        throw new BadRequestException(
+          `Aucun destinataire actif pour ce ciblage (${skippedInactiveCount} membre(s) en attente/inactif(s)). Validez d'abord les comptes membres.`,
+        );
+      }
       throw new BadRequestException(
         'Aucun destinataire email valide pour ce ciblage.',
       );
@@ -443,7 +449,7 @@ export class EmailCampaignsService {
     let query = client
       .from('member')
       .select('id, email, region_id, prefecture_id, commune_id, status')
-      .in('status', ['active', 'approved']);
+      .in('status', ['active', 'approved', 'pending', 'rejected', 'suspended']);
 
     if (campaign.audience_scope === 'region' && campaign.region_id) {
       query = query.eq('region_id', campaign.region_id);
@@ -463,9 +469,18 @@ export class EmailCampaignsService {
 
     const pendingRecipients = new Map<string, EmailCampaignRecipientInsert>();
     const skippedRecipients = new Map<string, EmailCampaignRecipientInsert>();
+    let skippedInactiveCount = 0;
     const blockedDomains = this.readBlockedEmailDomains();
 
     for (const row of (data ?? []) as MemberEmailRow[]) {
+      const normalizedStatus = (row.status ?? '').toLowerCase();
+      const isEligible =
+        normalizedStatus === 'active' || normalizedStatus === 'approved';
+      if (!isEligible) {
+        skippedInactiveCount += 1;
+        continue;
+      }
+
       const email = this.normalizeEmail(row.email, blockedDomains);
       if (!email) {
         const raw = (row.email ?? '').trim().toLowerCase();
@@ -493,6 +508,7 @@ export class EmailCampaignsService {
 
     return {
       pendingRecipients: Array.from(pendingRecipients.values()),
+      skippedInactiveCount,
       skippedRecipients: Array.from(skippedRecipients.values()),
     } satisfies ResolvedRecipients;
   }

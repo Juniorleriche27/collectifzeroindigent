@@ -96,40 +96,52 @@ export async function createEmailCampaignAction(
   return { error: null, success: "Campagne creee en brouillon." };
 }
 
-export async function queueEmailCampaignAction(formData: FormData): Promise<void> {
+export async function queueEmailCampaignAction(
+  _previousState: EmailCampaignActionState,
+  formData: FormData,
+): Promise<EmailCampaignActionState> {
   if (!isSupabaseConfigured) {
-    return;
+    return { error: "Supabase non configure.", success: null };
   }
 
   const campaignId = formValue(formData, "campaign_id");
   if (!campaignId) {
-    return;
+    return { error: "Campagne introuvable.", success: null };
   }
 
   try {
-    await queueEmailCampaign(campaignId);
+    const response = await queueEmailCampaign(campaignId);
+    revalidatePath("/app/campagnes-email");
+    return { error: null, success: response.message ?? "Campagne mise en file." };
   } catch (error) {
-    console.error("Unable to queue email campaign", error);
+    return {
+      error: toErrorMessage(error, "Impossible de mettre la campagne en file."),
+      success: null,
+    };
   }
-
-  revalidatePath("/app/campagnes-email");
 }
 
-export async function sendEmailCampaignAction(formData: FormData): Promise<void> {
+export async function sendEmailCampaignAction(
+  _previousState: EmailCampaignActionState,
+  formData: FormData,
+): Promise<EmailCampaignActionState> {
   if (!isSupabaseConfigured) {
-    return;
+    return { error: "Supabase non configure.", success: null };
   }
 
   const campaignId = formValue(formData, "campaign_id");
   if (!campaignId) {
-    return;
+    return { error: "Campagne introuvable.", success: null };
   }
 
   try {
-    await sendEmailCampaign(campaignId);
+    const response = await sendEmailCampaign(campaignId);
+    revalidatePath("/app/campagnes-email");
+    return { error: null, success: response.message ?? "Campagne envoyee." };
   } catch (error) {
-    console.error("Unable to send email campaign", error);
+    return {
+      error: toErrorMessage(error, "Impossible d'envoyer la campagne."),
+      success: null,
+    };
   }
-
-  revalidatePath("/app/campagnes-email");
 }
