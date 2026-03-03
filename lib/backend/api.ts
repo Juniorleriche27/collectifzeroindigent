@@ -190,6 +190,37 @@ export type SupportAiHistoryItem = {
   question: string;
 };
 
+export type DonationStatus =
+  | "pledged"
+  | "pending"
+  | "paid"
+  | "failed"
+  | "cancelled"
+  | "refunded";
+
+export type DonationItem = {
+  amount_cfa: number;
+  created_at: string;
+  currency: string;
+  id: string;
+  member_id: string | null;
+  message: string | null;
+  paid_at: string | null;
+  payment_provider: string | null;
+  payment_ref: string | null;
+  status: DonationStatus;
+  updated_at: string;
+  user_id: string;
+};
+
+export type DonationSummary = {
+  count: number;
+  paid_amount_cfa: number;
+  paid_count: number;
+  pending_count: number;
+  total_amount_cfa: number;
+};
+
 type BackendRequestOptions = RequestInit & {
   fallbackError?: string;
 };
@@ -730,5 +761,58 @@ export async function askSupportAi(question: string) {
     body: JSON.stringify({ question }),
     fallbackError: "Impossible de contacter le support IA.",
     method: "POST",
+  });
+}
+
+export async function listDonations(filters?: {
+  q?: string;
+  status?: DonationStatus;
+}) {
+  const query = new URLSearchParams();
+  if (filters?.q) query.set("q", filters.q);
+  if (filters?.status) query.set("status", filters.status);
+  const queryString = query.toString();
+
+  return requestBackend<{
+    can_manage: boolean;
+    items: DonationItem[];
+    role: string;
+    summary: DonationSummary;
+  }>(queryString ? `/donations?${queryString}` : "/donations", {
+    fallbackError: "Impossible de charger les dons.",
+  });
+}
+
+export async function createDonation(payload: {
+  amount_cfa: number;
+  message?: string;
+  payment_provider?: string;
+}) {
+  return requestBackend<{
+    item: DonationItem;
+    message: string;
+  }>("/donations", {
+    body: JSON.stringify(payload),
+    fallbackError: "Impossible d'enregistrer ce don.",
+    method: "POST",
+  });
+}
+
+export async function updateDonation(
+  donationId: string,
+  payload: {
+    message?: string;
+    payment_provider?: string;
+    payment_ref?: string;
+    status?: DonationStatus;
+  },
+) {
+  return requestBackend<{
+    item: DonationItem;
+    message: string;
+  }>(`/donations/${donationId}`, {
+    body: JSON.stringify(payload),
+    fallbackError: "Impossible de mettre a jour ce don.",
+    method: "PATCH",
   });
 }

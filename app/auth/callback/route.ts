@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/server";
 import { getProfileMemberIdByAuthUser } from "@/lib/supabase/profile";
@@ -11,19 +12,45 @@ function safeNextPath(value: string | null): string | null {
   return normalized;
 }
 
+function parseEmailOtpType(value: string | null): EmailOtpType | null {
+  if (
+    value === "signup" ||
+    value === "invite" ||
+    value === "magiclink" ||
+    value === "recovery" ||
+    value === "email_change" ||
+    value === "email"
+  ) {
+    return value;
+  }
+  return null;
+}
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const tokenHash = requestUrl.searchParams.get("token_hash");
+  const otpType = parseEmailOtpType(requestUrl.searchParams.get("type"));
   const preferredNext = safeNextPath(requestUrl.searchParams.get("next"));
 
-  if (!code) {
-    return NextResponse.redirect(new URL("/login", requestUrl.origin));
-  }
-
   const supabase = await createClient();
-  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-  if (exchangeError) {
-    console.error("Auth callback exchange failed", exchangeError);
+
+  if (code) {
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    if (exchangeError) {
+      console.error("Auth callback exchange failed", exchangeError);
+      return NextResponse.redirect(new URL("/login", requestUrl.origin));
+    }
+  } else if (tokenHash && otpType) {
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: otpType,
+    });
+    if (verifyError) {
+      console.error("Auth callback OTP verification failed", verifyError);
+      return NextResponse.redirect(new URL("/login", requestUrl.origin));
+    }
+  } else {
     return NextResponse.redirect(new URL("/login", requestUrl.origin));
   }
 
@@ -42,6 +69,13 @@ export async function GET(request: Request) {
     console.error("Auth callback profile/member lookup failed", profileLookup.error);
   }
 
-  const fallbackTarget = profileLookup.memberId ? "/app/dashboard" : "/onboarding";
-  return NextResponse.redirect(new URL(preferredNext ?? fallbackTarget, requestUrl.origin));
+  const fallbackTarget =
+    otpType === "recovery"
+      ? "/reset-password"
+      : profileLookup.memberId
+        ? "/app/dashboard"
+        : "/onboarding";
+  const target = preferredNext ?? fallbackTarget;
+
+  return NextResponse.redirect(new URL(target, requestUrl.origin));
 }

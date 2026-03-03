@@ -423,6 +423,117 @@ export type Database = {
           operation?: string;
         };
       };
+      member_card_request: {
+        Insert: {
+          card_number?: string | null;
+          card_pdf_url?: string | null;
+          card_png_url?: string | null;
+          card_status?: string;
+          created_at?: string;
+          delivered_at?: string | null;
+          delivery_address?: string | null;
+          delivery_contact?: string | null;
+          delivery_mode?: string | null;
+          id?: string;
+          member_id: string;
+          payment_provider?: string | null;
+          payment_ref?: string | null;
+          payment_status?: string;
+          price_cfa?: number;
+          print_by?: string | null;
+          printed_at?: string | null;
+          requested?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+        Row: {
+          card_number: string | null;
+          card_pdf_url: string | null;
+          card_png_url: string | null;
+          card_status: string;
+          created_at: string;
+          delivered_at: string | null;
+          delivery_address: string | null;
+          delivery_contact: string | null;
+          delivery_mode: string | null;
+          id: string;
+          member_id: string;
+          payment_provider: string | null;
+          payment_ref: string | null;
+          payment_status: string;
+          price_cfa: number;
+          print_by: string | null;
+          printed_at: string | null;
+          requested: boolean;
+          updated_at: string;
+        };
+        Update: {
+          card_number?: string | null;
+          card_pdf_url?: string | null;
+          card_png_url?: string | null;
+          card_status?: string;
+          created_at?: string;
+          delivered_at?: string | null;
+          delivery_address?: string | null;
+          delivery_contact?: string | null;
+          delivery_mode?: string | null;
+          id?: string;
+          member_id?: string;
+          payment_provider?: string | null;
+          payment_ref?: string | null;
+          payment_status?: string;
+          price_cfa?: number;
+          print_by?: string | null;
+          printed_at?: string | null;
+          requested?: boolean;
+          updated_at?: string;
+        };
+      };
+      donation: {
+        Insert: {
+          amount_cfa: number;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          member_id?: string | null;
+          message?: string | null;
+          paid_at?: string | null;
+          payment_provider?: string | null;
+          payment_ref?: string | null;
+          status?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Relationships: [];
+        Row: {
+          amount_cfa: number;
+          created_at: string;
+          currency: string;
+          id: string;
+          member_id: string | null;
+          message: string | null;
+          paid_at: string | null;
+          payment_provider: string | null;
+          payment_ref: string | null;
+          status: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Update: {
+          amount_cfa?: number;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          member_id?: string | null;
+          message?: string | null;
+          paid_at?: string | null;
+          payment_provider?: string | null;
+          payment_ref?: string | null;
+          status?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+      };
       support_ai_chat: {
         Insert: {
           answer: string;
@@ -497,6 +608,9 @@ export type Database = {
           org_type?: string | null;
           partner_request?: boolean | null;
           phone: string;
+          photo_rejection_reason?: string | null;
+          photo_status?: string;
+          photo_url?: string | null;
           prefecture_id: string;
           profession_title?: string | null;
           region_id: string;
@@ -550,6 +664,9 @@ export type Database = {
           org_type: string | null;
           partner_request: boolean | null;
           phone: string | null;
+          photo_rejection_reason: string | null;
+          photo_status: string;
+          photo_url: string | null;
           prefecture_id: string;
           profession_title: string | null;
           region_id: string;
@@ -602,6 +719,9 @@ export type Database = {
           org_type?: string | null;
           partner_request?: boolean | null;
           phone?: string | null;
+          photo_rejection_reason?: string | null;
+          photo_status?: string;
+          photo_url?: string | null;
           prefecture_id?: string;
           profession_title?: string | null;
           region_id?: string;

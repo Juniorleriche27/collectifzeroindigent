@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { DonationsModule } from './donations/donations.module';
 import { EmailCampaignsModule } from './email-campaigns/email-campaigns.module';
 import { HealthModule } from './health/health.module';
 import { InfraModule } from './infra/infra.module';
@@ -26,6 +27,7 @@ import { SupportAiModule } from './support-ai/support-ai.module';
     ConversationsModule,
     HealthModule,
     DashboardModule,
+    DonationsModule,
     EmailCampaignsModule,
     LocationsModule,
     MembersModule,

@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Menu,
   Handshake,
+  HandCoins,
   Mail,
   Megaphone,
   MessagesSquare,
@@ -45,6 +46,7 @@ const navItems: NavItem[] = [
   { href: "/app/communes-regions", icon: MapPin, label: "Communes/Regions" },
   { href: "/app/import-export", icon: ArrowUpDown, label: "Import/Export" },
   { href: "/app/parametres", icon: Settings, label: "Parametres" },
+  { href: "/app/dons", icon: HandCoins, label: "Dons" },
   { href: "/app/support", icon: CircleHelp, label: "Support" },
 ];
 
@@ -85,12 +87,14 @@ export function AppSidebar() {
   }
 
   const mobilePrimaryItems = [
-    navItems[0],
-    navItems[1],
-    navItems[6],
-    navItems[5],
-    navItems[11],
-  ];
+    "/app/dashboard",
+    "/app/membres",
+    "/app/communaute",
+    "/app/communiques",
+    "/app/support",
+  ]
+    .map((href) => navItems.find((item) => item.href === href))
+    .filter((item): item is NavItem => Boolean(item));
 
   return (
     <>

@@ -624,8 +624,7 @@ export class EmailCampaignsService {
         });
         return;
       } catch (error) {
-        const canRetry =
-          attempt < maxAttempts && this.isRateLimitError(error);
+        const canRetry = attempt < maxAttempts && this.isRateLimitError(error);
         if (!canRetry) {
           throw error;
         }
@@ -1040,7 +1039,11 @@ export class EmailCampaignsService {
 
     return new Set(
       (data ?? [])
-        .map((row) => String(row.recipient_email ?? '').trim().toLowerCase())
+        .map((row) =>
+          String(row.recipient_email ?? '')
+            .trim()
+            .toLowerCase(),
+        )
         .filter(Boolean),
     );
   }

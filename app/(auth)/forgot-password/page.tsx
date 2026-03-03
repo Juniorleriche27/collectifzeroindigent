@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { CziBrand } from "@/components/branding/czi-brand";
 import { Button } from "@/components/ui/button";
@@ -11,16 +10,16 @@ import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
-export default function LoginPage() {
-  const router = useRouter();
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage(null);
+    setInfoMessage(null);
 
     if (!isSupabaseConfigured) {
       setErrorMessage("Supabase non configure. Ajoutez les variables d'environnement.");
@@ -30,9 +29,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent("/reset-password")}`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
       });
 
       if (error) {
@@ -40,11 +39,9 @@ export default function LoginPage() {
         return;
       }
 
-      const rawNextPath = new URLSearchParams(window.location.search).get("next");
-      const targetPath =
-        rawNextPath && rawNextPath.startsWith("/") ? rawNextPath : "/app/dashboard";
-      router.replace(targetPath);
-      router.refresh();
+      setInfoMessage(
+        "Un email de reinitialisation a ete envoye. Ouvrez le lien pour definir un nouveau mot de passe.",
+      );
     } finally {
       setLoading(false);
     }
@@ -53,17 +50,17 @@ export default function LoginPage() {
   return (
     <Card>
       <CziBrand subtitle={false} />
-      <CardTitle className="mt-2">Connexion</CardTitle>
+      <CardTitle className="mt-2">Mot de passe oublie</CardTitle>
       <CardDescription className="mt-2">
-        Accedez a votre espace membre pour continuer.
+        Saisissez votre email pour recevoir un lien de reinitialisation.
       </CardDescription>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground" htmlFor="email">
+          <label className="text-sm font-medium text-foreground" htmlFor="forgot-email">
             Email
           </label>
           <Input
-            id="email"
+            id="forgot-email"
             type="email"
             placeholder="vous@exemple.com"
             value={email}
@@ -71,35 +68,20 @@ export default function LoginPage() {
             required
           />
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground" htmlFor="password">
-            Mot de passe
-          </label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="********"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-          />
-        </div>
-        <p className="text-right text-sm">
-          <Link className="font-semibold text-primary" href="/forgot-password">
-            Mot de passe oublie ?
-          </Link>
-        </p>
         {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
+        {infoMessage ? <p className="text-sm text-emerald-700">{infoMessage}</p> : null}
         <Button className="w-full" type="submit" disabled={loading}>
-          {loading ? "Connexion..." : "Se connecter"}
+          {loading ? "Envoi..." : "Envoyer le lien"}
         </Button>
       </form>
       <p className="mt-6 text-sm text-muted">
-        Pas encore de compte?{" "}
-        <Link className="font-semibold text-primary" href="/signup">
-          Creer un compte
+        Retour a la{" "}
+        <Link className="font-semibold text-primary" href="/login">
+          connexion
         </Link>
+        .
       </p>
     </Card>
   );
 }
+

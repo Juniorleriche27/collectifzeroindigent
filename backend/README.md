@@ -62,6 +62,11 @@ API disponible sur `http://localhost:4000/api`.
 - `POST /api/onboarding` (Bearer token requis)
 - `GET /api/organisations` (Bearer token requis)
 - `POST /api/organisations` (Bearer token requis)
+- `GET /api/donations` (Bearer token requis)
+- `POST /api/donations` (Bearer token requis)
+- `PATCH /api/donations/:id` (Bearer token requis)
+- `GET /api/support-ai/history` (Bearer token requis)
+- `POST /api/support-ai/ask` (Bearer token requis)
 
 ## Observabilite backend
 

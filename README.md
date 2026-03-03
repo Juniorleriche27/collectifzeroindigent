@@ -52,10 +52,13 @@ npm run dev
 
 - `/login`
 - `/signup`
+- `/forgot-password`
+- `/reset-password`
 - `/onboarding`
 - `/app/dashboard`
 - `/app/membres`
 - `/app/membres/[id]`
+- `/app/dons`
 - `/app/partenariat`
 - `/app/a-propos`
 - `/app/parametres`
@@ -67,9 +70,11 @@ npm run dev
 ## Etat actuel
 
 - Auth Supabase branchee (signup/login/logout)
+- Recuperation mot de passe (email de reset + page reinitialisation)
 - Session guard via middleware + layouts server
 - Ecrans MVP structures avec Tailwind + composants UI simples (style Figma)
 - API backend REST active (`/api/health`, `/api/locations`, `/api/members`, `/api/onboarding`, `/api/organisations`)
+- Module dons MVP (`/app/dons`, table `public.donation`, endpoints `/api/donations`)
 - Onboarding obligatoire: creation `member` + update `profile.member_id` via API backend
 - Membres/Organisations/Parametres relies au backend REST (RLS via token utilisateur)
 - Layout app: sidebar + topbar + nouvelles routes FR
