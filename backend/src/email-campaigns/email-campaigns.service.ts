@@ -301,10 +301,21 @@ export class EmailCampaignsService {
 
     const { pendingRecipients, skippedInactiveCount, skippedRecipients } =
       await this.resolveRecipients(client, campaign as EmailCampaignRow);
-    if (!pendingRecipients.length) {
+    const sentEmails = await this.loadSentRecipientEmails(client, campaignId);
+    const recipientsToQueue = pendingRecipients.filter(
+      (recipient) =>
+        !sentEmails.has(recipient.recipient_email.trim().toLowerCase()),
+    );
+
+    if (!recipientsToQueue.length) {
       if (skippedInactiveCount > 0) {
         throw new BadRequestException(
           `Aucun destinataire actif pour ce ciblage (${skippedInactiveCount} membre(s) en attente/inactif(s)). Validez d'abord les comptes membres.`,
+        );
+      }
+      if (sentEmails.size > 0) {
+        throw new BadRequestException(
+          'Tous les destinataires valides de cette campagne sont deja envoyes.',
         );
       }
       throw new BadRequestException(
@@ -312,11 +323,11 @@ export class EmailCampaignsService {
       );
     }
 
-    this.assertRecipientCountWithinLimit(pendingRecipients.length);
+    this.assertRecipientCountWithinLimit(recipientsToQueue.length);
 
     const { error: insertError } = await client
       .from('email_campaign_recipient')
-      .upsert(pendingRecipients, {
+      .upsert(recipientsToQueue, {
         ignoreDuplicates: false,
         onConflict: 'campaign_id,recipient_email',
       });
@@ -353,7 +364,7 @@ export class EmailCampaignsService {
     const refreshed = await this.getById(accessToken, campaignId);
     return {
       ...refreshed,
-      message: `Campagne mise en file (${pendingRecipients.length} destinataires, ${skippedRecipients.length} ignores).`,
+      message: `Campagne mise en file (${recipientsToQueue.length} destinataires, ${skippedRecipients.length} ignores, ${sentEmails.size} deja envoyes).`,
     };
   }
 
@@ -540,13 +551,26 @@ export class EmailCampaignsService {
   }) {
     const { campaign, fromEmail, pendingRecipients, provider } = args;
     const outcomes: DeliveryOutcome[] = [];
+    const pauseMs = this.readPositiveIntEnv('EMAIL_SEND_PAUSE_MS', 600);
+    const retryDelayMs = this.readPositiveIntEnv(
+      'EMAIL_SEND_RETRY_DELAY_MS',
+      1200,
+    );
+    const maxAttempts = this.readPositiveIntEnv('EMAIL_SEND_MAX_ATTEMPTS', 2);
 
-    for (const recipient of pendingRecipients) {
+    for (let index = 0; index < pendingRecipients.length; index += 1) {
+      const recipient = pendingRecipients[index];
+      if (index > 0 && pauseMs > 0) {
+        await this.sleep(pauseMs);
+      }
+
       try {
-        await this.sendEmailWithProvider({
+        await this.sendEmailWithRetry({
           body: campaign.body,
           fromEmail,
+          maxAttempts,
           provider,
+          retryDelayMs,
           subject: campaign.subject,
           toEmail: recipient.recipient_email,
         });
@@ -568,6 +592,46 @@ export class EmailCampaignsService {
     }
 
     return outcomes;
+  }
+
+  private async sendEmailWithRetry(args: {
+    body: string;
+    fromEmail: string;
+    maxAttempts: number;
+    provider: EmailProvider;
+    retryDelayMs: number;
+    subject: string;
+    toEmail: string;
+  }) {
+    const {
+      body,
+      fromEmail,
+      maxAttempts,
+      provider,
+      retryDelayMs,
+      subject,
+      toEmail,
+    } = args;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        await this.sendEmailWithProvider({
+          body,
+          fromEmail,
+          provider,
+          subject,
+          toEmail,
+        });
+        return;
+      } catch (error) {
+        const canRetry =
+          attempt < maxAttempts && this.isRateLimitError(error);
+        if (!canRetry) {
+          throw error;
+        }
+        await this.sleep(retryDelayMs * attempt);
+      }
+    }
   }
 
   private async persistDeliveryOutcomes(
@@ -763,6 +827,24 @@ export class EmailCampaignsService {
     return 'Erreur envoi provider.';
   }
 
+  private isRateLimitError(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+      return false;
+    }
+    const message = error.message.toLowerCase();
+    return (
+      message.includes('too many requests') ||
+      message.includes('rate limit') ||
+      message.includes('429')
+    );
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
   private async assertCreateRateLimit(
     client: ReturnType<SupabaseDataService['forUser']>,
     userId: string,
@@ -939,6 +1021,28 @@ export class EmailCampaignsService {
     }
 
     return (data ?? []) as EmailCampaignRecipientRow[];
+  }
+
+  private async loadSentRecipientEmails(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    campaignId: string,
+  ): Promise<Set<string>> {
+    const { data, error } = await client
+      .from('email_campaign_recipient')
+      .select('recipient_email')
+      .eq('campaign_id', campaignId)
+      .eq('status', 'sent')
+      .limit(5000);
+
+    if (error) {
+      throw error;
+    }
+
+    return new Set(
+      (data ?? [])
+        .map((row) => String(row.recipient_email ?? '').trim().toLowerCase())
+        .filter(Boolean),
+    );
   }
 
   private async loadCampaignStats(

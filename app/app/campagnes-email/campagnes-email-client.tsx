@@ -252,11 +252,15 @@ export function CampagnesEmailClient({
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
-                      {item.status === "draft" ? (
+                      {item.status === "draft" || item.status === "failed" ? (
                         <form action={queueAction}>
                           <input name="campaign_id" type="hidden" value={item.id} />
                           <Button disabled={queuePending} size="sm" type="submit">
-                            {queuePending ? "Mise en file..." : "Mettre en file"}
+                            {queuePending
+                              ? "Mise en file..."
+                              : item.status === "failed"
+                                ? "Remettre en file"
+                                : "Mettre en file"}
                           </Button>
                         </form>
                       ) : null}
