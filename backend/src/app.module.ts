@@ -13,6 +13,7 @@ import { LocationsModule } from './locations/locations.module';
 import { MembersModule } from './members/members.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { OrganisationsModule } from './organisations/organisations.module';
+import { PaymentsModule } from './payments/payments.module';
 import { SupportAiModule } from './support-ai/support-ai.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { SupportAiModule } from './support-ai/support-ai.module';
     MembersModule,
     OnboardingModule,
     OrganisationsModule,
+    PaymentsModule,
     SupportAiModule,
   ],
 })

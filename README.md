@@ -33,6 +33,15 @@ Pour activer le support IA (`/app/support`):
 - `COHERE_API_KEY`
 - `COHERE_MODEL` (optionnel)
 
+Pour preparer les paiements PayDunya (dons + carte membre) cote backend:
+
+- `PAYDUNYA_MODE` (`test` ou `live`)
+- `PAYDUNYA_MASTER_KEY`
+- `PAYDUNYA_PRIVATE_KEY`
+- `PAYDUNYA_TOKEN`
+- `PAYDUNYA_IPN_URL` (endpoint backend public)
+- `PAYDUNYA_CALLBACK_URL`, `PAYDUNYA_CANCEL_URL` (retours UI)
+
 ## Lancer le projet
 
 Terminal 1 (backend REST):

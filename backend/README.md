@@ -37,6 +37,20 @@ Copier `backend/.env.example` vers `backend/.env.local` (ou utiliser `../.env.lo
 - `SUPPORT_AI_CONTEXT_TURNS` (optionnel, default `6`)
 - `SUPPORT_AI_MAX_QUESTION_CHARS` (optionnel, default `1200`)
 - `SUPPORT_AI_MAX_TOKENS` (optionnel, default `450`)
+- `PAYDUNYA_BASE_URL` (optionnel, default `https://app.paydunya.com/api/v1`)
+- `PAYDUNYA_MODE` (`test` | `live`)
+- `PAYDUNYA_MASTER_KEY` (obligatoire pour checkout/confirm)
+- `PAYDUNYA_PRIVATE_KEY` (obligatoire)
+- `PAYDUNYA_TOKEN` (obligatoire)
+- `PAYDUNYA_STORE_NAME` (optionnel, default `CZI`)
+- `PAYDUNYA_STORE_TAGLINE` (optionnel)
+- `PAYDUNYA_STORE_WEBSITE_URL` (optionnel)
+- `PAYDUNYA_STORE_PHONE` (optionnel)
+- `FRONTEND_PUBLIC_URL` (optionnel, fallback callbacks)
+- `BACKEND_PUBLIC_URL` (optionnel, fallback IPN)
+- `PAYDUNYA_CALLBACK_URL` (optionnel, recommande)
+- `PAYDUNYA_CANCEL_URL` (optionnel, recommande)
+- `PAYDUNYA_IPN_URL` (optionnel, recommande)
 
 ## Lancer en local
 
@@ -67,6 +81,10 @@ API disponible sur `http://localhost:4000/api`.
 - `PATCH /api/donations/:id` (Bearer token requis)
 - `GET /api/support-ai/history` (Bearer token requis)
 - `POST /api/support-ai/ask` (Bearer token requis)
+- `POST /api/payments/paydunya/donations/:id/checkout` (Bearer token requis)
+- `POST /api/payments/paydunya/member-card-requests/:id/checkout` (Bearer token requis)
+- `POST /api/payments/paydunya/confirm` (Bearer token requis)
+- `POST /api/payments/paydunya/ipn` (public IPN webhook)
 
 ## Observabilite backend
 
