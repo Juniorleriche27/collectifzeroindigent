@@ -221,6 +221,26 @@ export type DonationSummary = {
   total_amount_cfa: number;
 };
 
+export type PaydunyaSyncStatus = "failed" | "paid" | "pending";
+
+export type PaydunyaCheckoutResponse = {
+  callback_url: string;
+  cancel_url: string;
+  invoice_url: string;
+  ipn_url: string;
+  message: string;
+  token: string;
+};
+
+export type PaydunyaSyncResponse = {
+  memberCardRequestUpdates: number;
+  message: string;
+  paymentStatus: PaydunyaSyncStatus;
+  providerStatusText: string;
+  token: string;
+  updatedDonations: number;
+};
+
 type BackendRequestOptions = RequestInit & {
   fallbackError?: string;
 };
@@ -814,5 +834,49 @@ export async function updateDonation(
     body: JSON.stringify(payload),
     fallbackError: "Impossible de mettre a jour ce don.",
     method: "PATCH",
+  });
+}
+
+export async function createPaydunyaDonationCheckout(
+  donationId: string,
+  payload?: {
+    customer_email?: string;
+    customer_name?: string;
+    description?: string;
+  },
+) {
+  return requestBackend<PaydunyaCheckoutResponse>(
+    `/payments/paydunya/donations/${donationId}/checkout`,
+    {
+      body: JSON.stringify(payload ?? {}),
+      fallbackError: "Impossible de creer le lien PayDunya pour ce don.",
+      method: "POST",
+    },
+  );
+}
+
+export async function createPaydunyaMemberCardRequestCheckout(
+  cardRequestId: string,
+  payload?: {
+    customer_email?: string;
+    customer_name?: string;
+    description?: string;
+  },
+) {
+  return requestBackend<PaydunyaCheckoutResponse>(
+    `/payments/paydunya/member-card-requests/${cardRequestId}/checkout`,
+    {
+      body: JSON.stringify(payload ?? {}),
+      fallbackError: "Impossible de creer le lien PayDunya pour cette carte.",
+      method: "POST",
+    },
+  );
+}
+
+export async function confirmPaydunyaToken(token: string) {
+  return requestBackend<PaydunyaSyncResponse>("/payments/paydunya/confirm", {
+    body: JSON.stringify({ token }),
+    fallbackError: "Impossible de synchroniser le statut PayDunya.",
+    method: "POST",
   });
 }

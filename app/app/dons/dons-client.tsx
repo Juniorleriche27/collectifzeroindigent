@@ -12,7 +12,9 @@ import type { DonationItem, DonationStatus, DonationSummary } from "@/lib/backen
 
 import {
   createDonationAction,
+  startDonationPaydunyaCheckoutAction,
   updateDonationStatusAction,
+  type DonationCheckoutActionState,
   type DonationActionState,
 } from "./actions";
 
@@ -22,6 +24,8 @@ type DonsClientProps = {
   initialStatus: DonationStatus | "all";
   items: DonationItem[];
   loadError: string | null;
+  paymentError: string | null;
+  paymentInfo: string | null;
   role: string | null;
   summary: DonationSummary;
 };
@@ -43,13 +47,23 @@ export function DonsClient({
   initialStatus,
   items,
   loadError,
+  paymentError,
+  paymentInfo,
   role,
   summary,
 }: DonsClientProps) {
   const initialState: DonationActionState = { error: null, success: null };
+  const initialCheckoutState: DonationCheckoutActionState = {
+    error: null,
+    success: null,
+  };
   const [createState, createAction, createPending] = useActionState(
     createDonationAction,
     initialState,
+  );
+  const [checkoutState, checkoutAction, checkoutPending] = useActionState(
+    startDonationPaydunyaCheckoutAction,
+    initialCheckoutState,
   );
   const [updateState, updateAction, updatePending] = useActionState(
     updateDonationStatusAction,
@@ -81,6 +95,16 @@ export function DonsClient({
           <CardDescription className="text-red-600">{loadError}</CardDescription>
         </Card>
       ) : null}
+      {paymentError ? (
+        <Card>
+          <CardDescription className="text-red-600">{paymentError}</CardDescription>
+        </Card>
+      ) : null}
+      {paymentInfo ? (
+        <Card>
+          <CardDescription className="text-emerald-700">{paymentInfo}</CardDescription>
+        </Card>
+      ) : null}
 
       {createState.error ? (
         <Card>
@@ -100,6 +124,11 @@ export function DonsClient({
       {updateState.success ? (
         <Card>
           <CardDescription className="text-emerald-700">{updateState.success}</CardDescription>
+        </Card>
+      ) : null}
+      {checkoutState.error ? (
+        <Card>
+          <CardDescription className="text-red-600">{checkoutState.error}</CardDescription>
         </Card>
       ) : null}
 
@@ -240,6 +269,12 @@ export function DonsClient({
                     <div className="flex items-center gap-2">
                       {canManage && (item.status === "pending" || item.status === "pledged") ? (
                         <>
+                          <form action={checkoutAction}>
+                            <input name="donation_id" type="hidden" value={item.id} />
+                            <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
+                              {checkoutPending ? "Redirection..." : "Payer via PayDunya"}
+                            </Button>
+                          </form>
                           <form action={updateAction}>
                             <input name="donation_id" type="hidden" value={item.id} />
                             <input name="status" type="hidden" value="paid" />
@@ -266,13 +301,21 @@ export function DonsClient({
                         </form>
                       ) : null}
                       {!canManage && (item.status === "pending" || item.status === "pledged") ? (
-                        <form action={updateAction}>
-                          <input name="donation_id" type="hidden" value={item.id} />
-                          <input name="status" type="hidden" value="cancelled" />
-                          <Button disabled={updatePending} size="sm" type="submit" variant="ghost">
-                            Annuler
-                          </Button>
-                        </form>
+                        <>
+                          <form action={checkoutAction}>
+                            <input name="donation_id" type="hidden" value={item.id} />
+                            <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
+                              {checkoutPending ? "Redirection..." : "Payer via PayDunya"}
+                            </Button>
+                          </form>
+                          <form action={updateAction}>
+                            <input name="donation_id" type="hidden" value={item.id} />
+                            <input name="status" type="hidden" value="cancelled" />
+                            <Button disabled={updatePending} size="sm" type="submit" variant="ghost">
+                              Annuler
+                            </Button>
+                          </form>
+                        </>
                       ) : null}
                     </div>
                   </td>
@@ -285,4 +328,3 @@ export function DonsClient({
     </div>
   );
 }
-

@@ -2,10 +2,22 @@
 
 import { revalidatePath } from "next/cache";
 
-import { createDonation, updateDonation, type DonationStatus } from "@/lib/backend/api";
+import { redirect } from "next/navigation";
+
+import {
+  createDonation,
+  createPaydunyaDonationCheckout,
+  updateDonation,
+  type DonationStatus,
+} from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export type DonationActionState = {
+  error: string | null;
+  success: string | null;
+};
+
+export type DonationCheckoutActionState = {
   error: string | null;
   success: string | null;
 };
@@ -105,3 +117,27 @@ export async function updateDonationStatusAction(
   }
 }
 
+export async function startDonationPaydunyaCheckoutAction(
+  _previousState: DonationCheckoutActionState,
+  formData: FormData,
+): Promise<DonationCheckoutActionState> {
+  if (!isSupabaseConfigured) {
+    return { error: "Supabase non configure.", success: null };
+  }
+
+  const donationId = formValue(formData, "donation_id");
+  if (!donationId) {
+    return { error: "Don introuvable.", success: null };
+  }
+
+  try {
+    const response = await createPaydunyaDonationCheckout(donationId);
+    revalidatePath("/app/dons");
+    redirect(response.invoice_url);
+  } catch (error) {
+    return {
+      error: toErrorMessage(error, "Impossible de demarrer le paiement PayDunya."),
+      success: null,
+    };
+  }
+}
