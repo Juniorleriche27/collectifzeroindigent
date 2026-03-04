@@ -153,7 +153,7 @@ export function DonsClient({
 
       <Card className="space-y-4">
         <CardTitle className="text-base">Nouveau don</CardTitle>
-        <form action={createAction} className="grid gap-4 md:grid-cols-2">
+        <form action={createAction} className="grid gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="donation-amount">
               Montant (CFA)
@@ -161,17 +161,6 @@ export function DonsClient({
             <Input id="donation-amount" min={100} name="amount_cfa" placeholder="5000" required type="number" />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="donation-provider">
-              Moyen de paiement
-            </label>
-            <Select defaultValue="manual" id="donation-provider" name="payment_provider">
-              <option value="manual">Validation manuelle</option>
-              <option value="kkiapay">Kkiapay</option>
-              <option value="flooz">Flooz</option>
-              <option value="tmoney">TMoney</option>
-            </Select>
-          </div>
-          <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium" htmlFor="donation-message">
               Message (optionnel)
             </label>
@@ -182,9 +171,9 @@ export function DonsClient({
               placeholder="Votre message..."
             />
           </div>
-          <div className="md:col-span-2">
+          <div>
             <Button disabled={createPending} type="submit">
-              {createPending ? "Enregistrement..." : "Enregistrer le don"}
+              {createPending ? "Redirection..." : "Continuer"}
             </Button>
           </div>
         </form>
@@ -272,7 +261,7 @@ export function DonsClient({
                           <form action={checkoutAction}>
                             <input name="donation_id" type="hidden" value={item.id} />
                             <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
-                              {checkoutPending ? "Redirection..." : "Payer via PayDunya"}
+                              {checkoutPending ? "Redirection..." : "Payer maintenant"}
                             </Button>
                           </form>
                           <form action={updateAction}>
@@ -305,7 +294,7 @@ export function DonsClient({
                           <form action={checkoutAction}>
                             <input name="donation_id" type="hidden" value={item.id} />
                             <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
-                              {checkoutPending ? "Redirection..." : "Payer via PayDunya"}
+                              {checkoutPending ? "Redirection..." : "Payer maintenant"}
                             </Button>
                           </form>
                           <form action={updateAction}>

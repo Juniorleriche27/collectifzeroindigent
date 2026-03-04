@@ -58,7 +58,6 @@ export async function createDonationAction(
   const amountRaw = formValue(formData, "amount_cfa");
   const amount = Number.parseInt(amountRaw, 10);
   const message = formValue(formData, "message");
-  const paymentProvider = formValue(formData, "payment_provider");
 
   if (!Number.isFinite(amount) || amount < 100) {
     return { error: "Le montant minimum est 100 CFA.", success: null };
@@ -68,14 +67,14 @@ export async function createDonationAction(
     const response = await createDonation({
       amount_cfa: amount,
       message: message || undefined,
-      payment_provider: paymentProvider || undefined,
+      payment_provider: "paydunya",
     });
 
+    const checkoutResponse = await createPaydunyaDonationCheckout(response.item.id, {
+      description: message || undefined,
+    });
     revalidatePath("/app/dons");
-    return {
-      error: null,
-      success: response.message || "Don enregistre.",
-    };
+    redirect(checkoutResponse.invoice_url);
   } catch (error) {
     return {
       error: toErrorMessage(error, "Impossible d'enregistrer ce don."),
