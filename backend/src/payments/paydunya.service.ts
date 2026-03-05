@@ -34,6 +34,8 @@ type LocalPaymentStatus = 'failed' | 'paid' | 'pending';
 type PaydunyaTargetType = 'donation' | 'member_card_request';
 
 type PaydunyaCheckoutResponse = {
+  description?: string;
+  invoice_token?: string;
   invoice?: {
     status?: string;
     token?: string;
@@ -45,6 +47,7 @@ type PaydunyaCheckoutResponse = {
   response_text?: string;
   status?: string;
   token?: string;
+  url?: string;
 };
 
 type PaymentSyncResult = {
@@ -346,6 +349,7 @@ export class PaydunyaService {
 
     const rawBody = await response.text();
     const providerPayload = this.asRecord(this.safeJsonParse(rawBody));
+    const responseCode = this.extractResponseCode(providerPayload);
 
     if (!response.ok) {
       throw new BadRequestException(
@@ -356,8 +360,11 @@ export class PaydunyaService {
     const token = this.extractCheckoutToken(providerPayload);
     const invoiceUrl = this.extractCheckoutInvoiceUrl(providerPayload);
     if (!token || !invoiceUrl) {
+      this.logger.warn(
+        `PayDunya checkout payload incomplet. response_code=${responseCode || '-'} payload=${this.safeJsonStringify(providerPayload)}`,
+      );
       throw new BadRequestException(
-        'PayDunya n a pas retourne token/invoice_url attendus.',
+        `PayDunya checkout incomplet (response_code=${responseCode || '-'}): ${this.providerErrorText(providerPayload)}`,
       );
     }
 
@@ -565,18 +572,25 @@ export class PaydunyaService {
   }
 
   private createCheckoutUrl(): string {
-    return `${this.readBaseUrl()}/checkout-invoice/create`;
+    return `${this.resolveApiBaseUrl()}/checkout-invoice/create`;
   }
 
   private confirmCheckoutUrl(token: string): string {
-    return `${this.readBaseUrl()}/checkout-invoice/confirm/${encodeURIComponent(token)}`;
+    return `${this.resolveApiBaseUrl()}/checkout-invoice/confirm/${encodeURIComponent(token)}`;
   }
 
-  private readBaseUrl(): string {
-    const configured =
-      this.configService.get<string>('PAYDUNYA_BASE_URL')?.trim() ||
-      'https://app.paydunya.com/api/v1';
-    return configured.replace(/\/+$/, '');
+  private resolveApiBaseUrl(): string {
+    const configured = this.configService
+      .get<string>('PAYDUNYA_BASE_URL')
+      ?.trim();
+    if (configured) {
+      return configured.replace(/\/+$/, '');
+    }
+
+    if (this.readMode() === 'test') {
+      return 'https://app.paydunya.com/sandbox-api/v1';
+    }
+    return 'https://app.paydunya.com/api/v1';
   }
 
   private readStoreSettings() {
@@ -733,6 +747,7 @@ export class PaydunyaService {
 
     const token =
       this.readString(candidate.token) ||
+      this.readString(candidate.invoice_token) ||
       this.readString(candidate.invoice?.token);
 
     return token || null;
@@ -745,9 +760,15 @@ export class PaydunyaService {
     const url =
       this.readString(candidate.invoice_url) ||
       this.readString(candidate.redirect_url) ||
-      this.readString(candidate.invoice?.url);
+      this.readString(candidate.invoice?.url) ||
+      this.readString(candidate.url) ||
+      this.readString(candidate.response_text);
 
-    return url || null;
+    if (this.looksLikeUrl(url)) {
+      return url;
+    }
+
+    return null;
   }
 
   private extractTokenFromIpnPayload(payload: unknown): string | null {
@@ -809,6 +830,19 @@ export class PaydunyaService {
     return '';
   }
 
+  private looksLikeUrl(value: string): boolean {
+    if (!value) {
+      return false;
+    }
+
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    } catch {
+      return false;
+    }
+  }
+
   private providerErrorText(payload: unknown): string {
     if (!payload || typeof payload !== 'object') {
       return 'Erreur inconnue.';
@@ -816,11 +850,20 @@ export class PaydunyaService {
 
     const data = payload as Record<string, unknown>;
     return (
+      this.readString(data.description) ||
       this.readString(data.response_text) ||
       this.readString(data.status) ||
       this.readString(data.message) ||
       'Erreur inconnue.'
     );
+  }
+
+  private safeJsonStringify(value: unknown): string {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '{}';
+    }
   }
 
   private requireEnv(name: string): string {
