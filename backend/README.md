@@ -37,12 +37,15 @@ Copier `backend/.env.example` vers `backend/.env.local` (ou utiliser `../.env.lo
 - `SUPPORT_AI_CONTEXT_TURNS` (optionnel, default `6`)
 - `SUPPORT_AI_MAX_QUESTION_CHARS` (optionnel, default `1200`)
 - `SUPPORT_AI_MAX_TOKENS` (optionnel, default `450`)
-- `PAYDUNYA_BASE_URL` (optionnel, default `https://app.paydunya.com/api/v1`)
+- `PAYDUNYA_BASE_URL` (optionnel, override global de l'endpoint API)
+- `PAYDUNYA_TEST_BASE_URL` (optionnel, default `https://app.paydunya.com/sandbox-api/v1`)
+- `PAYDUNYA_LIVE_BASE_URL` (optionnel, default `https://app.paydunya.com/api/v1`)
 - `PAYDUNYA_MODE` (`test` | `live`)
-- `PAYDUNYA_MASTER_KEY` (obligatoire pour checkout/confirm)
-- `PAYDUNYA_PUBLIC_KEY` (optionnel, mais recommande)
-- `PAYDUNYA_PRIVATE_KEY` (obligatoire)
-- `PAYDUNYA_TOKEN` (obligatoire)
+- `PAYDUNYA_TEST_MASTER_KEY` / `PAYDUNYA_LIVE_MASTER_KEY` (recommande)
+- `PAYDUNYA_TEST_PUBLIC_KEY` / `PAYDUNYA_LIVE_PUBLIC_KEY` (optionnel, recommande)
+- `PAYDUNYA_TEST_PRIVATE_KEY` / `PAYDUNYA_LIVE_PRIVATE_KEY` (recommande)
+- `PAYDUNYA_TEST_TOKEN` / `PAYDUNYA_LIVE_TOKEN` (recommande)
+- `PAYDUNYA_MASTER_KEY` / `PAYDUNYA_PUBLIC_KEY` / `PAYDUNYA_PRIVATE_KEY` / `PAYDUNYA_TOKEN` (fallback legacy, encore supporte)
 - `PAYDUNYA_STORE_NAME` (optionnel, default `CZI`)
 - `PAYDUNYA_STORE_TAGLINE` (optionnel)
 - `PAYDUNYA_STORE_WEBSITE_URL` (optionnel)
@@ -52,6 +55,8 @@ Copier `backend/.env.example` vers `backend/.env.local` (ou utiliser `../.env.lo
 - `PAYDUNYA_CALLBACK_URL` (optionnel, recommande)
 - `PAYDUNYA_CANCEL_URL` (optionnel, recommande)
 - `PAYDUNYA_IPN_URL` (optionnel, recommande)
+
+Important: en `PAYDUNYA_MODE=test`, utilisez uniquement des cles test; en `PAYDUNYA_MODE=live`, uniquement des cles live.
 
 ## Lancer en local
 

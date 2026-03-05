@@ -350,10 +350,11 @@ export class PaydunyaService {
     const rawBody = await response.text();
     const providerPayload = this.asRecord(this.safeJsonParse(rawBody));
     const responseCode = this.extractResponseCode(providerPayload);
+    const responseHint = this.checkoutHint(responseCode);
 
     if (!response.ok) {
       throw new BadRequestException(
-        `PayDunya checkout error (${response.status}): ${this.providerErrorText(providerPayload)}`,
+        `PayDunya checkout error (${response.status}, response_code=${responseCode || '-'}): ${this.providerErrorText(providerPayload)}${responseHint}`,
       );
     }
 
@@ -364,7 +365,7 @@ export class PaydunyaService {
         `PayDunya checkout payload incomplet. response_code=${responseCode || '-'} payload=${this.safeJsonStringify(providerPayload)}`,
       );
       throw new BadRequestException(
-        `PayDunya checkout incomplet (response_code=${responseCode || '-'}): ${this.providerErrorText(providerPayload)}`,
+        `PayDunya checkout incomplet (response_code=${responseCode || '-'}): ${this.providerErrorText(providerPayload)}${responseHint}`,
       );
     }
 
@@ -554,15 +555,13 @@ export class PaydunyaService {
   private paydunyaHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'PAYDUNYA-MASTER-KEY': this.requireEnv('PAYDUNYA_MASTER_KEY'),
+      'PAYDUNYA-MASTER-KEY': this.readPaydunyaCredential('MASTER_KEY', true),
       'PAYDUNYA-MODE': this.readMode(),
-      'PAYDUNYA-PRIVATE-KEY': this.requireEnv('PAYDUNYA_PRIVATE_KEY'),
-      'PAYDUNYA-TOKEN': this.requireEnv('PAYDUNYA_TOKEN'),
+      'PAYDUNYA-PRIVATE-KEY': this.readPaydunyaCredential('PRIVATE_KEY', true),
+      'PAYDUNYA-TOKEN': this.readPaydunyaCredential('TOKEN', true),
     };
 
-    const publicKey = this.configService
-      .get<string>('PAYDUNYA_PUBLIC_KEY')
-      ?.trim();
+    const publicKey = this.readPaydunyaCredential('PUBLIC_KEY', false);
     if (publicKey) {
       headers['PAYDUNYA-PUBLIC-KEY'] = publicKey;
     }
@@ -589,14 +588,41 @@ export class PaydunyaService {
   }
 
   private resolveApiBaseUrl(): string {
-    const configured = this.configService
-      .get<string>('PAYDUNYA_BASE_URL')
-      ?.trim();
-    if (configured) {
-      return configured.replace(/\/+$/, '');
+    const mode = this.readMode();
+    const modeSpecific =
+      mode === 'live'
+        ? this.readEnv('PAYDUNYA_LIVE_BASE_URL')
+        : this.readEnv('PAYDUNYA_TEST_BASE_URL');
+    if (modeSpecific) {
+      return modeSpecific.replace(/\/+$/, '');
     }
 
-    if (this.readMode() === 'test') {
+    const configured = this.readEnv('PAYDUNYA_BASE_URL');
+    if (configured) {
+      const normalized = configured.replace(/\/+$/, '');
+
+      if (
+        mode === 'test' &&
+        /\/api\/v1$/i.test(normalized) &&
+        !/sandbox-api/i.test(normalized)
+      ) {
+        this.logger.warn(
+          `PAYDUNYA_BASE_URL=${normalized} ignore en mode test; utilisation de l'endpoint sandbox.`,
+        );
+        return 'https://app.paydunya.com/sandbox-api/v1';
+      }
+
+      if (mode === 'live' && /sandbox-api/i.test(normalized)) {
+        this.logger.warn(
+          `PAYDUNYA_BASE_URL=${normalized} ignore en mode live; utilisation de l'endpoint production.`,
+        );
+        return 'https://app.paydunya.com/api/v1';
+      }
+
+      return normalized;
+    }
+
+    if (mode === 'test') {
       return 'https://app.paydunya.com/sandbox-api/v1';
     }
     return 'https://app.paydunya.com/api/v1';
@@ -875,13 +901,58 @@ export class PaydunyaService {
     }
   }
 
-  private requireEnv(name: string): string {
-    const value = this.configService.get<string>(name)?.trim() || '';
-    if (!value) {
-      throw new BadRequestException(
-        `${name} manquant. Configurez les cles PayDunya dans le backend.`,
-      );
+  private readPaydunyaCredential(
+    suffix: 'MASTER_KEY' | 'PRIVATE_KEY' | 'PUBLIC_KEY' | 'TOKEN',
+    required: boolean,
+  ): string {
+    const modePrefix = this.readMode() === 'live' ? 'LIVE' : 'TEST';
+    const preferred = `PAYDUNYA_${modePrefix}_${suffix}`;
+    const fallback = `PAYDUNYA_${suffix}`;
+
+    const preferredValue = this.readEnv(preferred);
+    if (preferredValue) {
+      return preferredValue;
     }
+
+    const fallbackValue = this.readEnv(fallback);
+    if (fallbackValue) {
+      return fallbackValue;
+    }
+
+    if (!required) {
+      return '';
+    }
+
+    throw new BadRequestException(
+      `${preferred} (ou ${fallback}) manquant. Verifiez les cles PayDunya pour le mode '${this.readMode()}'.`,
+    );
+  }
+
+  private readEnv(name: string): string {
+    const raw = this.configService.get<string>(name);
+    if (!raw) {
+      return '';
+    }
+
+    const value = raw.trim();
+    if (!value) {
+      return '';
+    }
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      return value.slice(1, -1).trim();
+    }
+
     return value;
+  }
+
+  private checkoutHint(responseCode: string): string {
+    if (responseCode === '1001') {
+      return ' Verifiez MASTER/PRIVATE/TOKEN/PUBLIC du meme environnement que PAYDUNYA_MODE (test/live).';
+    }
+    return '';
   }
 }
