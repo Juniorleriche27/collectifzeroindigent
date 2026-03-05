@@ -5,6 +5,18 @@ import type { NextFunction, Request, Response } from 'express';
 
 import { AppModule } from './app.module';
 
+function parsePort(raw: string | undefined): number | null {
+  if (!raw) return null;
+  const value = raw.trim();
+  if (!value) return null;
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65535) {
+    return null;
+  }
+  return parsed;
+}
+
 async function bootstrap() {
   const logger = new Logger('HTTP');
   const app = await NestFactory.create(AppModule);
@@ -48,6 +60,16 @@ async function bootstrap() {
 
     next();
   });
-  await app.listen(process.env.BACKEND_PORT ?? process.env.PORT ?? 4000);
+
+  const renderPort = parsePort(process.env.PORT);
+  const backendPort = parsePort(process.env.BACKEND_PORT);
+  if (process.env.BACKEND_PORT && !backendPort) {
+    logger.warn(
+      `BACKEND_PORT invalide ('${process.env.BACKEND_PORT}'). PORT Render sera utilise.`,
+    );
+  }
+
+  const port = renderPort ?? backendPort ?? 4000;
+  await app.listen(port, '0.0.0.0');
 }
 void bootstrap();
