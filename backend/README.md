@@ -40,6 +40,7 @@ Copier `backend/.env.example` vers `backend/.env.local` (ou utiliser `../.env.lo
 - `PAYDUNYA_BASE_URL` (optionnel, default `https://app.paydunya.com/api/v1`)
 - `PAYDUNYA_MODE` (`test` | `live`)
 - `PAYDUNYA_MASTER_KEY` (obligatoire pour checkout/confirm)
+- `PAYDUNYA_PUBLIC_KEY` (optionnel, mais recommande)
 - `PAYDUNYA_PRIVATE_KEY` (obligatoire)
 - `PAYDUNYA_TOKEN` (obligatoire)
 - `PAYDUNYA_STORE_NAME` (optionnel, default `CZI`)

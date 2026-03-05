@@ -552,13 +552,22 @@ export class PaydunyaService {
   }
 
   private paydunyaHeaders(): Record<string, string> {
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'PAYDUNYA-MASTER-KEY': this.requireEnv('PAYDUNYA_MASTER_KEY'),
       'PAYDUNYA-MODE': this.readMode(),
       'PAYDUNYA-PRIVATE-KEY': this.requireEnv('PAYDUNYA_PRIVATE_KEY'),
       'PAYDUNYA-TOKEN': this.requireEnv('PAYDUNYA_TOKEN'),
     };
+
+    const publicKey = this.configService
+      .get<string>('PAYDUNYA_PUBLIC_KEY')
+      ?.trim();
+    if (publicKey) {
+      headers['PAYDUNYA-PUBLIC-KEY'] = publicKey;
+    }
+
+    return headers;
   }
 
   private readMode(): string {
