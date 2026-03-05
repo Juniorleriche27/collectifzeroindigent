@@ -63,6 +63,7 @@ export async function createDonationAction(
     return { error: "Le montant minimum est 100 CFA.", success: null };
   }
 
+  let invoiceUrl = "";
   try {
     const response = await createDonation({
       amount_cfa: amount,
@@ -73,14 +74,16 @@ export async function createDonationAction(
     const checkoutResponse = await createPaydunyaDonationCheckout(response.item.id, {
       description: message || undefined,
     });
-    revalidatePath("/app/dons");
-    redirect(checkoutResponse.invoice_url);
+    invoiceUrl = checkoutResponse.invoice_url;
   } catch (error) {
     return {
       error: toErrorMessage(error, "Impossible d'enregistrer ce don."),
       success: null,
     };
   }
+
+  revalidatePath("/app/dons");
+  redirect(invoiceUrl);
 }
 
 export async function updateDonationStatusAction(
@@ -129,14 +132,17 @@ export async function startDonationPaydunyaCheckoutAction(
     return { error: "Don introuvable.", success: null };
   }
 
+  let invoiceUrl = "";
   try {
     const response = await createPaydunyaDonationCheckout(donationId);
-    revalidatePath("/app/dons");
-    redirect(response.invoice_url);
+    invoiceUrl = response.invoice_url;
   } catch (error) {
     return {
       error: toErrorMessage(error, "Impossible de demarrer le paiement PayDunya."),
       success: null,
     };
   }
+
+  revalidatePath("/app/dons");
+  redirect(invoiceUrl);
 }
