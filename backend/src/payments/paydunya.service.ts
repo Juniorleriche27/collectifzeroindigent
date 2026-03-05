@@ -909,14 +909,14 @@ export class PaydunyaService {
     const preferred = `PAYDUNYA_${modePrefix}_${suffix}`;
     const fallback = `PAYDUNYA_${suffix}`;
 
-    const preferredValue = this.readEnv(preferred);
-    if (preferredValue) {
-      return preferredValue;
-    }
+    const candidates =
+      suffix === 'MASTER_KEY' ? [fallback, preferred] : [preferred, fallback];
 
-    const fallbackValue = this.readEnv(fallback);
-    if (fallbackValue) {
-      return fallbackValue;
+    for (const name of candidates) {
+      const value = this.readEnv(name);
+      if (value) {
+        return value;
+      }
     }
 
     if (!required) {
