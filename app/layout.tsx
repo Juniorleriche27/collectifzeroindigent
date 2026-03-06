@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CZI Platform",
-  description: "MVP web CZI - membres et gouvernance",
+  title: "Collectif Zero Indigent (CZI)",
+  description: "Jeunes entrepreneurs, promoteurs des ODD. Plateforme et vitrine officielle CZI.",
   icons: {
     apple: "/brand/czi-logo.jpeg",
     icon: "/brand/czi-logo.jpeg",
