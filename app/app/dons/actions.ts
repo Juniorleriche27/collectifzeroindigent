@@ -12,6 +12,8 @@ import {
 } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
+import { donationPaymentMode, getDonationManualPaymentMessage } from "./payment-config";
+
 export type DonationActionState = {
   error: string | null;
   success: string | null;
@@ -63,27 +65,34 @@ export async function createDonationAction(
     return { error: "Le montant minimum est 100 CFA.", success: null };
   }
 
-  let invoiceUrl = "";
   try {
+    const paymentProvider =
+      donationPaymentMode === "paydunya" ? "paydunya" : "manual_mobile_money";
     const response = await createDonation({
       amount_cfa: amount,
       message: message || undefined,
-      payment_provider: "paydunya",
+      payment_provider: paymentProvider,
     });
+
+    if (donationPaymentMode === "manual") {
+      revalidatePath("/app/dons");
+      return {
+        error: null,
+        success: getDonationManualPaymentMessage(amount),
+      };
+    }
 
     const checkoutResponse = await createPaydunyaDonationCheckout(response.item.id, {
       description: message || undefined,
     });
-    invoiceUrl = checkoutResponse.invoice_url;
+    revalidatePath("/app/dons");
+    redirect(checkoutResponse.invoice_url);
   } catch (error) {
     return {
       error: toErrorMessage(error, "Impossible d'enregistrer ce don."),
       success: null,
     };
   }
-
-  revalidatePath("/app/dons");
-  redirect(invoiceUrl);
 }
 
 export async function updateDonationStatusAction(
@@ -132,17 +141,22 @@ export async function startDonationPaydunyaCheckoutAction(
     return { error: "Don introuvable.", success: null };
   }
 
-  let invoiceUrl = "";
+  if (donationPaymentMode === "manual") {
+    return {
+      error: null,
+      success:
+        "Le paiement en ligne est temporairement remplace par une validation manuelle via les numeros mobiles affiches plus haut.",
+    };
+  }
+
   try {
     const response = await createPaydunyaDonationCheckout(donationId);
-    invoiceUrl = response.invoice_url;
+    revalidatePath("/app/dons");
+    redirect(response.invoice_url);
   } catch (error) {
     return {
       error: toErrorMessage(error, "Impossible de demarrer le paiement PayDunya."),
       success: null,
     };
   }
-
-  revalidatePath("/app/dons");
-  redirect(invoiceUrl);
 }

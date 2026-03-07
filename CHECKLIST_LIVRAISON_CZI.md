@@ -2,7 +2,7 @@
 
 Date de reference: 23 fevrier 2026  
 Objectif: livrer une plateforme stable et exploitable, avec preuves de QA et passation.
-MAJ locale: 7 mars 2026 (email reel valide en production via Resend; auth `mot de passe oublie` + module dons MVP + fondation SQL carte membre livres; PayDunya test sandbox valide; paiement production PayDunya bloque par KYC non valide; page publique `Accueil + A propos` en ligne; lot `Partenariat` (4 actions) coche cote code, validation metier en attente).
+MAJ locale: 7 mars 2026 (email reel valide en production via Resend; auth `mot de passe oublie` + module dons MVP + fondation SQL carte membre livres; PayDunya test sandbox valide; paiement production PayDunya bloque par KYC non valide; fallback temporaire dons via numeros mobiles Yas/Moov actif; page publique `Accueil + A propos` en ligne; lot `Partenariat` (4 actions) coche cote code, validation metier en attente).
 
 ## Regle de pilotage
 
@@ -203,7 +203,9 @@ Scripts SQL disponibles a date:
   - [x] `PATCH /api/donations/:id`
 - [x] Frontend `/app/dons` (creation don + historique + statuts + actions de base).
 - [x] Paiement test sandbox PayDunya valide (generation checkout + facture test OK).
+- [x] Mode temporaire hors PayDunya prod: affichage des numeros de transfert manuel `71154646` (Mixx by Yas / Tape Tap Send) et `79070716` (Flooz / Moov Money) en attendant la validation KYC PayDunya.
 - [ ] Paiement reel production (provider/webhook) pour passage automatique `pending -> paid` (bloque tant que KYC PayDunya n est pas valide).
+- [ ] Rebasculer le flux dons de `manual_mobile_money` vers PayDunya production apres validation KYC et reprise des webhooks live.
 - [ ] Reconciliation comptable/rapports finance (exports, justificatifs, audit complet).
 
 ### 23) Site vitrine public (domaine principal)

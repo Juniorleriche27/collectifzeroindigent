@@ -17,6 +17,11 @@ import {
   type DonationCheckoutActionState,
   type DonationActionState,
 } from "./actions";
+import {
+  donationManualTransfers,
+  donationPaymentMode,
+  formatDonationPaymentProvider,
+} from "./payment-config";
 
 type DonsClientProps = {
   canManage: boolean;
@@ -105,6 +110,33 @@ export function DonsClient({
           <CardDescription className="text-emerald-700">{paymentInfo}</CardDescription>
         </Card>
       ) : null}
+      {donationPaymentMode === "manual" ? (
+        <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-surface to-secondary/10">
+          <div className="grid gap-4 md:grid-cols-[1.3fr_1fr_1fr]">
+            <div className="space-y-2">
+              <CardTitle className="text-base">Paiement temporaire par mobile money</CardTitle>
+              <CardDescription className="text-sm leading-6 text-foreground/80">
+                En attendant la validation KYC PayDunya en production, les dons sont enregistres
+                puis verifies manuellement par CZI. Apres le transfert, conservez votre reference
+                ou votre capture de paiement.
+              </CardDescription>
+            </div>
+            {donationManualTransfers.map((transfer) => (
+              <div
+                className="rounded-2xl border border-white/60 bg-white/70 p-4 shadow-sm backdrop-blur"
+                key={transfer.code}
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary/70">
+                  {transfer.label}
+                </p>
+                <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+                  {transfer.number}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
 
       {createState.error ? (
         <Card>
@@ -129,6 +161,11 @@ export function DonsClient({
       {checkoutState.error ? (
         <Card>
           <CardDescription className="text-red-600">{checkoutState.error}</CardDescription>
+        </Card>
+      ) : null}
+      {checkoutState.success ? (
+        <Card>
+          <CardDescription className="text-emerald-700">{checkoutState.success}</CardDescription>
         </Card>
       ) : null}
 
@@ -173,7 +210,13 @@ export function DonsClient({
           </div>
           <div>
             <Button disabled={createPending} type="submit">
-              {createPending ? "Redirection..." : "Continuer"}
+              {createPending
+                ? donationPaymentMode === "manual"
+                  ? "Enregistrement..."
+                  : "Redirection..."
+                : donationPaymentMode === "manual"
+                  ? "Enregistrer le don"
+                  : "Continuer"}
             </Button>
           </div>
         </form>
@@ -249,7 +292,7 @@ export function DonsClient({
                     <Badge variant={statusVariant(item.status)}>{item.status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted">
-                    {item.payment_provider ?? "-"}
+                    {formatDonationPaymentProvider(item.payment_provider)}
                     <br />
                     {item.payment_ref ?? "-"}
                   </td>
@@ -258,12 +301,14 @@ export function DonsClient({
                     <div className="flex items-center gap-2">
                       {canManage && (item.status === "pending" || item.status === "pledged") ? (
                         <>
-                          <form action={checkoutAction}>
-                            <input name="donation_id" type="hidden" value={item.id} />
-                            <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
-                              {checkoutPending ? "Redirection..." : "Payer maintenant"}
-                            </Button>
-                          </form>
+                          {donationPaymentMode === "paydunya" ? (
+                            <form action={checkoutAction}>
+                              <input name="donation_id" type="hidden" value={item.id} />
+                              <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
+                                {checkoutPending ? "Redirection..." : "Payer maintenant"}
+                              </Button>
+                            </form>
+                          ) : null}
                           <form action={updateAction}>
                             <input name="donation_id" type="hidden" value={item.id} />
                             <input name="status" type="hidden" value="paid" />
@@ -291,12 +336,14 @@ export function DonsClient({
                       ) : null}
                       {!canManage && (item.status === "pending" || item.status === "pledged") ? (
                         <>
-                          <form action={checkoutAction}>
-                            <input name="donation_id" type="hidden" value={item.id} />
-                            <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
-                              {checkoutPending ? "Redirection..." : "Payer maintenant"}
-                            </Button>
-                          </form>
+                          {donationPaymentMode === "paydunya" ? (
+                            <form action={checkoutAction}>
+                              <input name="donation_id" type="hidden" value={item.id} />
+                              <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
+                                {checkoutPending ? "Redirection..." : "Payer maintenant"}
+                              </Button>
+                            </form>
+                          ) : null}
                           <form action={updateAction}>
                             <input name="donation_id" type="hidden" value={item.id} />
                             <input name="status" type="hidden" value="cancelled" />
