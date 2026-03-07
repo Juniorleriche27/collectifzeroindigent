@@ -2,7 +2,7 @@
 
 Date de reference: 23 fevrier 2026  
 Objectif: livrer une plateforme stable et exploitable, avec preuves de QA et passation.
-MAJ locale: 6 mars 2026 (email reel valide en production via Resend; auth `mot de passe oublie` + module dons MVP + fondation SQL carte membre livres; PayDunya test sandbox valide; paiement production PayDunya bloque par KYC non valide; page publique `Accueil + A propos` au domaine principal livree en local).
+MAJ locale: 7 mars 2026 (email reel valide en production via Resend; auth `mot de passe oublie` + module dons MVP + fondation SQL carte membre livres; PayDunya test sandbox valide; paiement production PayDunya bloque par KYC non valide; page publique `Accueil + A propos` en ligne; lot `Partenariat` (4 actions) coche cote code, validation metier en attente).
 
 ## Regle de pilotage
 
@@ -122,12 +122,13 @@ Scripts SQL disponibles a date:
 - [ ] Option "contacter" depuis fiche/liste avec trace d'action (minimum). (Code backend+frontend livre + SQL execute en production le 25 fevrier 2026: `sql/2026-02-25_member_contact_action_audit.sql`; QA metier en attente)
 
 ### 16-bis) Partenariat (ex-Organisations)
-- [ ] Renommer la page `Organisations` en page `Partenariat` dans la navigation.
-- [ ] Exposer les 4 actions metier:
-  - [ ] Creer une entreprise
-  - [ ] Creer une association
-  - [ ] Ajouter son entreprise
-  - [ ] Ajouter son association
+- [x] Renommer la page `Organisations` en page `Partenariat` dans la navigation.
+- [x] Exposer les 4 actions metier:
+  - [x] Creer une entreprise
+  - [x] Creer une association
+  - [x] Ajouter son entreprise
+  - [x] Ajouter son association
+- [ ] Validation fonctionnelle metier en production (par responsables CZI) en attente.
 
 ### 17) Espace "Communaute CZI" (discussion collective)
 - [ ] Imposer 4 communautes racines:
@@ -245,7 +246,7 @@ Scripts SQL disponibles a date:
 - [ ] Integrer support intelligent (Cohere) dans `/app/support`. (Code backend+frontend + UI chat livre; SQL execute en production le 25 fevrier 2026: `sql/2026-02-25_support_ai_history.sql`; QA finale en attente)
 - [ ] Cadrer le Support IA avec le contenu institutionnel CZI (vision, mission, cibles, axes strategiques). (Prompt system ajuste le 25 fevrier 2026 + reformattage paragraphe; validation metier finale en attente)
 - [ ] Implementer la page `A propos` avec contenu institutionnel CZI. (Pages interne + publique livres; validation metier UI/contenu en attente)
-- [ ] Transformer `Organisations` en `Partenariat` avec 4 actions (creer entreprise, creer association, ajouter son entreprise, ajouter son association). (Code livre le 25 fevrier 2026; validation fonctionnelle en attente)
+- [x] Transformer `Organisations` en `Partenariat` avec 4 actions (creer entreprise, creer association, ajouter son entreprise, ajouter son association). (Code livre et en ligne; validation fonctionnelle metier en attente)
 - [ ] Ajouter unread count messagerie privee. (Code livre + SQL execute en production le 25 fevrier 2026: `sql/2026-02-25_direct_message_unread.sql`; QA en attente)
 - [ ] Ajouter trace minimale d'action "contacter membre". (Code backend+frontend livre + SQL execute en production le 25 fevrier 2026: `sql/2026-02-25_member_contact_action_audit.sql`; QA en attente)
 - [ ] Brancher `member_update` pour historiser les modifications membres (qui, quoi, quand). (Script execute en production le 25 fevrier 2026: `sql/2026-02-25_member_update_history.sql`; QA en attente)
