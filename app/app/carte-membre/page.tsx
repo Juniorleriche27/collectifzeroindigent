@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { CreditCard, FileImage, ShieldCheck, Truck } from "lucide-react";
 
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { getCurrentMemberCardOverview } from "@/lib/supabase/member-card";
 
+import { MemberPhotoField } from "./member-photo-field";
 import { saveMemberCardRequestAction } from "./actions";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -117,6 +119,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
   const hasDeliveryContact = Boolean(defaultDeliveryContact.trim());
   const hasDeliveryAddress = Boolean(request?.delivery_address?.trim());
   const hasBaseCardInformation = hasName && hasContact;
+  const memberDisplayName = fullName || "membre CZI";
 
   return (
     <div className="space-y-6">
@@ -176,8 +179,17 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                 <FileImage className="text-primary" size={22} />
               </div>
               <p className="mt-3 text-sm text-muted">
-                {member.photo_url ? "Lien photo enregistre." : "Aucune photo enregistree."}
+                {member.photo_preview_url ? "Photo enregistree." : "Aucune photo enregistree."}
               </p>
+              {member.photo_preview_url ? (
+                <div className="mt-4 overflow-hidden rounded-xl border border-border">
+                  <img
+                    alt={`Photo de ${memberDisplayName}`}
+                    className="h-40 w-full object-cover"
+                    src={member.photo_preview_url}
+                  />
+                </div>
+              ) : null}
             </Card>
             <Card>
               <div className="flex items-start justify-between gap-3">
@@ -247,22 +259,13 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                   />
                   Je souhaite ma carte de membre CZI (2900 F)
                 </label>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="card-photo-url">
-                    Lien photo provisoire
-                  </label>
-                  <Input
-                    defaultValue={member.photo_url ?? ""}
-                    disabled={formDisabled}
-                    id="card-photo-url"
-                    name="photo_url"
-                    placeholder="https://.../photo.jpg"
-                    type="url"
-                  />
-                  <p className="text-xs text-muted">
-                    En attendant le televersement direct, collez le lien de la photo a utiliser sur la carte.
-                  </p>
-                </div>
+                <MemberPhotoField
+                  currentPhotoExists={Boolean(member.photo_url)}
+                  currentPreviewUrl={member.photo_preview_url}
+                  currentStatusLabel={formatStatusLabel(member.photo_status)}
+                  disabled={formDisabled}
+                  memberName={memberDisplayName}
+                />
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="delivery-mode">
@@ -369,6 +372,22 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted">Photo</dt>
                       <dd className="text-right font-medium">{hasPhoto ? "Disponible" : "A fournir"}</dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Profil CZI</dt>
+                      <dd className="text-right font-medium">{member.join_mode || "A completer"}</dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Cellule principale</dt>
+                      <dd className="text-right font-medium">{member.cellule_primary || "A completer"}</dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Profession</dt>
+                      <dd className="text-right font-medium">{member.profession_title || "A completer"}</dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Localite</dt>
+                      <dd className="text-right font-medium">{member.locality || "A completer"}</dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted">Contact remise</dt>

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { getMemberForUser } from "@/lib/supabase/member";
+import { removeMemberPhoto, replaceMemberPhoto } from "@/lib/supabase/member-photo";
 
 function formValue(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
@@ -15,6 +16,14 @@ function formBoolean(formData: FormData, key: string): boolean {
     .trim()
     .toLowerCase();
   return value === "on" || value === "true" || value === "1";
+}
+
+function formFile(formData: FormData, key: string): File | null {
+  const value = formData.get(key);
+  if (!(value instanceof File) || value.size === 0) {
+    return null;
+  }
+  return value;
 }
 
 function buildRedirect(path: string, kind: "error" | "notice", message: string): never {
@@ -45,21 +54,56 @@ export async function saveMemberCardRequestAction(formData: FormData) {
 
   const requestId = formValue(formData, "request_id");
   const requested = formBoolean(formData, "requested");
-  const photoUrl = formValue(formData, "photo_url");
+  const photoFile = formFile(formData, "photo_file");
+  const removePhoto = formBoolean(formData, "remove_photo");
   const deliveryMode = formValue(formData, "delivery_mode") === "delivery" ? "delivery" : "pickup";
   const deliveryContact = formValue(formData, "delivery_contact");
   const deliveryAddress = formValue(formData, "delivery_address");
 
-  const { error: memberUpdateError } = await supabase
+  const { data: currentMember, error: memberLookupError } = await supabase
     .from("member")
-    .update({
-      photo_status: photoUrl ? "uploaded" : "missing",
-      photo_url: photoUrl || null,
-    })
-    .eq("id", linkedMember.id);
+    .select("photo_url")
+    .eq("id", linkedMember.id)
+    .maybeSingle();
 
-  if (memberUpdateError) {
-    buildRedirect("/app/carte-membre", "error", memberUpdateError.message);
+  if (memberLookupError) {
+    buildRedirect("/app/carte-membre", "error", memberLookupError.message);
+  }
+
+  if (photoFile || removePhoto) {
+    try {
+      let nextPhotoUrl: string | null = currentMember?.photo_url ?? null;
+      let nextPhotoStatus = "missing";
+
+      if (removePhoto && !photoFile) {
+        await removeMemberPhoto(supabase, currentMember?.photo_url ?? null);
+        nextPhotoUrl = null;
+      }
+
+      if (photoFile) {
+        nextPhotoUrl = await replaceMemberPhoto(supabase, linkedMember.id, photoFile);
+        nextPhotoStatus = "uploaded";
+      }
+
+      const { error: memberUpdateError } = await supabase
+        .from("member")
+        .update({
+          photo_rejection_reason: null,
+          photo_status: nextPhotoUrl ? nextPhotoStatus : "missing",
+          photo_url: nextPhotoUrl,
+        })
+        .eq("id", linkedMember.id);
+
+      if (memberUpdateError) {
+        buildRedirect("/app/carte-membre", "error", memberUpdateError.message);
+      }
+    } catch (error) {
+      buildRedirect(
+        "/app/carte-membre",
+        "error",
+        error instanceof Error ? error.message : "Impossible de televerser la photo.",
+      );
+    }
   }
 
   const payload = {

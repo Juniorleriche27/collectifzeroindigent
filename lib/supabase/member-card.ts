@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getMemberForUser } from "@/lib/supabase/member";
+import { resolveMemberPhotoPreviewUrl } from "@/lib/supabase/member-photo";
 import { getProfileRoleByAuthUser } from "@/lib/supabase/profile";
 
 export type MemberCardRequestRecord = {
@@ -28,7 +29,12 @@ export type MemberCardMemberRecord = {
   last_name: string | null;
   email: string | null;
   phone: string | null;
+  join_mode: string | null;
+  profession_title: string | null;
+  cellule_primary: string | null;
+  locality: string | null;
   photo_url: string | null;
+  photo_preview_url: string | null;
   photo_status: string;
   photo_rejection_reason: string | null;
 };
@@ -82,7 +88,7 @@ export async function getCurrentMemberCardOverview(): Promise<MemberCardOverview
     supabase
       .from("member")
       .select(
-        "id, first_name, last_name, email, phone, photo_url, photo_status, photo_rejection_reason",
+        "id, first_name, last_name, email, phone, join_mode, profession_title, cellule_primary, locality, photo_url, photo_status, photo_rejection_reason",
       )
       .eq("id", linkedMember.id)
       .maybeSingle(),
@@ -102,9 +108,16 @@ export async function getCurrentMemberCardOverview(): Promise<MemberCardOverview
     throw requestResult.error;
   }
 
+  const photoPreviewUrl = await resolveMemberPhotoPreviewUrl(supabase, memberResult.data?.photo_url ?? null);
+
   return {
     canManage: role === "admin" || role === "ca" || role === "cn" || role === "pf",
-    member: memberResult.data,
+    member: memberResult.data
+      ? {
+          ...memberResult.data,
+          photo_preview_url: photoPreviewUrl,
+        }
+      : null,
     request: requestResult.data,
     role: role ?? "member",
   };
