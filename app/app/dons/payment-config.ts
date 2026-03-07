@@ -26,7 +26,7 @@ export function formatDonationPaymentProvider(value: string | null | undefined):
     return "Validation manuelle";
   }
   if (value === "paydunya") {
-    return "PayDunya";
+    return "Paiement en ligne";
   }
   return value;
 }

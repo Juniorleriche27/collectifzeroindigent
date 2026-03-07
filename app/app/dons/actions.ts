@@ -155,7 +155,7 @@ export async function startDonationPaydunyaCheckoutAction(
     redirect(response.invoice_url);
   } catch (error) {
     return {
-      error: toErrorMessage(error, "Impossible de demarrer le paiement PayDunya."),
+      error: toErrorMessage(error, "Impossible de demarrer le paiement en ligne."),
       success: null,
     };
   }

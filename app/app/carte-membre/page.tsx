@@ -34,6 +34,48 @@ function badgeVariant(
   return "default";
 }
 
+function formatStatusLabel(value: string | null | undefined): string {
+  switch (value) {
+    case "unpaid":
+      return "Non paye";
+    case "pending":
+      return "En attente";
+    case "paid":
+      return "Paye";
+    case "failed":
+      return "Echec";
+    case "refunded":
+      return "Rembourse";
+    case "draft":
+      return "Brouillon";
+    case "ready":
+      return "Prete";
+    case "printed":
+      return "Imprimee";
+    case "delivered":
+      return "Livree";
+    case "cancelled":
+      return "Annulee";
+    case "missing":
+      return "Photo manquante";
+    case "uploaded":
+      return "Photo recue";
+    case "approved":
+      return "Photo validee";
+    case "rejected":
+      return "Photo rejetee";
+    default:
+      return value || "-";
+  }
+}
+
+function formatDeliveryModeLabel(value: string | null | undefined): string {
+  if (value === "delivery") {
+    return "Livraison";
+  }
+  return "Retrait";
+}
+
 function canEditRequest(paymentStatus: string | null | undefined, cardStatus: string | null | undefined) {
   const editablePayment = paymentStatus === "unpaid" || paymentStatus === "pending" || paymentStatus === "failed";
   const editableCard = cardStatus === "draft" || cardStatus === "cancelled";
@@ -67,6 +109,14 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
       member.email ||
       ""
     : "";
+  const fullName = member ? [member.first_name, member.last_name].filter(Boolean).join(" ") : "";
+  const hasName = Boolean(fullName);
+  const hasContact = Boolean(member?.phone || member?.email);
+  const hasPhoto =
+    Boolean(member?.photo_url) || member?.photo_status === "uploaded" || member?.photo_status === "approved";
+  const hasDeliveryContact = Boolean(defaultDeliveryContact.trim());
+  const hasDeliveryAddress = Boolean(request?.delivery_address?.trim());
+  const hasBaseCardInformation = hasName && hasContact;
 
   return (
     <div className="space-y-6">
@@ -78,7 +128,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
             Demande, photo et mode de remise de votre carte membre a 2900 F.
           </CardDescription>
         </div>
-        <Badge variant="warning">Paiement en attente d&apos;activation PayDunya prod</Badge>
+        <Badge variant="warning">Paiement bientot disponible</Badge>
       </div>
 
       {loadError ? (
@@ -121,7 +171,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <CardDescription>Photo</CardDescription>
-                  <CardTitle className="mt-2 text-2xl capitalize">{member.photo_status}</CardTitle>
+                  <CardTitle className="mt-2 text-2xl">{formatStatusLabel(member.photo_status)}</CardTitle>
                 </div>
                 <FileImage className="text-primary" size={22} />
               </div>
@@ -133,9 +183,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <CardDescription>Paiement</CardDescription>
-                  <CardTitle className="mt-2 text-2xl capitalize">
-                    {request?.payment_status ?? "unpaid"}
-                  </CardTitle>
+                  <CardTitle className="mt-2 text-2xl">{formatStatusLabel(request?.payment_status ?? "unpaid")}</CardTitle>
                 </div>
                 <CreditCard className="text-primary" size={22} />
               </div>
@@ -145,9 +193,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <CardDescription>Statut carte</CardDescription>
-                  <CardTitle className="mt-2 text-2xl capitalize">
-                    {request?.card_status ?? "draft"}
-                  </CardTitle>
+                  <CardTitle className="mt-2 text-2xl">{formatStatusLabel(request?.card_status ?? "draft")}</CardTitle>
                 </div>
                 <ShieldCheck className="text-primary" size={22} />
               </div>
@@ -157,9 +203,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <CardDescription>Remise</CardDescription>
-                  <CardTitle className="mt-2 text-2xl capitalize">
-                    {request?.delivery_mode ?? "pickup"}
-                  </CardTitle>
+                  <CardTitle className="mt-2 text-2xl">{formatDeliveryModeLabel(request?.delivery_mode)}</CardTitle>
                 </div>
                 <Truck className="text-primary" size={22} />
               </div>
@@ -182,8 +226,8 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
               <div>
                 <CardTitle>Configurer votre demande</CardTitle>
                 <CardDescription className="mt-2">
-                  Activez votre demande, ajoutez votre photo et precisez la remise. Le paiement
-                  sera branche des validation PayDunya production.
+                  Activez votre demande, ajoutez votre photo et precisez la remise. Le paiement en
+                  ligne n&apos;est pas encore ouvert.
                 </CardDescription>
               </div>
               {!requestEditable && request ? (
@@ -216,7 +260,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                     type="url"
                   />
                   <p className="text-xs text-muted">
-                    En attendant l&apos;upload direct, collez le lien de la photo a utiliser sur la carte.
+                    En attendant le televersement direct, collez le lien de la photo a utiliser sur la carte.
                   </p>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -283,10 +327,10 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                       {request?.requested ? "Demandee" : "Non demandee"}
                     </Badge>
                     <Badge variant={badgeVariant(request?.payment_status ?? "unpaid")}>
-                      {request?.payment_status ?? "unpaid"}
+                      {formatStatusLabel(request?.payment_status ?? "unpaid")}
                     </Badge>
                     <Badge variant={badgeVariant(request?.card_status ?? "draft")}>
-                      {request?.card_status ?? "draft"}
+                      {formatStatusLabel(request?.card_status ?? "draft")}
                     </Badge>
                   </div>
                 </div>
@@ -295,22 +339,67 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                     Photo
                   </p>
                   <div className="mt-3 flex items-center gap-2">
-                    <Badge variant={badgeVariant(member.photo_status)}>{member.photo_status}</Badge>
+                    <Badge variant={badgeVariant(member.photo_status)}>
+                      {formatStatusLabel(member.photo_status)}
+                    </Badge>
                   </div>
                   <p className="mt-3 text-sm text-muted">
                     {member.photo_url
                       ? "La photo est bien enregistree et pourra etre utilisee pour la generation."
-                      : "Ajoutez une photo pour que la carte puisse passer a l'etat ready apres paiement."}
+                      : "Ajoutez une photo pour permettre l'edition de la carte."}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border bg-muted-surface/60 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                    Informations disponibles
+                  </p>
+                  <dl className="mt-3 grid gap-3 text-sm">
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Nom complet</dt>
+                      <dd className="text-right font-medium">{fullName || "A completer"}</dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Telephone</dt>
+                      <dd className="text-right font-medium">{member.phone || "A completer"}</dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Email</dt>
+                      <dd className="text-right font-medium">{member.email || "A completer"}</dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Photo</dt>
+                      <dd className="text-right font-medium">{hasPhoto ? "Disponible" : "A fournir"}</dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Contact remise</dt>
+                      <dd className="text-right font-medium">
+                        {hasDeliveryContact ? defaultDeliveryContact : "A completer"}
+                      </dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted">Adresse livraison</dt>
+                      <dd className="text-right font-medium">
+                        {request?.delivery_mode === "delivery"
+                          ? hasDeliveryAddress
+                            ? "Renseignee"
+                            : "A completer"
+                          : "Non requise"}
+                      </dd>
+                    </div>
+                  </dl>
+                  <p className="mt-4 text-sm text-foreground/80">
+                    {hasBaseCardInformation
+                      ? "Les informations de base pour etablir une carte simple sont bien presentes. La photo reste indispensable avant edition."
+                      : "Completer au minimum le nom complet et un contact avant l'etablissement de la carte."}
                   </p>
                 </div>
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/70">
-                    Activation paiement
+                    Paiement
                   </p>
                   <p className="mt-3 text-sm text-foreground/80">
-                    Le module carte est visible et la demande peut etre capturee des maintenant. Le
-                    paiement en ligne sera reactive une fois la validation PayDunya production
-                    recue.
+                    La demande peut etre enregistree des maintenant. Le paiement en ligne sera active
+                    des son ouverture.
                   </p>
                 </div>
                 <Link href="/app/dons">

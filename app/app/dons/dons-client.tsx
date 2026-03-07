@@ -46,6 +46,16 @@ function statusVariant(status: DonationStatus): "default" | "success" | "warning
   return "default";
 }
 
+function formatDonationStatusLabel(status: DonationStatus): string {
+  if (status === "pledged") return "Enregistre";
+  if (status === "pending") return "En attente";
+  if (status === "paid") return "Paye";
+  if (status === "failed") return "Echec";
+  if (status === "cancelled") return "Annule";
+  if (status === "refunded") return "Rembourse";
+  return status;
+}
+
 export function DonsClient({
   canManage,
   initialQuery,
@@ -116,9 +126,8 @@ export function DonsClient({
             <div className="space-y-2">
               <CardTitle className="text-base">Paiement temporaire par mobile money</CardTitle>
               <CardDescription className="text-sm leading-6 text-foreground/80">
-                En attendant la validation KYC PayDunya en production, les dons sont enregistres
-                puis verifies manuellement par CZI. Apres le transfert, conservez votre reference
-                ou votre capture de paiement.
+                Les dons sont actuellement enregistres puis verifies manuellement par CZI. Apres le
+                transfert, conservez votre reference ou votre capture de paiement.
               </CardDescription>
             </div>
             {donationManualTransfers.map((transfer) => (
@@ -233,12 +242,12 @@ export function DonsClient({
           />
           <Select defaultValue={initialStatus} name="status">
             <option value="all">Tous les statuts</option>
-            <option value="pledged">pledged</option>
-            <option value="pending">pending</option>
-            <option value="paid">paid</option>
-            <option value="failed">failed</option>
-            <option value="cancelled">cancelled</option>
-            <option value="refunded">refunded</option>
+            <option value="pledged">Enregistre</option>
+            <option value="pending">En attente</option>
+            <option value="paid">Paye</option>
+            <option value="failed">Echec</option>
+            <option value="cancelled">Annule</option>
+            <option value="refunded">Rembourse</option>
           </Select>
           <Button type="submit" variant="secondary">
             Filtrer
@@ -289,7 +298,7 @@ export function DonsClient({
                   </td>
                   <td className="px-4 py-3 text-sm font-semibold">{formatAmount(item.amount_cfa)} F</td>
                   <td className="px-4 py-3 text-sm">
-                    <Badge variant={statusVariant(item.status)}>{item.status}</Badge>
+                    <Badge variant={statusVariant(item.status)}>{formatDonationStatusLabel(item.status)}</Badge>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted">
                     {formatDonationPaymentProvider(item.payment_provider)}

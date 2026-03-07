@@ -849,7 +849,7 @@ export async function createPaydunyaDonationCheckout(
     `/payments/paydunya/donations/${donationId}/checkout`,
     {
       body: JSON.stringify(payload ?? {}),
-      fallbackError: "Impossible de creer le lien PayDunya pour ce don.",
+      fallbackError: "Impossible de creer le lien de paiement pour ce don.",
       method: "POST",
     },
   );
@@ -867,7 +867,7 @@ export async function createPaydunyaMemberCardRequestCheckout(
     `/payments/paydunya/member-card-requests/${cardRequestId}/checkout`,
     {
       body: JSON.stringify(payload ?? {}),
-      fallbackError: "Impossible de creer le lien PayDunya pour cette carte.",
+      fallbackError: "Impossible de creer le lien de paiement pour cette carte.",
       method: "POST",
     },
   );
@@ -876,7 +876,7 @@ export async function createPaydunyaMemberCardRequestCheckout(
 export async function confirmPaydunyaToken(token: string) {
   return requestBackend<PaydunyaSyncResponse>("/payments/paydunya/confirm", {
     body: JSON.stringify({ token }),
-    fallbackError: "Impossible de synchroniser le statut PayDunya.",
+    fallbackError: "Impossible de synchroniser le statut du paiement.",
     method: "POST",
   });
 }

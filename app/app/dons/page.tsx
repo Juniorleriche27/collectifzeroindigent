@@ -60,7 +60,7 @@ export default async function DonsPage({ searchParams }: { searchParams: SearchP
         paymentError =
           error instanceof Error
             ? error.message
-            : "Impossible de synchroniser le statut PayDunya.";
+            : "Impossible de synchroniser le statut du paiement.";
       }
     } else if (paymentEvent === "callback") {
       paymentInfo =
