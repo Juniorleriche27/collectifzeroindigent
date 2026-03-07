@@ -13,6 +13,7 @@ import {
   Mail,
   Megaphone,
   MessagesSquare,
+  CreditCard,
   X,
   CircleHelp,
   CircleAlert,
@@ -46,6 +47,7 @@ const navItems: NavItem[] = [
   { href: "/app/communes-regions", icon: MapPin, label: "Communes/Regions" },
   { href: "/app/import-export", icon: ArrowUpDown, label: "Import/Export" },
   { href: "/app/parametres", icon: Settings, label: "Parametres" },
+  { href: "/app/carte-membre", icon: CreditCard, label: "Carte membre" },
   { href: "/app/dons", icon: HandCoins, label: "Dons" },
   { href: "/app/support", icon: CircleHelp, label: "Support" },
 ];

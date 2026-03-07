@@ -1,4 +1,4 @@
-import { FileDown } from "lucide-react";
+import { Download, FileDown, FileJson2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -19,9 +19,32 @@ export default function ExportPage() {
           MVP simple: export CSV des membres visibles selon vos droits RLS.
         </CardDescription>
         <div className="flex flex-wrap gap-3">
-          <Button>Exporter CSV</Button>
-          <Button variant="secondary">Exporter JSON</Button>
+          <form action="/api/exports/members" method="get">
+            <input name="format" type="hidden" value="csv" />
+            <Button type="submit">
+              <Download size={16} />
+              Exporter CSV
+            </Button>
+          </form>
+          <form action="/api/exports/members" method="get">
+            <input name="format" type="hidden" value="json" />
+            <Button type="submit" variant="secondary">
+              <FileJson2 size={16} />
+              Exporter JSON
+            </Button>
+          </form>
         </div>
+      </Card>
+
+      <Card className="space-y-4">
+        <div className="rounded-full bg-muted-surface p-4 text-muted w-fit">
+          <FileDown size={28} />
+        </div>
+        <CardTitle>Contenu exporte</CardTitle>
+        <CardDescription>
+          L&apos;export reprend les membres visibles selon vos droits, avec identite, contact,
+          localisation, mode d&apos;inscription, organisation et statut photo.
+        </CardDescription>
       </Card>
     </div>
   );

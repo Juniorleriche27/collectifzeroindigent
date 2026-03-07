@@ -1,5 +1,9 @@
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { getDashboardOverview } from "@/lib/backend/api";
+import { getCurrentMemberCardOverview } from "@/lib/supabase/member-card";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,10 +21,24 @@ export default async function DashboardPage() {
   ];
   let loadError: string | null = null;
   let loadNotice: string | null = null;
+  let cardRequestLabel = "Configurer ma carte";
+  let cardRequestHint = "Ajoutez photo, remise et demande membre depuis l'espace carte.";
 
   if (isSupabaseConfigured) {
     try {
       const overview = await getDashboardOverview();
+      const memberCardOverview = await getCurrentMemberCardOverview().catch(() => null);
+      if (memberCardOverview?.member) {
+        if (memberCardOverview.request?.requested) {
+          cardRequestLabel = "Suivre ma carte";
+          cardRequestHint = `Statut actuel: ${memberCardOverview.request.card_status} / paiement ${memberCardOverview.request.payment_status}.`;
+        } else {
+          cardRequestHint = "La demande de carte est disponible depuis votre espace membre.";
+        }
+      } else {
+        cardRequestLabel = "Terminer mon onboarding";
+        cardRequestHint = "La carte membre devient accessible juste apres la creation de la fiche.";
+      }
       kpis = [
         {
           label: "Membres visibles",
@@ -135,6 +153,18 @@ export default async function DashboardPage() {
           </Card>
         ))}
       </section>
+      <Card className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
+            Carte membre
+          </p>
+          <CardTitle className="mt-2">Activez la carte CZI</CardTitle>
+          <CardDescription className="mt-2">{cardRequestHint}</CardDescription>
+        </div>
+        <Link href={cardRequestLabel === "Terminer mon onboarding" ? "/onboarding" : "/app/carte-membre"}>
+          <Button>{cardRequestLabel}</Button>
+        </Link>
+      </Card>
     </div>
   );
 }

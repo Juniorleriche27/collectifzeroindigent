@@ -2,7 +2,7 @@
 
 Date de reference: 23 fevrier 2026  
 Objectif: livrer une plateforme stable et exploitable, avec preuves de QA et passation.
-MAJ locale: 7 mars 2026 (email reel valide en production via Resend; auth `mot de passe oublie` + module dons MVP + fondation SQL carte membre livres; PayDunya test sandbox valide; paiement production PayDunya bloque par KYC non valide; fallback temporaire dons via numeros mobiles Yas/Moov actif; page publique `Accueil + A propos` en ligne; lot `Partenariat` (4 actions) coche cote code, validation metier en attente).
+MAJ locale: 7 mars 2026 (email reel valide en production via Resend; auth `mot de passe oublie` + module dons MVP + fondation SQL carte membre livres; PayDunya test sandbox valide; paiement production PayDunya bloque par KYC non valide; fallback temporaire dons via numeros mobiles Yas/Moov actif; export membres CSV/JSON branche; page applicative `Carte membre` visible avec formulaire de demande/photo/remise; page publique `Accueil + A propos` en ligne; lot `Partenariat` (4 actions) coche cote code, validation metier en attente).
 
 ## Regle de pilotage
 
@@ -63,6 +63,7 @@ Scripts SQL disponibles a date:
 
 ### 5) Ecrans partiels
 - [x] Completer ou assumer explicitement les placeholders (`profils`, `communes-regions`, import/export avance).
+- [x] Rendre `Export` reel (CSV/JSON des membres visibles selon RLS) au lieu d'un bouton decoratif.
 - [x] Ajouter page `A propos` (contenu institutionnel CZI) en version interne + publique; validation coherence metier CZI en attente.
 
 ### 6) Historique des changements
@@ -174,7 +175,8 @@ Scripts SQL disponibles a date:
   - [x] contraintes de base + `unique(member_id)` (MVP 1 carte active/membre)
   - [x] trigger auto-ready (`requested=true`, `payment_status='paid'`, photo presente) avec generation auto `card_number`
   - [x] policies RLS membre vs CN/PF/Admin (socle)
-- [ ] Upload photo Supabase Storage (`member-photos/member/{member_id}/photo.jpg`) branche en front/back.
+- [x] Page applicative `Carte membre` visible dans le menu avec suivi statuts et formulaire de demande.
+- [ ] Upload photo Supabase Storage (`member-photos/member/{member_id}/photo.jpg`) branche en front/back. (Temporaire en ligne: lien photo URL pour rendre la demande visible et exploitable avant branchement storage)
 - [ ] Onboarding UX:
   - [ ] bloc "Carte de membre CZI - 2900 F"
   - [ ] checkbox demande carte

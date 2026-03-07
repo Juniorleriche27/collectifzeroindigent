@@ -1118,6 +1118,11 @@ export function OnboardingForm({
               Vos donnees sont sauvegardees localement a chaque etape tant que la soumission finale
               n&apos;est pas envoyee.
             </p>
+            <p className="mt-2">
+              Apres validation de votre fiche, vous retrouverez la nouvelle page{" "}
+              <strong>Carte membre</strong> dans la plateforme pour demander votre carte CZI a
+              2900 F, ajouter votre photo et preciser la remise.
+            </p>
           </div>
         </div>
       </section>
