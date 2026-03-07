@@ -14,8 +14,8 @@ type GalleryItem = {
 };
 
 const impactFigures = [
-  { label: "Vision", value: "ODD 1", detail: "Contribuer a eliminer l extreme pauvrete et la faim." },
-  { label: "Annee de creation", value: "2020", detail: "Collectif fonde le 17 avril 2020." },
+  { label: "Vision", value: "ODD 1", detail: "Contribuer a eliminer l'extreme pauvrete et la faim." },
+  { label: "Annee de creation", value: "2020", detail: "Le collectif est fonde le 17 avril 2020." },
   { label: "Axe structurants", value: "07", detail: "Insertion, inclusion, climat, paix, leadership..." },
 ];
 
@@ -360,4 +360,3 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
     </div>
   );
 }
-
