@@ -7,9 +7,9 @@ import { MemberContactLink } from "@/components/app/member-contact-link";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { getCurrentMember, getLocations, listMembers, listOrganisations } from "@/lib/backend/api";
-import { getProfileRoleByAuthUser } from "@/lib/supabase/profile";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getCurrentProfileRole } from "@/lib/supabase/profile-server";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -87,14 +87,11 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
 
   if (isSupabaseConfigured) {
     try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await getCurrentUser();
       if (user) {
-        const roleLookup = await getProfileRoleByAuthUser(supabase, user.id);
-        if (!roleLookup.error && roleLookup.role) {
-          currentRole = roleLookup.role.trim().toLowerCase();
+        const currentProfileRole = await getCurrentProfileRole();
+        if (currentProfileRole) {
+          currentRole = currentProfileRole.trim().toLowerCase();
         }
 
         if ((currentRole === "pf" || currentRole === "member") && !hasExplicitRegionFilter) {

@@ -1,8 +1,8 @@
 import { Card, CardDescription } from "@/components/ui/card";
 import { getCurrentMember } from "@/lib/backend/api";
-import { getProfileRoleByAuthUser } from "@/lib/supabase/profile";
+import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfileRole } from "@/lib/supabase/profile-server";
 
 import { ParametresClient } from "./parametres-client";
 
@@ -22,22 +22,30 @@ export default async function ParametresPage() {
 
   if (isSupabaseConfigured) {
     try {
-      const member = await getCurrentMember();
+      const [memberResult, userResult, roleResult] = await Promise.allSettled([
+        getCurrentMember(),
+        getCurrentUser(),
+        getCurrentProfileRole(),
+      ]);
+      const member = memberResult.status === "fulfilled" ? memberResult.value : null;
+      const user = userResult.status === "fulfilled" ? userResult.value : null;
+      const currentProfileRole = roleResult.status === "fulfilled" ? roleResult.value : null;
+      if (memberResult.status === "rejected") {
+        console.error("Unable to load current member for settings page", memberResult.reason);
+        loadError = "Impossible de charger les informations du compte.";
+      }
+      if (userResult.status === "rejected") {
+        console.error("Unable to load current user metadata for settings page", userResult.reason);
+      }
+      if (roleResult.status === "rejected") {
+        console.error("Unable to load current role for settings page", roleResult.reason);
+      }
       if (member) {
         defaults.firstName = member.first_name ?? defaults.firstName;
         defaults.lastName = member.last_name ?? defaults.lastName;
         defaults.phone = member.phone ?? defaults.phone;
         defaults.email = member.email ?? defaults.email;
       }
-    } catch {
-      loadError = "Impossible de charger les informations du compte.";
-    }
-
-    try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
 
       if (user) {
         const metadata = user.user_metadata as Record<string, unknown> | null;
@@ -51,16 +59,13 @@ export default async function ParametresPage() {
             defaults.notifications.securityAlerts = notificationObject.security_alerts;
           }
         }
-
-        const roleLookup = await getProfileRoleByAuthUser(supabase, user.id);
-        if (roleLookup.error) {
-          console.error("Unable to load profile role", roleLookup.error);
-        } else if (roleLookup.role) {
-          defaults.role = roleLookup.role;
-        }
+      }
+      if (currentProfileRole) {
+        defaults.role = currentProfileRole;
       }
     } catch (error) {
-      console.error("Unable to load auth metadata for settings", error);
+      console.error("Unable to load settings page data", error);
+      loadError = "Impossible de charger les informations du compte.";
     }
   }
 

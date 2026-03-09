@@ -1,9 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { getCurrentMember } from "@/lib/backend/api";
+import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getProfileRoleByAuthUser } from "@/lib/supabase/profile";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfileRole } from "@/lib/supabase/profile-server";
 
 function roleLabel(role: string): string {
   switch (role) {
@@ -47,24 +47,34 @@ export default async function ProfilsPage() {
 
   if (isSupabaseConfigured) {
     try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const [userResult, memberResult, roleResult] = await Promise.allSettled([
+        getCurrentUser(),
+        getCurrentMember(),
+        getCurrentProfileRole(),
+      ]);
+
+      const user = userResult.status === "fulfilled" ? userResult.value : null;
+      const member = memberResult.status === "fulfilled" ? memberResult.value : null;
+      const currentProfileRole = roleResult.status === "fulfilled" ? roleResult.value : null;
+      if (userResult.status === "rejected") {
+        console.error("Unable to load current user for profils page", userResult.reason);
+        loadError = "Impossible de charger toutes les informations profils.";
+      }
+      if (memberResult.status === "rejected") {
+        console.error("Unable to load current member for profils page", memberResult.reason);
+        loadError = "Impossible de charger toutes les informations profils.";
+      }
+      if (roleResult.status === "rejected") {
+        console.error("Unable to load current role for profils page", roleResult.reason);
+      }
 
       if (user) {
         userEmail = user.email ?? userEmail;
         userId = user.id;
-        const roleLookup = await getProfileRoleByAuthUser(supabase, user.id);
-        if (roleLookup.error) {
-          throw roleLookup.error;
-        }
-        if (roleLookup.role) {
-          role = roleLookup.role;
-        }
       }
-
-      const member = await getCurrentMember();
+      if (currentProfileRole) {
+        role = currentProfileRole;
+      }
       if (member) {
         firstName = member.first_name ?? firstName;
         lastName = member.last_name ?? lastName;

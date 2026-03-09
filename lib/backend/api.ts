@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { getCurrentAccessToken } from "@/lib/supabase/auth";
 
 export type RegionOption = {
@@ -319,26 +321,38 @@ async function requestBackend<T>(path: string, options: BackendRequestOptions = 
   return payload as T;
 }
 
-export async function getLocations() {
-  return requestBackend<{
+const readLocations = cache(async () =>
+  requestBackend<{
     communes: CommuneOption[];
     prefectures: PrefectureOption[];
     regions: RegionOption[];
   }>("/locations", {
     fallbackError: "Impossible de charger les localisations.",
-  });
+  }),
+);
+
+export async function getLocations() {
+  return readLocations();
 }
+
+const readCurrentMember = cache(async () =>
+  requestBackend<MemberRecord | null>("/members/me", {
+    fallbackError: "Impossible de charger votre profil membre.",
+  }),
+);
 
 export async function getCurrentMember() {
-  return requestBackend<MemberRecord | null>("/members/me", {
-    fallbackError: "Impossible de charger votre profil membre.",
-  });
+  return readCurrentMember();
 }
 
-export async function getDashboardOverview() {
-  return requestBackend<DashboardOverview>("/dashboard/overview", {
+const readDashboardOverview = cache(async () =>
+  requestBackend<DashboardOverview>("/dashboard/overview", {
     fallbackError: "Impossible de charger les indicateurs dashboard.",
-  });
+  }),
+);
+
+export async function getDashboardOverview() {
+  return readDashboardOverview();
 }
 
 export async function listMembers(filters?: {
@@ -377,10 +391,14 @@ export async function listMembers(filters?: {
   });
 }
 
-export async function getMemberById(memberId: string) {
-  return requestBackend<MemberRecord | null>(`/members/${memberId}`, {
+const readMemberById = cache(async (memberId: string) =>
+  requestBackend<MemberRecord | null>(`/members/${memberId}`, {
     fallbackError: "Impossible de charger ce membre.",
-  });
+  }),
+);
+
+export async function getMemberById(memberId: string) {
+  return readMemberById(memberId);
 }
 
 export async function updateMemberById(memberId: string, payload: Partial<MemberRecord>) {
@@ -468,7 +486,7 @@ export async function completeOnboarding(payload: {
   });
 }
 
-export async function listOrganisations(search?: string) {
+const readOrganisations = cache(async (search: string) => {
   const query = new URLSearchParams();
   if (search) {
     query.set("q", search);
@@ -483,6 +501,10 @@ export async function listOrganisations(search?: string) {
   }>(queryString ? `/organisations?${queryString}` : "/organisations", {
     fallbackError: "Impossible de charger les organisations.",
   });
+});
+
+export async function listOrganisations(search?: string) {
+  return readOrganisations(search?.trim() ?? "");
 }
 
 export async function createOrganisation(payload: {
@@ -496,7 +518,7 @@ export async function createOrganisation(payload: {
   });
 }
 
-export async function listAnnouncements(search?: string) {
+const readAnnouncements = cache(async (search: string) => {
   const query = new URLSearchParams();
   if (search) query.set("q", search);
   const queryString = query.toString();
@@ -508,6 +530,10 @@ export async function listAnnouncements(search?: string) {
   }>(queryString ? `/announcements?${queryString}` : "/announcements", {
     fallbackError: "Impossible de charger les communiques.",
   });
+});
+
+export async function listAnnouncements(search?: string) {
+  return readAnnouncements(search?.trim() ?? "");
 }
 
 export async function createAnnouncement(payload: {
@@ -690,7 +716,7 @@ export async function deleteConversationMessage(
   });
 }
 
-export async function listEmailCampaigns(search?: string) {
+const readEmailCampaigns = cache(async (search: string) => {
   const query = new URLSearchParams();
   if (search) query.set("q", search);
   const queryString = query.toString();
@@ -702,6 +728,10 @@ export async function listEmailCampaigns(search?: string) {
   }>(queryString ? `/email-campaigns?${queryString}` : "/email-campaigns", {
     fallbackError: "Impossible de charger les campagnes email.",
   });
+});
+
+export async function listEmailCampaigns(search?: string) {
+  return readEmailCampaigns(search?.trim() ?? "");
 }
 
 export async function createEmailCampaign(payload: {
@@ -747,7 +777,7 @@ export async function sendEmailCampaign(campaignId: string) {
   });
 }
 
-export async function listSupportAiHistory(limit?: number) {
+const readSupportAiHistory = cache(async (limit: number) => {
   const query = new URLSearchParams();
   if (limit && Number.isFinite(limit)) {
     query.set("limit", String(limit));
@@ -763,6 +793,10 @@ export async function listSupportAiHistory(limit?: number) {
   }>(queryString ? `/support-ai/history?${queryString}` : "/support-ai/history", {
     fallbackError: "Impossible de charger l'historique support IA.",
   });
+});
+
+export async function listSupportAiHistory(limit?: number) {
+  return readSupportAiHistory(limit && Number.isFinite(limit) ? limit : 0);
 }
 
 export async function askSupportAi(question: string) {

@@ -33,24 +33,30 @@ export default async function CampagnesEmailPage({ searchParams }: { searchParam
 
   if (isSupabaseConfigured) {
     try {
-      const locationData = await getLocations();
-      regions = locationData.regions;
-      prefectures = locationData.prefectures;
-      communes = locationData.communes;
+      const [locationResult, campaignResult] = await Promise.allSettled([
+        getLocations(),
+        listEmailCampaigns(query || undefined),
+      ]);
+      if (locationResult.status === "fulfilled") {
+        regions = locationResult.value.regions;
+        prefectures = locationResult.value.prefectures;
+        communes = locationResult.value.communes;
+      } else {
+        console.error("Unable to load locations for email campaigns", locationResult.reason);
+        loadError = toErrorMessage(locationResult.reason, "Impossible de charger les localisations.");
+      }
+      if (campaignResult.status === "fulfilled") {
+        items = campaignResult.value.items;
+        canManage = campaignResult.value.can_manage;
+        role = campaignResult.value.role;
+      } else {
+        console.error("Unable to load email campaigns", campaignResult.reason);
+        loadError =
+          loadError ?? toErrorMessage(campaignResult.reason, "Impossible de charger les campagnes email.");
+      }
     } catch (error) {
-      console.error("Unable to load locations for email campaigns", error);
-      loadError = toErrorMessage(error, "Impossible de charger les localisations.");
-    }
-
-    try {
-      const campaignData = await listEmailCampaigns(query || undefined);
-      items = campaignData.items;
-      canManage = campaignData.can_manage;
-      role = campaignData.role;
-    } catch (error) {
-      console.error("Unable to load email campaigns", error);
-      loadError =
-        loadError ?? toErrorMessage(error, "Impossible de charger les campagnes email.");
+      console.error("Unable to load email campaign data", error);
+      loadError = toErrorMessage(error, "Impossible de charger les campagnes email.");
     }
   } else {
     loadError = "Supabase non configure.";

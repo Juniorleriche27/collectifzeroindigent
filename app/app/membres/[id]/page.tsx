@@ -5,8 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { getLocations, getMemberById, listOrganisations } from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getProfileRoleByAuthUser } from "@/lib/supabase/profile";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfileRole, getProfileRoleByAuthUserId } from "@/lib/supabase/profile-server";
 
 import { MemberEditForm } from "./member-edit-form";
 import { MemberRoleForm } from "./member-role-form";
@@ -48,30 +47,27 @@ export default async function MemberDetailPage({
   let loadError: string | null = null;
 
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      const roleLookup = await getProfileRoleByAuthUser(supabase, user.id);
-      if (!roleLookup.error && roleLookup.role) {
-        currentRole = roleLookup.role.trim().toLowerCase();
-      }
-    }
-
-    const [memberData, locationData, organisationData] = await Promise.all([
+    const [currentProfileRole, memberData, locationData, organisationData] = await Promise.all([
+      getCurrentProfileRole(),
       getMemberById(id),
       getLocations(),
       listOrganisations(),
     ]);
+    if (currentProfileRole) {
+      currentRole = currentProfileRole.trim().toLowerCase();
+    }
     member = memberData;
     locations = locationData;
     organisations = organisationData.items;
 
     if (memberData?.user_id) {
-      const targetRoleLookup = await getProfileRoleByAuthUser(supabase, memberData.user_id);
-      if (!targetRoleLookup.error && targetRoleLookup.role) {
-        targetRole = targetRoleLookup.role.trim().toLowerCase();
+      try {
+        const targetProfileRole = await getProfileRoleByAuthUserId(memberData.user_id);
+        if (targetProfileRole) {
+          targetRole = targetProfileRole.trim().toLowerCase();
+        }
+      } catch (error) {
+        console.error("Unable to load target member role", error);
       }
     }
   } catch (error) {

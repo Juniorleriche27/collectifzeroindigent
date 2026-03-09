@@ -33,23 +33,30 @@ export default async function CommuniquesPage({ searchParams }: { searchParams: 
 
   if (isSupabaseConfigured) {
     try {
-      const locationData = await getLocations();
-      regions = locationData.regions;
-      prefectures = locationData.prefectures;
-      communes = locationData.communes;
+      const [locationResult, announcementsResult] = await Promise.allSettled([
+        getLocations(),
+        listAnnouncements(query || undefined),
+      ]);
+      if (locationResult.status === "fulfilled") {
+        regions = locationResult.value.regions;
+        prefectures = locationResult.value.prefectures;
+        communes = locationResult.value.communes;
+      } else {
+        console.error("Unable to load locations for announcements", locationResult.reason);
+        loadError = toErrorMessage(locationResult.reason, "Impossible de charger les localisations.");
+      }
+      if (announcementsResult.status === "fulfilled") {
+        items = announcementsResult.value.items;
+        canManage = announcementsResult.value.can_manage;
+        role = announcementsResult.value.role;
+      } else {
+        console.error("Unable to load announcements", announcementsResult.reason);
+        loadError =
+          loadError ?? toErrorMessage(announcementsResult.reason, "Impossible de charger les communiques.");
+      }
     } catch (error) {
-      console.error("Unable to load locations for announcements", error);
-      loadError = toErrorMessage(error, "Impossible de charger les localisations.");
-    }
-
-    try {
-      const result = await listAnnouncements(query || undefined);
-      items = result.items;
-      canManage = result.can_manage;
-      role = result.role;
-    } catch (error) {
-      console.error("Unable to load announcements", error);
-      loadError = loadError ?? toErrorMessage(error, "Impossible de charger les communiques.");
+      console.error("Unable to load communiques data", error);
+      loadError = toErrorMessage(error, "Impossible de charger les communiques.");
     }
   } else {
     loadError = "Supabase non configure.";
