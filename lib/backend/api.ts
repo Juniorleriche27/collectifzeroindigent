@@ -355,7 +355,7 @@ export async function getDashboardOverview() {
   return readDashboardOverview();
 }
 
-export async function listMembers(filters?: {
+type ListMembersFilters = {
   commune_id?: string;
   organisation_id?: string;
   page?: number;
@@ -365,7 +365,10 @@ export async function listMembers(filters?: {
   region_id?: string;
   sort?: string;
   status?: string;
-}) {
+};
+
+const readMembers = cache(async (serializedFilters: string) => {
+  const filters = serializedFilters ? (JSON.parse(serializedFilters) as ListMembersFilters) : undefined;
   const query = new URLSearchParams();
 
   if (filters?.q) query.set("q", filters.q);
@@ -389,6 +392,10 @@ export async function listMembers(filters?: {
   }>(path, {
     fallbackError: "Impossible de charger la liste des membres.",
   });
+});
+
+export async function listMembers(filters?: ListMembersFilters) {
+  return readMembers(filters ? JSON.stringify(filters) : "");
 }
 
 const readMemberById = cache(async (memberId: string) =>
@@ -591,10 +598,15 @@ export async function deleteAnnouncement(announcementId: string) {
   });
 }
 
-export async function listConversations(filters?: {
+type ListConversationsFilters = {
   conversation_type?: ConversationType;
   q?: string;
-}) {
+};
+
+const readConversations = cache(async (serializedFilters: string) => {
+  const filters = serializedFilters
+    ? (JSON.parse(serializedFilters) as ListConversationsFilters)
+    : undefined;
   const query = new URLSearchParams();
   if (filters?.conversation_type) query.set("conversation_type", filters.conversation_type);
   if (filters?.q) query.set("q", filters.q);
@@ -606,6 +618,10 @@ export async function listConversations(filters?: {
   }>(queryString ? `/conversations?${queryString}` : "/conversations", {
     fallbackError: "Impossible de charger les discussions.",
   });
+});
+
+export async function listConversations(filters?: ListConversationsFilters) {
+  return readConversations(filters ? JSON.stringify(filters) : "");
 }
 
 export async function createConversation(payload: {
@@ -634,23 +650,37 @@ export async function deleteConversation(conversationId: string) {
   });
 }
 
+type ListConversationMessagesOptions = {
+  before?: string;
+  limit?: number;
+};
+
+const readConversationMessages = cache(
+  async (conversationId: string, serializedOptions: string) => {
+    const options = serializedOptions
+      ? (JSON.parse(serializedOptions) as ListConversationMessagesOptions)
+      : undefined;
+    const query = new URLSearchParams();
+    if (options?.before) query.set("before", options.before);
+    if (options?.limit) query.set("limit", String(options.limit));
+    const queryString = query.toString();
+
+    return requestBackend<{ items: ConversationMessage[] }>(
+      queryString
+        ? `/conversations/${conversationId}/messages?${queryString}`
+        : `/conversations/${conversationId}/messages`,
+      {
+        fallbackError: "Impossible de charger les messages.",
+      },
+    );
+  },
+);
+
 export async function listConversationMessages(
   conversationId: string,
-  options?: { before?: string; limit?: number },
+  options?: ListConversationMessagesOptions,
 ) {
-  const query = new URLSearchParams();
-  if (options?.before) query.set("before", options.before);
-  if (options?.limit) query.set("limit", String(options.limit));
-  const queryString = query.toString();
-
-  return requestBackend<{ items: ConversationMessage[] }>(
-    queryString
-      ? `/conversations/${conversationId}/messages?${queryString}`
-      : `/conversations/${conversationId}/messages`,
-    {
-      fallbackError: "Impossible de charger les messages.",
-    },
-  );
+  return readConversationMessages(conversationId, options ? JSON.stringify(options) : "");
 }
 
 export async function postConversationMessage(
@@ -813,10 +843,15 @@ export async function askSupportAi(question: string) {
   });
 }
 
-export async function listDonations(filters?: {
+type ListDonationsFilters = {
   q?: string;
   status?: DonationStatus;
-}) {
+};
+
+const readDonations = cache(async (serializedFilters: string) => {
+  const filters = serializedFilters
+    ? (JSON.parse(serializedFilters) as ListDonationsFilters)
+    : undefined;
   const query = new URLSearchParams();
   if (filters?.q) query.set("q", filters.q);
   if (filters?.status) query.set("status", filters.status);
@@ -830,6 +865,10 @@ export async function listDonations(filters?: {
   }>(queryString ? `/donations?${queryString}` : "/donations", {
     fallbackError: "Impossible de charger les dons.",
   });
+});
+
+export async function listDonations(filters?: ListDonationsFilters) {
+  return readDonations(filters ? JSON.stringify(filters) : "");
 }
 
 export async function createDonation(payload: {

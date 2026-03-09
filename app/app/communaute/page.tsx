@@ -28,6 +28,8 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
   const query = paramValue(params.q).trim();
   const conversationType = paramValue(params.conversation_type);
   const selectedConversationParam = paramValue(params.conversation);
+  const normalizedConversationType =
+    conversationType === "community" || conversationType === "direct" ? conversationType : "";
 
   let loadError: string | null = null;
   let currentMemberId: string | null = null;
@@ -38,20 +40,30 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
 
   if (isSupabaseConfigured) {
     try {
-      const [conversationData, memberData] = await Promise.all([
+      const selectedMessagesPromise = selectedConversationParam
+        ? listConversationMessages(selectedConversationParam, { limit: 80 })
+        : null;
+
+      const [conversationResult, memberResult, selectedMessagesResult] = await Promise.allSettled([
         listConversations({
-          conversation_type:
-            conversationType === "community" || conversationType === "direct"
-              ? conversationType
-              : undefined,
+          conversation_type: normalizedConversationType || undefined,
           q: query || undefined,
         }),
         listMembers({ page: 1, page_size: 50 }),
+        selectedMessagesPromise ?? Promise.resolve(null),
       ]);
 
-      currentMemberId = conversationData.current_member_id;
-      items = conversationData.items;
-      members = memberData.rows;
+      if (conversationResult.status === "fulfilled") {
+        currentMemberId = conversationResult.value.current_member_id;
+        items = conversationResult.value.items;
+      } else {
+        throw conversationResult.reason;
+      }
+      if (memberResult.status === "fulfilled") {
+        members = memberResult.value.rows;
+      } else {
+        console.error("Unable to load community members list", memberResult.reason);
+      }
 
       if (selectedConversationParam && items.some((item) => item.id === selectedConversationParam)) {
         selectedConversationId = selectedConversationParam;
@@ -60,8 +72,18 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
       }
 
       if (selectedConversationId) {
-        const messageData = await listConversationMessages(selectedConversationId, { limit: 80 });
-        messages = messageData.items;
+        const prefetchedMessages =
+          selectedConversationId === selectedConversationParam &&
+          selectedMessagesResult.status === "fulfilled"
+            ? selectedMessagesResult.value
+            : null;
+
+        if (prefetchedMessages) {
+          messages = prefetchedMessages.items;
+        } else {
+          const messageData = await listConversationMessages(selectedConversationId, { limit: 80 });
+          messages = messageData.items;
+        }
       }
     } catch (error) {
       console.error("Unable to load communaute data", error);
@@ -74,7 +96,7 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
   return (
     <CommunauteClient
       currentMemberId={currentMemberId}
-      initialConversationType={conversationType}
+      initialConversationType={normalizedConversationType}
       initialQuery={query}
       items={items}
       loadError={loadError}
