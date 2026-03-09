@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentAccessToken } from "@/lib/supabase/auth";
 
 export type RegionOption = {
   id: string;
@@ -283,17 +283,12 @@ function toErrorMessage(payload: unknown, fallback: string): string {
 }
 
 async function getAccessToken(): Promise<string> {
-  const supabase = await createClient();
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-
-  if (error || !session?.access_token) {
+  const accessToken = await getCurrentAccessToken();
+  if (!accessToken) {
     throw new Error("Session invalide. Reconnectez-vous.");
   }
 
-  return session.access_token;
+  return accessToken;
 }
 
 async function requestBackend<T>(path: string, options: BackendRequestOptions = {}): Promise<T> {

@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { createClient } from "@/lib/supabase/server";
 import { getProfileMemberIdByAuthUser } from "@/lib/supabase/profile";
 
@@ -34,7 +36,7 @@ export type MemberListItem = {
   created_at?: string | null;
 };
 
-export async function getMemberForUser(userId: string): Promise<{ id: string } | null> {
+const readMemberForUser = cache(async (userId: string): Promise<{ id: string } | null> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("member")
@@ -47,9 +49,9 @@ export async function getMemberForUser(userId: string): Promise<{ id: string } |
   }
 
   return data;
-}
+});
 
-export async function getLinkedMemberIdFromProfile(userId: string): Promise<string | null> {
+const readLinkedMemberIdFromProfile = cache(async (userId: string): Promise<string | null> => {
   const supabase = await createClient();
   const { error, memberId } = await getProfileMemberIdByAuthUser(supabase, userId);
 
@@ -58,6 +60,14 @@ export async function getLinkedMemberIdFromProfile(userId: string): Promise<stri
   }
 
   return memberId;
+});
+
+export async function getMemberForUser(userId: string): Promise<{ id: string } | null> {
+  return readMemberForUser(userId);
+}
+
+export async function getLinkedMemberIdFromProfile(userId: string): Promise<string | null> {
+  return readLinkedMemberIdFromProfile(userId);
 }
 
 export async function getOnboardingLocations(): Promise<{

@@ -26,8 +26,19 @@ export default async function DashboardPage() {
 
   if (isSupabaseConfigured) {
     try {
-      const overview = await getDashboardOverview();
-      const memberCardOverview = await getCurrentMemberCardOverview().catch(() => null);
+      const [overviewResult, memberCardResult] = await Promise.allSettled([
+        getDashboardOverview(),
+        getCurrentMemberCardOverview(),
+      ]);
+      const memberCardOverview =
+        memberCardResult.status === "fulfilled" ? memberCardResult.value : null;
+
+      if (overviewResult.status !== "fulfilled") {
+        throw overviewResult.reason;
+      }
+
+      const overview = overviewResult.value;
+
       if (memberCardOverview?.member) {
         if (memberCardOverview.request?.requested) {
           cardRequestLabel = "Suivre ma carte";

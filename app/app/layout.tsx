@@ -7,7 +7,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Input } from "@/components/ui/input";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getLinkedMemberIdFromProfile } from "@/lib/supabase/member";
+import { getMemberForUser } from "@/lib/supabase/member";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
 
     let linkedMemberId: string | null = null;
     try {
-      linkedMemberId = await getLinkedMemberIdFromProfile(user.id);
+      linkedMemberId = (await getMemberForUser(user.id))?.id ?? null;
     } catch (error) {
       console.error("Unable to check linked member in app layout", error);
     }
