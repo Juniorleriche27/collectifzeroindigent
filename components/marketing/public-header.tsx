@@ -71,4 +71,3 @@ export function PublicHeader({ showAboutLink = true }: PublicHeaderProps) {
     </header>
   );
 }
-

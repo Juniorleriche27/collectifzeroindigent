@@ -7,19 +7,19 @@ const pillars = [
     icon: Users,
     label: "Identité",
     value:
-      "CZI est un réseau de jeunes engagés au service des ODD, organise autour de la cooperation entre acteurs de jeunesse.",
+      "CZI est un réseau de jeunes engagés au service des ODD, organisé autour de la coopération entre acteurs de jeunesse.",
   },
   {
     icon: Handshake,
     label: "Création",
     value:
-      "Le réseau est constitué officiellement le 17 avril 2020 par 15 associations et ONG de jeunesse.",
+      "Le réseau a été constitué officiellement le 17 avril 2020 par 15 associations et ONG de jeunesse.",
   },
   {
     icon: Target,
     label: "Priorité",
     value:
-      "La priorit stratgique est l'ODD 1, avec des actions concrtes pour l'inclusion, l'insertion et l'autonomisation.",
+      "La priorité stratégique est l'ODD 1, avec des actions concrètes pour l'inclusion, l'insertion et l'autonomisation.",
   },
 ];
 
@@ -50,9 +50,9 @@ export default function AProposPage() {
           Collectif Zéro Indigent (CZI)
         </h2>
         <p className="mt-3 max-w-4xl text-sm leading-relaxed text-foreground/85">
-          CZI est un rseau de jeunes qui mobilise la synergie dactions pour accelerer l’atteinte
-          des Objectifs de Dveloppement Durable. Le cadre institutionnel met l?accent sur
-          l’accompagnement, la formation, l’insertion et l’entrepreneuriat des jeunes.
+          CZI est un réseau de jeunes qui mobilise la synergie d’actions pour accélérer l’atteinte des
+          Objectifs de Développement Durable. Le cadre institutionnel met l’accent sur l’accompagnement,
+          la formation, l’insertion et l’entrepreneuriat des jeunes.
         </p>
       </section>
 

@@ -21,11 +21,11 @@ const impactFigures = [
 
 const strategicAxes = [
   "Promouvoir l'autonomisation économique des femmes et des jeunes.",
-  "Contribuer a l'amélioration de la sante des populations.",
+  "Contribuer à l'amélioration de la santé des populations.",
   "Faciliter la transition école-marché du travail des jeunes.",
-  "Promouvoir des mecanismes d'inclusion pour les publics vulnérables.",
+  "Promouvoir des mécanismes d'inclusion pour les publics vulnérables.",
   "Renforcer l'engagement citoyen, le leadership et la bonne gouvernance.",
-  "Developper la résilience face au réchauffement climatique.",
+  "Développer la résilience face au réchauffement climatique.",
   "Renforcer la collaboration État-jeunesse pour la paix sociale.",
 ];
 
@@ -101,8 +101,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                   className="max-w-2xl text-base leading-relaxed text-[#3f5f73] sm:text-lg"
                   style={{ fontFamily: "var(--font-marketing-body), var(--font-sans), sans-serif" }}
                 >
-                  CZI mobilise la jeunesse, les associations et les entrepreneurs autour d’une ambition claire:
-                  transformer l’engagement citoyen en impact concret pour les communautes.
+                  CZI mobilise la jeunesse, les associations et les entrepreneurs autour d’une ambition claire :
+                  transformer l’engagement citoyen en impact concret pour les communautés.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -122,7 +122,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                   className="rounded-full border border-transparent px-3 py-3 text-sm font-bold text-[#1b4d67] underline-offset-4 transition hover:underline"
                   href="/app/dashboard"
                 >
-                  Accéder a la plateforme
+                  Accéder à la plateforme
                 </Link>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -181,11 +181,11 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                 className="text-3xl font-extrabold leading-tight text-[#102e46] sm:text-4xl"
                 style={{ fontFamily: "var(--font-marketing-display), var(--font-sans), sans-serif" }}
               >
-                Une jeunesse qui agit pour des communautes plus resilientes.
+                Une jeunesse qui agit pour des communautés plus résilientes.
               </h2>
               <p className="text-base leading-relaxed text-[#48697f]">
-                Le Collectif Zéro Indigent est un réseau de jeunes, d’associations et d’entrepreneurs mobilisés pour
-                accelerer l’atteinte des ODD, avec un focus prioritaire sur la lutte contre la pauvreté et
+                Le Collectif Zéro Indigent est un réseau de jeunes, d’associations et d’entrepreneurs mobilisés
+                pour accélérer l’atteinte des ODD, avec un focus prioritaire sur la lutte contre la pauvreté et
                 l’autonomisation durable.
               </p>
               <div className="rounded-2xl bg-[#f1f8fd] p-5">
@@ -215,7 +215,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                 <article className="rounded-2xl border border-[#c9ddec] bg-[#f9fdff] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#507086]">La vision</p>
                   <p className="mt-2 text-sm leading-relaxed text-[#2b5067]">
-                    Contribuer, grce  la synergie dactions des jeunes,  l’atteinte des ODD.
+                    Contribuer, grâce à la synergie d’actions des jeunes, à l’atteinte des ODD.
                   </p>
                 </article>
                 <article className="rounded-2xl border border-[#c9ddec] bg-[#f9fdff] p-4">

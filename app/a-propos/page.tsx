@@ -46,9 +46,9 @@ export default function PublicAboutPage() {
               Construire un avenir durable avec la jeunesse.
             </h1>
             <p className="text-base leading-relaxed text-[#48697f]">
-              Le Collectif Zro Indigent (CZI) est un cadre dengagement citoyen et entrepreneurial fond par des
-              jeunes pour des jeunes, avec pour objectif de transformer les communauts par l’innovation sociale,
-              conomique et environnementale.
+              Le Collectif Zéro Indigent (CZI) est un cadre d’engagement citoyen et entrepreneurial fondé par
+              des jeunes pour des jeunes, avec pour objectif de transformer les communautés par l’innovation
+              sociale, économique et environnementale.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
@@ -87,12 +87,14 @@ export default function PublicAboutPage() {
             </h2>
             <div className="mt-4 space-y-4 text-sm leading-relaxed text-[#355a73]">
               <p>
-                <span className="font-bold text-[#174764]">Vision:</span> contribuer, grce  la synergie dactions
-                des jeunes,  l’atteinte des Objectifs de Dveloppement Durable, avec un accent sur l’ODD 1.
+                <span className="font-bold text-[#174764]">Vision :</span> contribuer, grâce à la synergie
+                d’actions des jeunes, à l’atteinte des Objectifs de Développement Durable, avec un accent sur
+                l’ODD 1.
               </p>
               <p>
-                <span className="font-bold text-[#174764]">Mission:</span> outiller, orienter et accompagner les
-                jeunes pour accelerer leur insertion, promouvoir l’innovation, l’entrepreneuriat et l’impact social.
+                <span className="font-bold text-[#174764]">Mission :</span> outiller, orienter et accompagner
+                les jeunes pour accélérer leur insertion, promouvoir l’innovation, l’entrepreneuriat et
+                l’impact social.
               </p>
             </div>
           </article>
@@ -130,7 +132,7 @@ export default function PublicAboutPage() {
               className="text-2xl font-extrabold text-[#0f2d44]"
               style={{ fontFamily: "var(--font-marketing-display), var(--font-sans), sans-serif" }}
             >
-              Domaines d intervention
+              Domaines d’intervention
             </h3>
             <ul className="mt-4 grid gap-3 text-sm text-[#355a73]">
               {domains.map((domain) => (
@@ -166,4 +168,3 @@ export default function PublicAboutPage() {
     </div>
   );
 }
-

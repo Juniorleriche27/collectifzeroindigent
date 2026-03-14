@@ -25,4 +25,3 @@ export function PublicFooter() {
     </footer>
   );
 }
-
