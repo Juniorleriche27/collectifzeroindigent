@@ -39,33 +39,33 @@ function badgeVariant(
 function formatStatusLabel(value: string | null | undefined): string {
   switch (value) {
     case "unpaid":
-      return "Non paye";
+      return "Non payé";
     case "pending":
       return "En attente";
     case "paid":
-      return "Paye";
+      return "Payé";
     case "failed":
-      return "Echec";
+      return "Échec";
     case "refunded":
-      return "Rembourse";
+      return "Remboursé";
     case "draft":
       return "Brouillon";
     case "ready":
-      return "Prete";
+      return "Prête";
     case "printed":
-      return "Imprimee";
+      return "Imprimée";
     case "delivered":
-      return "Livree";
+      return "Livrée";
     case "cancelled":
-      return "Annulee";
+      return "Annulée";
     case "missing":
       return "Photo manquante";
     case "uploaded":
-      return "Photo recue";
+      return "Photo reçue";
     case "approved":
-      return "Photo validee";
+      return "Photo validée";
     case "rejected":
-      return "Photo rejetee";
+      return "Photo rejetée";
     default:
       return value || "-";
   }
@@ -103,7 +103,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
   const request = overview?.request ?? null;
   const requestEditable = request ? canEditRequest(request.payment_status, request.card_status) : true;
   const formDisabled = !member || !requestEditable;
-  const cardLabel = request?.card_number ?? "Aucun numero genere pour le moment";
+  const cardLabel = request?.card_number ?? "Aucun numéro généré pour le moment";
   const defaultDeliveryContact = member
     ? request?.delivery_contact ||
       [member.first_name, member.last_name].filter(Boolean).join(" ") ||
@@ -128,10 +128,10 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
           <p className="text-sm font-semibold uppercase tracking-wider text-primary">Carte membre</p>
           <h2 className="mt-1 text-3xl font-semibold tracking-tight">Carte de membre CZI</h2>
           <CardDescription className="mt-2">
-            Demande, photo et mode de remise de votre carte membre a 2900 F.
+            Demande, photo et mode de remise de votre carte de membre à 2900 F.
           </CardDescription>
         </div>
-        <Badge variant="warning">Paiement bientot disponible</Badge>
+        <Badge variant="warning">Paiement bientôt disponible</Badge>
       </div>
 
       {loadError ? (
@@ -152,16 +152,16 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
 
       {!member && !loadError ? (
         <Card className="space-y-4">
-          <CardTitle>Onboarding requis</CardTitle>
+          <CardTitle>Fiche membre requise</CardTitle>
           <CardDescription>
-            La carte membre devient disponible apres la creation de votre fiche membre.
+            La carte de membre devient disponible après la création de votre fiche membre.
           </CardDescription>
           <div className="flex flex-wrap gap-3">
             <Link href="/onboarding">
-              <Button>Completer l&apos;onboarding</Button>
+              <Button>Compléter ma fiche membre</Button>
             </Link>
             <Link href="/app/dashboard">
-              <Button variant="secondary">Retour dashboard</Button>
+              <Button variant="secondary">Retour au tableau de bord</Button>
             </Link>
           </div>
         </Card>
@@ -179,7 +179,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                 <FileImage className="text-primary" size={22} />
               </div>
               <p className="mt-3 text-sm text-muted">
-                {member.photo_preview_url ? "Photo enregistree." : "Aucune photo enregistree."}
+                {member.photo_preview_url ? "Photo enregistrée." : "Aucune photo enregistrée."}
               </p>
               {member.photo_preview_url ? (
                 <div className="mt-4 overflow-hidden rounded-xl border border-border">
@@ -220,7 +220,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                 <Truck className="text-primary" size={22} />
               </div>
               <p className="mt-3 text-sm text-muted">
-                {request?.delivery_contact || member.phone || member.email || "Contact a definir"}
+                {request?.delivery_contact || member.phone || member.email || "Contact à définir"}
               </p>
             </Card>
           </section>
@@ -228,7 +228,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
           {member.photo_rejection_reason ? (
             <Card>
               <CardDescription className="text-amber-700">
-                Photo rejetee: {member.photo_rejection_reason}
+                Photo rejetée: {member.photo_rejection_reason}
               </CardDescription>
             </Card>
           ) : null}
@@ -238,14 +238,14 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
               <div>
                 <CardTitle>Configurer votre demande</CardTitle>
                 <CardDescription className="mt-2">
-                  Activez votre demande, ajoutez votre photo et precisez la remise. Le paiement en
+                  Activez votre demande, ajoutez votre photo et précisez la remise. Le paiement en
                   ligne n&apos;est pas encore ouvert.
                 </CardDescription>
               </div>
               {!requestEditable && request ? (
                 <CardDescription className="text-amber-700">
-                  Cette demande n&apos;est plus modifiable depuis votre espace car elle est deja en
-                  traitement ou finalisee.
+                  Cette demande n&apos;est plus modifiable depuis votre espace car elle est déjà en
+                  traitement ou finalisée.
                 </CardDescription>
               ) : null}
               <form action={saveMemberCardRequestAction} className="grid gap-4">
@@ -283,14 +283,14 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="delivery-contact">
-                      Contact remise
+                      Contact de remise
                     </label>
                     <Input
                       defaultValue={defaultDeliveryContact}
                       disabled={formDisabled}
                       id="delivery-contact"
                       name="delivery_contact"
-                      placeholder="Nom et telephone"
+                      placeholder="Nom et téléphone"
                     />
                   </div>
                 </div>
@@ -304,15 +304,15 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                     disabled={formDisabled}
                     id="delivery-address"
                     name="delivery_address"
-                    placeholder="Commune, quartier, precision de remise"
+                    placeholder="Commune, quartier, précision de remise"
                   />
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <Button disabled={formDisabled} type="submit">
-                    {request ? "Mettre a jour la demande" : "Enregistrer la demande"}
+                    {request ? "Mettre à jour la demande" : "Enregistrér la demande"}
                   </Button>
                   <Button disabled type="button" variant="secondary">
-                    Paiement bientot disponible
+                    Paiement bientôt disponible
                   </Button>
                 </div>
               </form>
@@ -327,7 +327,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                   </p>
                   <div className="mt-3 flex items-center gap-2">
                     <Badge variant={request?.requested ? "success" : "default"}>
-                      {request?.requested ? "Demandee" : "Non demandee"}
+                      {request?.requested ? "Demandée" : "Non demandée"}
                     </Badge>
                     <Badge variant={badgeVariant(request?.payment_status ?? "unpaid")}>
                       {formatStatusLabel(request?.payment_status ?? "unpaid")}
@@ -348,8 +348,8 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                   </div>
                   <p className="mt-3 text-sm text-muted">
                     {member.photo_url
-                      ? "La photo est bien enregistree et pourra etre utilisee pour la generation."
-                      : "Ajoutez une photo pour permettre l'edition de la carte."}
+                      ? "La photo est bien enregistrée et pourra être utilisée pour la génération."
+                      : "Ajoutez une photo pour permettre l'édition de la carte."}
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-muted-surface/60 p-4">
@@ -359,40 +359,40 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                   <dl className="mt-3 grid gap-3 text-sm">
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted">Nom complet</dt>
-                      <dd className="text-right font-medium">{fullName || "A completer"}</dd>
+                      <dd className="text-right font-medium">{fullName || "A compléter"}</dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
-                      <dt className="text-muted">Telephone</dt>
-                      <dd className="text-right font-medium">{member.phone || "A completer"}</dd>
+                      <dt className="text-muted">Téléphone</dt>
+                      <dd className="text-right font-medium">{member.phone || "A compléter"}</dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted">Email</dt>
-                      <dd className="text-right font-medium">{member.email || "A completer"}</dd>
+                      <dd className="text-right font-medium">{member.email || "A compléter"}</dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted">Photo</dt>
-                      <dd className="text-right font-medium">{hasPhoto ? "Disponible" : "A fournir"}</dd>
+                      <dd className="text-right font-medium">{hasPhoto ? "Disponible" : "À fournir"}</dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted">Profil CZI</dt>
-                      <dd className="text-right font-medium">{member.join_mode || "A completer"}</dd>
+                      <dd className="text-right font-medium">{member.join_mode || "A compléter"}</dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted">Cellule principale</dt>
-                      <dd className="text-right font-medium">{member.cellule_primary || "A completer"}</dd>
+                      <dd className="text-right font-medium">{member.cellule_primary || "A compléter"}</dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted">Profession</dt>
-                      <dd className="text-right font-medium">{member.profession_title || "A completer"}</dd>
+                      <dd className="text-right font-medium">{member.profession_title || "A compléter"}</dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
-                      <dt className="text-muted">Localite</dt>
-                      <dd className="text-right font-medium">{member.locality || "A completer"}</dd>
+                      <dt className="text-muted">Localité</dt>
+                      <dd className="text-right font-medium">{member.locality || "A compléter"}</dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
-                      <dt className="text-muted">Contact remise</dt>
+                      <dt className="text-muted">Contact de remise</dt>
                       <dd className="text-right font-medium">
-                        {hasDeliveryContact ? defaultDeliveryContact : "A completer"}
+                        {hasDeliveryContact ? defaultDeliveryContact : "A compléter"}
                       </dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
@@ -400,16 +400,16 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                       <dd className="text-right font-medium">
                         {request?.delivery_mode === "delivery"
                           ? hasDeliveryAddress
-                            ? "Renseignee"
-                            : "A completer"
+                            ? "Renseignée"
+                            : "A compléter"
                           : "Non requise"}
                       </dd>
                     </div>
                   </dl>
                   <p className="mt-4 text-sm text-foreground/80">
                     {hasBaseCardInformation
-                      ? "Les informations de base pour etablir une carte simple sont bien presentes. La photo reste indispensable avant edition."
-                      : "Completer au minimum le nom complet et un contact avant l'etablissement de la carte."}
+                      ? "Les informations de base pour établir une carte simple sont bien présentes. La photo reste indispensable avant édition."
+                      : "Complétez au minimum le nom complet et un contact avant l'établissement de la carte."}
                   </p>
                 </div>
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
@@ -417,7 +417,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                     Paiement
                   </p>
                   <p className="mt-3 text-sm text-foreground/80">
-                    La demande peut etre enregistree des maintenant. Le paiement en ligne sera active
+                    La demande peut être enregistrée dès maintenant. Le paiement en ligne sera activé
                     des son ouverture.
                   </p>
                 </div>

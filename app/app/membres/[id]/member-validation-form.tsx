@@ -57,7 +57,7 @@ export function MemberValidationForm({ member }: MemberValidationFormProps) {
       <form className="grid gap-4 md:grid-cols-2" action={formAction}>
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="validation-decision">
-            Decision
+            Décision
           </label>
           <Select
             id="validation-decision"
@@ -80,7 +80,7 @@ export function MemberValidationForm({ member }: MemberValidationFormProps) {
             name="cellule_primary"
             required
           >
-            <option value="engaged">Engage</option>
+            <option value="engaged">Engagé</option>
             <option value="entrepreneur">Entrepreneur</option>
             <option value="org_leader">Leader organisation</option>
           </Select>
@@ -95,7 +95,7 @@ export function MemberValidationForm({ member }: MemberValidationFormProps) {
             name="cellule_secondary"
           >
             <option value="">Aucune</option>
-            <option value="engaged">Engage</option>
+            <option value="engaged">Engagé</option>
             <option value="entrepreneur">Entrepreneur</option>
             <option value="org_leader">Leader organisation</option>
           </Select>

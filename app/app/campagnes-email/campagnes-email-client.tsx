@@ -57,10 +57,10 @@ function scopeText(
 ): string {
   if (item.audience_scope === "all") return "Tous les membres";
   if (item.audience_scope === "region") {
-    return `Region: ${maps.regions.get(String(item.region_id)) ?? "-"}`;
+    return `Région: ${maps.regions.get(String(item.region_id)) ?? "-"}`;
   }
   if (item.audience_scope === "prefecture") {
-    return `Prefecture: ${maps.prefectures.get(String(item.prefecture_id)) ?? "-"}`;
+    return `Préfecture: ${maps.prefectures.get(String(item.prefecture_id)) ?? "-"}`;
   }
   return `Commune: ${maps.communes.get(String(item.commune_id)) ?? "-"}`;
 }
@@ -127,7 +127,7 @@ export function CampagnesEmailClient({
           <p className="text-sm font-semibold uppercase tracking-wider text-primary">Campagnes email</p>
           <h2 className="mt-1 text-3xl font-semibold tracking-tight">Diffusion en masse</h2>
           <CardDescription className="mt-2">
-            Envoi cible a toutes les regions, ou par region/prefecture/commune.
+            Envoi ciblé à toutes les régions, ou par région/préfecture/commune.
           </CardDescription>
         </div>
         <Button disabled={!canManage} onClick={() => canManage && setOpen(true)}>
@@ -138,7 +138,7 @@ export function CampagnesEmailClient({
       {!canManage ? (
         <Card>
           <CardDescription className="text-amber-700">
-            Acces reserve a admin/ca/cn/pf/equipe communication. Role detecte: {role ?? "member"}.
+            Accès réservé à admin/ca/cn/pf/équipe communication. Rôle détecté : {role ?? "member"}.
           </CardDescription>
         </Card>
       ) : null}
@@ -146,7 +146,7 @@ export function CampagnesEmailClient({
       {role ? (
         <Card>
           <CardDescription>
-            Role actif: <span className="font-semibold text-foreground">{role}</span>
+            Rôle actif: <span className="font-semibold text-foreground">{role}</span>
           </CardDescription>
         </Card>
       ) : null}
@@ -186,7 +186,7 @@ export function CampagnesEmailClient({
           </Button>
           <Link href="/app/campagnes-email">
             <Button type="button" variant="ghost">
-              Reinitialiser
+              Réinitialiser
             </Button>
           </Link>
         </form>
@@ -203,7 +203,7 @@ export function CampagnesEmailClient({
           </div>
           <CardTitle className="mt-4">Aucune campagne</CardTitle>
           <CardDescription className="mt-2">
-            Creer une campagne pour communiquer rapidement avec le reseau.
+            Créer une campagne pour communiquer rapidement avec le réseau.
           </CardDescription>
         </Card>
       ) : (
@@ -224,7 +224,7 @@ export function CampagnesEmailClient({
                   Destinataires
                 </th>
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                  Creee le
+                  Créée le
                 </th>
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
                   Actions
@@ -245,7 +245,7 @@ export function CampagnesEmailClient({
                   <td className="px-4 py-3 text-sm text-muted">
                     {item.stats.total} total
                     <br />
-                    {item.stats.pending} pending / {item.stats.sent} sent
+                    {item.stats.pending} en attente / {item.stats.sent} envoyés
                   </td>
                   <td className="px-4 py-3 text-sm text-muted">
                     {new Date(item.created_at).toLocaleString("fr-FR")}
@@ -311,7 +311,7 @@ export function CampagnesEmailClient({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="campaign-provider">
-                  Provider
+                  Canal d’envoi
                 </label>
                 <Input
                   defaultValue="resend"
@@ -340,14 +340,14 @@ export function CampagnesEmailClient({
                   }}
                 >
                   <option value="all">Tous les membres</option>
-                  <option value="region">Par region</option>
-                  <option value="prefecture">Par prefecture</option>
+                  <option value="region">Par région</option>
+                  <option value="prefecture">Par préfecture</option>
                   <option value="commune">Par commune</option>
                 </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="campaign-region">
-                  Region
+                  Région
                 </label>
                 <Select
                   disabled={scopeType === "all"}
@@ -358,7 +358,7 @@ export function CampagnesEmailClient({
                     setSelectedPrefecture("");
                   }}
                 >
-                  <option value="">Selectionner une region</option>
+                  <option value="">Sélectionner une région</option>
                   {regions.map((region) => (
                     <option key={region.id} value={region.id}>
                       {region.name}
@@ -368,7 +368,7 @@ export function CampagnesEmailClient({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="campaign-prefecture">
-                  Prefecture
+                  Préfecture
                 </label>
                 <Select
                   disabled={scopeType === "all"}
@@ -382,7 +382,7 @@ export function CampagnesEmailClient({
                     }
                   }}
                 >
-                  <option value="">Selectionner une prefecture</option>
+                  <option value="">Sélectionner une préfecture</option>
                   {availablePrefectures.map((prefecture) => (
                     <option key={prefecture.id} value={prefecture.id}>
                       {prefecture.name}
@@ -414,7 +414,7 @@ export function CampagnesEmailClient({
                     }
                   }}
                 >
-                  <option value="">Selectionner une commune</option>
+                  <option value="">Sélectionner une commune</option>
                   {availableCommunes.map((commune) => (
                     <option key={commune.id} value={commune.id}>
                       {commune.name}
@@ -430,7 +430,7 @@ export function CampagnesEmailClient({
               ) : null}
               <div className="md:col-span-2">
                 <Button disabled={createPending} type="submit">
-                  {createPending ? "Creation..." : "Creer la campagne"}
+                  {createPending ? "Création..." : "Créer la campagne"}
                 </Button>
               </div>
             </form>

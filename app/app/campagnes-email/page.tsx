@@ -59,7 +59,7 @@ export default async function CampagnesEmailPage({ searchParams }: { searchParam
       loadError = toErrorMessage(error, "Impossible de charger les campagnes email.");
     }
   } else {
-    loadError = "Supabase non configure.";
+    loadError = "Supabase non configuré.";
   }
 
   return (

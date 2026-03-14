@@ -26,7 +26,7 @@ export async function askSupportAiAction(
   formData: FormData,
 ): Promise<SupportAskState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const question = formValue(formData, "question");
@@ -44,6 +44,6 @@ export async function askSupportAiAction(
   }
 
   revalidatePath("/app/support");
-  return { error: null, success: "Reponse IA enregistree." };
+  return { error: null, success: "Réponse IA enregistrée." };
 }
 

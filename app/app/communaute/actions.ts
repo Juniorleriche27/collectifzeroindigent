@@ -40,7 +40,7 @@ export async function createConversationAction(
   formData: FormData,
 ): Promise<ConversationActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const conversationType = formValue(formData, "conversation_type");
@@ -54,7 +54,7 @@ export async function createConversationAction(
 
   if (conversationType === "direct") {
     if (!participantMemberId) {
-      return { error: "Selectionnez un membre pour le message prive.", success: null };
+      return { error: "Sélectionnez un membre pour le message privé.", success: null };
     }
     try {
       await createConversation({
@@ -64,21 +64,21 @@ export async function createConversationAction(
       });
     } catch (error) {
       return {
-        error: toErrorMessage(error, "Impossible de creer la conversation privee."),
+        error: toErrorMessage(error, "Impossible de créer la conversation privée."),
         success: null,
       };
     }
 
     revalidatePath("/app/communaute");
-    return { error: null, success: "Conversation privee creee." };
+    return { error: null, success: "Conversation privée créée." };
   }
 
   if (!title) {
-    return { error: "Le titre est obligatoire pour une sous-communaute.", success: null };
+    return { error: "Le titre est obligatoire pour une sous-communauté.", success: null };
   }
 
   if (!parentConversationId) {
-    return { error: "Selectionnez une communaute de cellule.", success: null };
+    return { error: "Sélectionnez une communauté de cellule.", success: null };
   }
 
   try {
@@ -89,13 +89,13 @@ export async function createConversationAction(
     });
   } catch (error) {
     return {
-      error: toErrorMessage(error, "Impossible de creer la sous-communaute."),
+      error: toErrorMessage(error, "Impossible de créer la sous-communauté."),
       success: null,
     };
   }
 
   revalidatePath("/app/communaute");
-  return { error: null, success: "Sous-communaute creee." };
+  return { error: null, success: "Sous-communauté créée." };
 }
 
 export async function postConversationMessageAction(
@@ -103,7 +103,7 @@ export async function postConversationMessageAction(
   formData: FormData,
 ): Promise<ConversationActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const conversationId = formValue(formData, "conversation_id");
@@ -132,7 +132,7 @@ export async function postConversationMessageAction(
   revalidatePath(`/app/communaute?conversation=${conversationId}`);
   return {
     error: null,
-    success: parentMessageId ? "Commentaire envoye." : "Message envoye.",
+    success: parentMessageId ? "Commentaire envoyé." : "Message envoyé.",
   };
 }
 
@@ -141,7 +141,7 @@ export async function editConversationMessageAction(
   formData: FormData,
 ): Promise<ConversationActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const conversationId = formValue(formData, "conversation_id");
@@ -167,7 +167,7 @@ export async function editConversationMessageAction(
 
   revalidatePath("/app/communaute");
   revalidatePath(`/app/communaute?conversation=${conversationId}`);
-  return { error: null, success: "Message modifie." };
+  return { error: null, success: "Message modifié." };
 }
 
 export async function toggleConversationMessageLikeAction(
@@ -193,7 +193,7 @@ export async function deleteConversationAction(
   formData: FormData,
 ): Promise<ConversationActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const conversationId = formValue(formData, "conversation_id");
@@ -205,13 +205,13 @@ export async function deleteConversationAction(
     await deleteConversation(conversationId);
   } catch (error) {
     return {
-      error: toErrorMessage(error, "Impossible de supprimer cette sous-communaute."),
+      error: toErrorMessage(error, "Impossible de supprimer cette sous-communauté."),
       success: null,
     };
   }
 
   revalidatePath("/app/communaute");
-  return { error: null, success: "Sous-communaute supprimee." };
+  return { error: null, success: "Sous-communauté supprimée." };
 }
 
 export async function deleteConversationMessageAction(
@@ -219,7 +219,7 @@ export async function deleteConversationMessageAction(
   formData: FormData,
 ): Promise<ConversationActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const conversationId = formValue(formData, "conversation_id");
@@ -239,5 +239,5 @@ export async function deleteConversationMessageAction(
 
   revalidatePath("/app/communaute");
   revalidatePath(`/app/communaute?conversation=${conversationId}`);
-  return { error: null, success: "Message supprime." };
+  return { error: null, success: "Message supprimé." };
 }

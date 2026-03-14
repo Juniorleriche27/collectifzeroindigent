@@ -51,7 +51,7 @@ function normalizeOnboardingError(message: string): string {
   if (/infinite recursion detected in policy.*member/i.test(message)) {
     return (
       "Erreur RLS sur la table member (policy recursive). " +
-      "Appliquez le script SQL `sql/2026-02-21_fix_member_profile_rls.sql` dans Supabase, puis reessayez."
+      "Appliquez le script SQL `sql/2026-02-21_fix_member_profile_rls.sql` dans Supabase, puis réessayez."
     );
   }
   return message;
@@ -64,7 +64,7 @@ export async function submitOnboarding(
   if (!isSupabaseConfigured) {
     return {
       error:
-        "Supabase non configure. Ajoutez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+        "Supabase n'est pas configuré. Ajoutez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY.",
     };
   }
 
@@ -139,15 +139,15 @@ export async function submitOnboarding(
   const consentAiTrainingAgg = formBoolean(formData, "consent_ai_training_agg");
 
   if (!firstName || !lastName || !phone) {
-    return { error: "Etape 1 incomplete: renseignez prenom, nom et telephone." };
+    return { error: "Étape 1 incomplète : renseignez le prénom, le nom et le téléphone." };
   }
 
   if (!regionId || !prefectureId || !communeId) {
-    return { error: "Etape 2 incomplete: selectionnez region, prefecture et commune." };
+    return { error: "Étape 2 incomplète : sélectionnez la région, la préfecture et la commune." };
   }
 
   if (!joinMode) {
-    return { error: "Etape 3 incomplete: selectionnez le type d'inscription." };
+    return { error: "Étape 3 incomplète : sélectionnez le type d'inscription." };
   }
 
   if (!joinModes.has(joinMode)) {
@@ -171,29 +171,29 @@ export async function submitOnboarding(
   }
 
   if (!birthDate && !ageRange) {
-    return { error: "Date de naissance ou tranche d'age obligatoire." };
+    return { error: "Date de naissance ou tranche d'ge obligatoire." };
   }
 
   if (!educationLevel || !occupationStatus) {
-    return { error: "Niveau d'education et statut professionnel obligatoires." };
+    return { error: "Niveau d'éducation et statut professionnel obligatoires." };
   }
 
   if (!goalShortTerm) {
-    return { error: "Objectif a 3-6 mois obligatoire." };
+    return { error: "Objectif à 3-6 mois obligatoire." };
   }
 
   if (!contactPreferenceValues.has(contactPreference)) {
-    return { error: "Preference de contact invalide." };
+    return { error: "Préférence de contact invalide." };
   }
 
   const skillsList = parseCsv(skillsText);
   if (skillsList.length === 0) {
-    return { error: "Veuillez saisir au moins une competence." };
+    return { error: "Veuillez saisir au moins une compétence." };
   }
 
   const interests = parseCsv(interestsText);
   if (interests.length === 0) {
-    return { error: "Veuillez saisir au moins un centre d'interet." };
+    return { error: "Veuillez saisir au moins un centre d'intérêt." };
   }
 
   const oddPriorities = oddPrioritiesRaw
@@ -201,7 +201,7 @@ export async function submitOnboarding(
     .filter((value) => Number.isInteger(value));
 
   if (oddPriorities.length === 0) {
-    return { error: "Selectionnez entre 1 et 3 ODD prioritaires." };
+    return { error: "Sélectionnez entre 1 et 3 ODD prioritaires." };
   }
   if (oddPriorities.length > 3) {
     return { error: "Maximum 3 ODD prioritaires." };
@@ -211,7 +211,7 @@ export async function submitOnboarding(
   }
 
   if (supportTypes.length === 0) {
-    return { error: "Veuillez selectionner au moins un type de support." };
+    return { error: "Veuillez s?lectionner au moins un type de support." };
   }
 
   if (!consentTerms) {
@@ -240,7 +240,7 @@ export async function submitOnboarding(
   if (cellulePrimary === "engaged") {
     if (engagementDomains.length === 0 || !engagementFrequency || !engagementRecentAction) {
       return {
-        error: "Pour le profil engage, domaines, frequence et action recente sont obligatoires.",
+        error: "Pour le profil engagé, les domaines, la fréquence et l'action récente sont obligatoires.",
       };
     }
   }
@@ -248,7 +248,7 @@ export async function submitOnboarding(
   if (cellulePrimary === "entrepreneur") {
     if (!businessStage || !businessSector || businessNeeds.length === 0) {
       return {
-        error: "Pour le profil entrepreneur, stade, secteur et besoins business sont obligatoires.",
+        error: "Pour le profil entrepreneur, le stade, le secteur et les besoins du projet sont obligatoires.",
       };
     }
   }
@@ -256,7 +256,7 @@ export async function submitOnboarding(
   if (cellulePrimary === "org_leader") {
     if (!orgRole || !orgNameDeclared) {
       return {
-        error: "Pour le profil responsable organisation, role et nom declare sont obligatoires.",
+        error: "Pour le profil responsable d'organisation, le rôle et le nom déclaré sont obligatoires.",
       };
     }
   }
@@ -311,7 +311,7 @@ export async function submitOnboarding(
   } catch (error) {
     return {
       error: normalizeOnboardingError(
-        error instanceof Error ? error.message : "Impossible de finaliser l'onboarding.",
+        error instanceof Error ? error.message : "Impossible de finaliser la fiche membre.",
       ),
     };
   }

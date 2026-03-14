@@ -23,7 +23,7 @@ export default function LoginPage() {
     setErrorMessage(null);
 
     if (!isSupabaseConfigured) {
-      setErrorMessage("Supabase non configure. Ajoutez les variables d'environnement.");
+      setErrorMessage("Supabase non configuré. Ajoutez les variables d'environnement.");
       return;
     }
 
@@ -55,7 +55,7 @@ export default function LoginPage() {
       <CziBrand subtitle={false} />
       <CardTitle className="mt-2">Connexion</CardTitle>
       <CardDescription className="mt-2">
-        Accedez a votre espace membre pour continuer.
+        Accédez a votre espace membre pour continuer.
       </CardDescription>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <div className="space-y-2">
@@ -86,7 +86,7 @@ export default function LoginPage() {
         </div>
         <p className="text-right text-sm">
           <Link className="font-semibold text-primary" href="/forgot-password">
-            Mot de passe oublie ?
+            Mot de passe oublié ?
           </Link>
         </p>
         {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
@@ -95,9 +95,9 @@ export default function LoginPage() {
         </Button>
       </form>
       <p className="mt-6 text-sm text-muted">
-        Pas encore de compte?{" "}
+        Pas encore de compte ?{" "}
         <Link className="font-semibold text-primary" href="/signup">
-          Creer un compte
+          Créer un compte
         </Link>
       </p>
     </Card>

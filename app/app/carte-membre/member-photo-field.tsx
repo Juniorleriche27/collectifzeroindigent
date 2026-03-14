@@ -63,7 +63,7 @@ export function MemberPhotoField({
           ) : (
             <div className="flex flex-col items-center gap-2 px-3 text-center text-xs text-muted">
               <ImagePlus size={22} />
-              <span>Apercu photo</span>
+              <span>Aperçu photo</span>
             </div>
           )}
         </div>
@@ -96,10 +96,10 @@ export function MemberPhotoField({
           />
 
           <div className="space-y-1 text-xs text-muted">
-            <p>Formats autorises: JPG, PNG, WEBP.</p>
+            <p>Formats autorisés : JPG, PNG, WEBP.</p>
             <p>Taille maximale: {Math.round(MEMBER_PHOTO_MAX_SIZE_BYTES / (1024 * 1024))} Mo.</p>
             <p>Statut actuel: {currentStatusLabel}.</p>
-            {selectedFileName ? <p>Fichier selectionne: {selectedFileName}</p> : null}
+            {selectedFileName ? <p>Fichier sélectionné : {selectedFileName}</p> : null}
           </div>
 
           {currentPhotoExists ? (

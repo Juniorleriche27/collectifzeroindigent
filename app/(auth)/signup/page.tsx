@@ -28,7 +28,7 @@ export default function SignupPage() {
     setInfoMessage(null);
 
     if (!isSupabaseConfigured) {
-      setErrorMessage("Supabase non configure. Ajoutez les variables d'environnement.");
+      setErrorMessage("Supabase non configuré. Ajoutez les variables d'environnement.");
       return;
     }
 
@@ -64,7 +64,7 @@ export default function SignupPage() {
       }
 
       setInfoMessage(
-        "Compte cree. Verifiez votre email pour confirmer l'inscription, puis connectez-vous.",
+        "Compte créé. Vérifiez votre email pour confirmer l'inscription, puis connectez-vous.",
       );
     } finally {
       setLoading(false);
@@ -76,7 +76,7 @@ export default function SignupPage() {
       <CziBrand subtitle={false} />
       <CardTitle className="mt-2">Inscription</CardTitle>
       <CardDescription className="mt-2">
-        Creez un compte pour demarrer votre onboarding.
+        Créez un compte pour démarrer votre intégration.
       </CardDescription>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <div className="space-y-2">
@@ -112,7 +112,7 @@ export default function SignupPage() {
           <Input
             id="signup-password-confirm"
             type="password"
-            placeholder="Retapez le mot de passe"
+            placeholder="Rétapez le mot de passe"
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
             required
@@ -127,19 +127,19 @@ export default function SignupPage() {
             value={joinMode}
             onChange={(event) => setJoinMode(event.target.value)}
           >
-            <option value="personal">Personal</option>
+            <option value="personal">Individuel</option>
             <option value="association">Association</option>
-            <option value="enterprise">Enterprise</option>
+            <option value="enterprise">Entreprise</option>
           </Select>
         </div>
         {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
         {infoMessage ? <p className="text-sm text-emerald-700">{infoMessage}</p> : null}
         <Button className="w-full" type="submit" disabled={loading}>
-          {loading ? "Creation..." : "Creer mon compte"}
+          {loading ? "Création..." : "Créer mon compte"}
         </Button>
       </form>
       <p className="mt-6 text-sm text-muted">
-        Deja inscrit?{" "}
+        Déjà inscrit ?{" "}
         <Link className="font-semibold text-primary" href="/login">
           Se connecter
         </Link>

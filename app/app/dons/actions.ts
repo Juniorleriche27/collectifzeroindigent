@@ -54,7 +54,7 @@ export async function createDonationAction(
   formData: FormData,
 ): Promise<DonationActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const amountRaw = formValue(formData, "amount_cfa");
@@ -100,7 +100,7 @@ export async function updateDonationStatusAction(
   formData: FormData,
 ): Promise<DonationActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const donationId = formValue(formData, "donation_id");
@@ -118,11 +118,11 @@ export async function updateDonationStatusAction(
     revalidatePath("/app/dons");
     return {
       error: null,
-      success: response.message || "Don mis a jour.",
+      success: response.message || "Don mis à jour.",
     };
   } catch (error) {
     return {
-      error: toErrorMessage(error, "Impossible de mettre a jour ce don."),
+      error: toErrorMessage(error, "Impossible de mettre à jour ce don."),
       success: null,
     };
   }
@@ -133,7 +133,7 @@ export async function startDonationPaydunyaCheckoutAction(
   formData: FormData,
 ): Promise<DonationCheckoutActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const donationId = formValue(formData, "donation_id");
@@ -155,7 +155,7 @@ export async function startDonationPaydunyaCheckoutAction(
     redirect(response.invoice_url);
   } catch (error) {
     return {
-      error: toErrorMessage(error, "Impossible de demarrer le paiement en ligne."),
+      error: toErrorMessage(error, "Impossible de démarrer le paiement en ligne."),
       success: null,
     };
   }

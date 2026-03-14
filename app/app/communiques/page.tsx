@@ -59,7 +59,7 @@ export default async function CommuniquesPage({ searchParams }: { searchParams: 
       loadError = toErrorMessage(error, "Impossible de charger les communiques.");
     }
   } else {
-    loadError = "Supabase non configure.";
+    loadError = "Supabase non configuré.";
   }
 
   return (

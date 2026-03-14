@@ -48,10 +48,10 @@ export default async function CommunesRegionsPage({
       communes = locations.communes;
     } catch (error) {
       console.error("Unable to load territorial data", error);
-      loadError = "Impossible de charger les donnees territoriales.";
+      loadError = "Impossible de charger les données territoriales.";
     }
   } else {
-    loadError = "Supabase non configure. Ajoutez les variables d'environnement.";
+    loadError = "Supabase non configuré. Ajoutez les variables d'environnement.";
   }
 
   const regionById = new Map(regions.map((region) => [region.id, region]));
@@ -93,7 +93,7 @@ export default async function CommunesRegionsPage({
     <div className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-wider text-primary">
-          Communes/Regions
+          Communes/Régions
         </p>
         <h2 className="mt-1 text-3xl font-semibold tracking-tight">Gestion territoriale</h2>
       </div>
@@ -107,9 +107,9 @@ export default async function CommunesRegionsPage({
       <Card className="space-y-4">
         <CardTitle className="text-base">Recherche et filtres</CardTitle>
         <form className="grid gap-3 md:grid-cols-4" method="get">
-          <Input defaultValue={query} name="q" placeholder="Recherche (region, prefecture, commune)" />
+          <Input defaultValue={query} name="q" placeholder="Recherche (région, préfecture, commune)" />
           <Select defaultValue={regionId} name="region_id">
-            <option value="">Toutes regions</option>
+            <option value="">Toutes les régions</option>
             {sortByName(regions).map((region) => (
               <option key={region.id} value={region.id}>
                 {region.name}
@@ -117,7 +117,7 @@ export default async function CommunesRegionsPage({
             ))}
           </Select>
           <Select defaultValue={prefectureId} name="prefecture_id">
-            <option value="">Toutes prefectures</option>
+            <option value="">Toutes les préfectures</option>
             {filteredPrefectures.map((prefecture) => (
               <option key={prefecture.id} value={prefecture.id}>
                 {prefecture.name}
@@ -128,7 +128,7 @@ export default async function CommunesRegionsPage({
             <Button type="submit">Appliquer</Button>
             <Link href="/app/communes-regions">
               <Button type="button" variant="ghost">
-                Reinitialiser
+                Réinitialiser
               </Button>
             </Link>
           </div>
@@ -137,11 +137,11 @@ export default async function CommunesRegionsPage({
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardDescription>Regions</CardDescription>
+          <CardDescription>Régions</CardDescription>
           <CardTitle className="mt-2 text-3xl">{visibleRegions.length}</CardTitle>
         </Card>
         <Card>
-          <CardDescription>Prefectures</CardDescription>
+          <CardDescription>Préfectures</CardDescription>
           <CardTitle className="mt-2 text-3xl">{visiblePrefectures.length}</CardTitle>
         </Card>
         <Card>
@@ -152,10 +152,10 @@ export default async function CommunesRegionsPage({
 
       <section className="grid gap-4 xl:grid-cols-3">
         <Card className="space-y-3">
-          <CardTitle className="text-base">Liste des regions</CardTitle>
+          <CardTitle className="text-base">Liste des régions</CardTitle>
           <div className="max-h-80 space-y-2 overflow-auto pr-1">
             {visibleRegions.length === 0 ? (
-              <CardDescription>Aucune region.</CardDescription>
+              <CardDescription>Aucune région.</CardDescription>
             ) : (
               visibleRegions.map((region) => (
                 <div key={region.id} className="rounded-lg border border-border px-3 py-2 text-sm">
@@ -167,10 +167,10 @@ export default async function CommunesRegionsPage({
         </Card>
 
         <Card className="space-y-3">
-          <CardTitle className="text-base">Liste des prefectures</CardTitle>
+          <CardTitle className="text-base">Liste des préfectures</CardTitle>
           <div className="max-h-80 space-y-2 overflow-auto pr-1">
             {visiblePrefectures.length === 0 ? (
-              <CardDescription>Aucune prefecture.</CardDescription>
+              <CardDescription>Aucune préfecture.</CardDescription>
             ) : (
               visiblePrefectures.map((prefecture) => (
                 <div key={prefecture.id} className="rounded-lg border border-border px-3 py-2 text-sm">

@@ -14,35 +14,35 @@ type GalleryItem = {
 };
 
 const impactFigures = [
-  { label: "Vision", value: "ODD 1", detail: "Contribuer a eliminer l'extreme pauvrete et la faim." },
-  { label: "Annee de creation", value: "2020", detail: "Le collectif est fonde le 17 avril 2020." },
-  { label: "Axe structurants", value: "07", detail: "Insertion, inclusion, climat, paix, leadership..." },
+  { label: "Vision", value: "ODD 1", detail: "Contribuer à éliminer l'extrême pauvreté et la faim." },
+  { label: "Année de création", value: "2020", detail: "Le collectif est fondé le 17 avril 2020." },
+  { label: "Axes structurants", value: "07", detail: "Insertion, inclusion, climat, paix, leadership..." },
 ];
 
 const strategicAxes = [
-  "Promouvoir l'autonomisation economique des femmes et des jeunes.",
-  "Contribuer a l'amelioration de la sante des populations.",
-  "Faciliter la transition ecole-marche du travail des jeunes.",
-  "Promouvoir des mecanismes d'inclusion pour les publics vulnerables.",
+  "Promouvoir l'autonomisation économique des femmes et des jeunes.",
+  "Contribuer a l'amélioration de la sante des populations.",
+  "Faciliter la transition école-marché du travail des jeunes.",
+  "Promouvoir des mecanismes d'inclusion pour les publics vulnérables.",
   "Renforcer l'engagement citoyen, le leadership et la bonne gouvernance.",
-  "Developper la resilience face au rechauffement climatique.",
-  "Renforcer la collaboration Etat-jeunesse pour la paix sociale.",
+  "Developper la résilience face au réchauffement climatique.",
+  "Renforcer la collaboration État-jeunesse pour la paix sociale.",
 ];
 
 const focusDomains = [
-  "Citoyennete et developpement local",
-  "Sante et bien-etre",
-  "Inclusion, securite et droits humains",
-  "Insertion professionnelle et croissance economique",
-  "Climat et energies renouvelables",
+  "Citoyenneté et développement local",
+  "Santé et bien-être",
+  "Inclusion, sécurité et droits humains",
+  "Insertion professionnelle et croissance économique",
+  "Climat et énergies renouvelables",
 ];
 
 const gallery: GalleryItem[] = [
   { src: "/brand/gallery/czi-photo-08.jpg", alt: "Grande mobilisation CZI" },
-  { src: "/brand/gallery/czi-photo-01.jpg", alt: "Jeunes engages CZI" },
+  { src: "/brand/gallery/czi-photo-01.jpg", alt: "Jeunes engagés CZI" },
   { src: "/brand/gallery/czi-photo-02.jpg", alt: "Action terrain CZI" },
   { src: "/brand/gallery/czi-photo-03.jpg", alt: "Programme social CZI" },
-  { src: "/brand/gallery/czi-photo-04.jpg", alt: "Equipe locale CZI" },
+  { src: "/brand/gallery/czi-photo-04.jpg", alt: "Équipe locale CZI" },
   { src: "/brand/gallery/czi-photo-06.jpg", alt: "Dialogue communautaire CZI" },
 ];
 
@@ -87,7 +87,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 pb-18 pt-14 sm:px-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:px-8 lg:pb-24">
             <div className="space-y-8">
               <p className="inline-flex items-center rounded-full border border-[#c7deee] bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#2f5e7b]">
-                Collectif Zero Indigent
+                Collectif Zéro Indigent
               </p>
               <div className="space-y-5">
                 <h1
@@ -101,8 +101,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                   className="max-w-2xl text-base leading-relaxed text-[#3f5f73] sm:text-lg"
                   style={{ fontFamily: "var(--font-marketing-body), var(--font-sans), sans-serif" }}
                 >
-                  CZI mobilise la jeunesse, les associations et les entrepreneurs autour d une ambition claire:
-                  transformer l engagement citoyen en impact concret pour les communautes.
+                  CZI mobilise la jeunesse, les associations et les entrepreneurs autour d’une ambition claire:
+                  transformer l’engagement citoyen en impact concret pour les communautes.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -122,7 +122,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                   className="rounded-full border border-transparent px-3 py-3 text-sm font-bold text-[#1b4d67] underline-offset-4 transition hover:underline"
                   href="/app/dashboard"
                 >
-                  Acceder a la plateforme
+                  Accéder a la plateforme
                 </Link>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -176,7 +176,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8" id="apropos">
           <div className="grid gap-10 rounded-[2rem] border border-[#cbe0ee] bg-white/85 p-8 shadow-[0_30px_70px_rgba(18,45,65,0.08)] lg:grid-cols-[0.92fr_1.08fr]">
             <div className="space-y-4">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#3d6a86]">A propos du CZI</p>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#3d6a86]">À propos du CZI</p>
               <h2
                 className="text-3xl font-extrabold leading-tight text-[#102e46] sm:text-4xl"
                 style={{ fontFamily: "var(--font-marketing-display), var(--font-sans), sans-serif" }}
@@ -184,20 +184,20 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                 Une jeunesse qui agit pour des communautes plus resilientes.
               </h2>
               <p className="text-base leading-relaxed text-[#48697f]">
-                Le Collectif Zero Indigent est un reseau de jeunes, d associations et d entrepreneurs mobilises pour
-                accelerer l atteinte des ODD, avec un focus prioritaire sur la lutte contre la pauvrete et
-                l autonomisation durable.
+                Le Collectif Zéro Indigent est un réseau de jeunes, d’associations et d’entrepreneurs mobilisés pour
+                accelerer l’atteinte des ODD, avec un focus prioritaire sur la lutte contre la pauvreté et
+                l’autonomisation durable.
               </p>
               <div className="rounded-2xl bg-[#f1f8fd] p-5">
                 <p className="text-sm font-semibold text-[#1e4f68]">
-                  « Faire de chaque jeune un acteur engage dans l atteinte des ODD. »
+                  « Faire de chaque jeune un acteur engagé dans l’atteinte des ODD. »
                 </p>
               </div>
               <Link
                 className="inline-flex rounded-full bg-[#103f65] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#0f3350]"
                 href="/a-propos"
               >
-                Voir la presentation complete
+                Voir la présentation complète
               </Link>
             </div>
             <div className="space-y-6">
@@ -215,13 +215,13 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                 <article className="rounded-2xl border border-[#c9ddec] bg-[#f9fdff] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#507086]">La vision</p>
                   <p className="mt-2 text-sm leading-relaxed text-[#2b5067]">
-                    Contribuer, grace a la synergie d actions des jeunes, a l atteinte des ODD.
+                    Contribuer, grce  la synergie dactions des jeunes,  l’atteinte des ODD.
                   </p>
                 </article>
                 <article className="rounded-2xl border border-[#c9ddec] bg-[#f9fdff] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#507086]">La mission</p>
                   <p className="mt-2 text-sm leading-relaxed text-[#2b5067]">
-                    Outiller, orienter et accompagner la jeunesse vers l insertion et l impact local.
+                    Outiller, orienter et accompagner la jeunesse vers l’insertion et l’impact local.
                   </p>
                 </article>
                 <article className="rounded-2xl border border-[#c9ddec] bg-[#f9fdff] p-4 sm:col-span-2">
@@ -239,12 +239,12 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8" id="axes">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#3d6a86]">Priorites CZI</p>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#3d6a86]">Priorités CZI</p>
               <h2
                 className="mt-1 text-3xl font-extrabold text-[#0f2a40] sm:text-4xl"
                 style={{ fontFamily: "var(--font-marketing-display), var(--font-sans), sans-serif" }}
               >
-                Les 07 axes strategiques
+                Les 07 axes stratégiques
               </h2>
             </div>
           </div>
@@ -304,7 +304,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                   className="rounded-full bg-[#f2b705] px-6 py-3 text-sm font-extrabold text-[#183445] transition hover:bg-[#dea904]"
                   href="/signup"
                 >
-                  Creer un compte
+                  Créer un compte
                 </Link>
                 <Link
                   className="rounded-full border border-white/50 px-6 py-3 text-sm font-extrabold text-white transition hover:bg-white/10"

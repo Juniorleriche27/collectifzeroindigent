@@ -53,9 +53,9 @@ function scopeLabel(
   },
 ): string {
   if (scope.scope_type === "all") return "National";
-  if (scope.scope_type === "region") return `Region: ${maps.regions.get(String(scope.region_id)) ?? "-"}`;
+  if (scope.scope_type === "region") return `Région: ${maps.regions.get(String(scope.region_id)) ?? "-"}`;
   if (scope.scope_type === "prefecture") {
-    return `Prefecture: ${maps.prefectures.get(String(scope.prefecture_id)) ?? "-"}`;
+    return `Préfecture: ${maps.prefectures.get(String(scope.prefecture_id)) ?? "-"}`;
   }
   return `Commune: ${maps.communes.get(String(scope.commune_id)) ?? "-"}`;
 }
@@ -175,7 +175,7 @@ export function CommuniquesClient({
   }
 
   function confirmDelete(event: FormEvent<HTMLFormElement>) {
-    if (!window.confirm("Supprimer ce communique ?")) {
+    if (!window.confirm("Supprimer ce communiqué ?")) {
       event.preventDefault();
     }
   }
@@ -184,21 +184,21 @@ export function CommuniquesClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Communiques</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Communiqués</p>
           <h2 className="mt-1 text-3xl font-semibold tracking-tight">Diffusion CZI</h2>
           <CardDescription className="mt-2">
-            Publication d&apos;annonces ciblees: national, region, prefecture ou commune.
+            Publication d&apos;annonces cibles : national, rgion, prfecture ou commune.
           </CardDescription>
         </div>
         <Button disabled={!canManage} onClick={openCreateDialog}>
-          Nouveau communique
+          Nouveau communiqué
         </Button>
       </div>
 
       {!canManage ? (
         <Card>
           <CardDescription className="text-amber-700">
-            Ecriture reservee a l&apos;equipe communication, CA, CN, PF ou admin. Role detecte:{" "}
+            Écriture réservée ? l&apos;équipe communication, CA, CN, PF ou admin. Rôle détecté :{" "}
             {role ?? "member"}.
           </CardDescription>
         </Card>
@@ -218,11 +218,11 @@ export function CommuniquesClient({
           </Button>
           <Link href="/app/communiques">
             <Button type="button" variant="ghost">
-              Reinitialiser
+              Réinitialiser
             </Button>
           </Link>
         </form>
-        <CardDescription>{items.length} communique(s) visible(s).</CardDescription>
+        <CardDescription>{items.length} communiqué(s) visible(s).</CardDescription>
       </Card>
 
       {deleteState.error ? (
@@ -245,9 +245,9 @@ export function CommuniquesClient({
           <div className="rounded-full bg-muted-surface p-4 text-muted">
             <Megaphone size={30} />
           </div>
-          <CardTitle className="mt-4">Aucun communique pour le moment</CardTitle>
+          <CardTitle className="mt-4">Aucun communiqué pour le moment</CardTitle>
           <CardDescription className="mt-2">
-            Creez votre premier communique pour informer les membres.
+            Créez votre premier communiqué pour informer les membres.
           </CardDescription>
         </Card>
       ) : (
@@ -257,7 +257,7 @@ export function CommuniquesClient({
               <div className="flex items-center justify-between gap-3">
                 <CardTitle>{item.title}</CardTitle>
                 <Badge variant={item.is_published ? "success" : "warning"}>
-                  {item.is_published ? "publie" : "brouillon"}
+                  {item.is_published ? "publié" : "brouillon"}
                 </Badge>
               </div>
               <CardDescription className="line-clamp-5 whitespace-pre-wrap">{item.body}</CardDescription>
@@ -272,7 +272,7 @@ export function CommuniquesClient({
                 ))}
               </div>
               <CardDescription>
-                Cree le {new Date(item.created_at).toLocaleString("fr-FR")}
+                Cré le {new Date(item.created_at).toLocaleString("fr-FR")}
               </CardDescription>
 
               {canManage ? (
@@ -297,7 +297,7 @@ export function CommuniquesClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <Card className="w-full max-w-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Nouveau communique</CardTitle>
+              <CardTitle>Nouveau communiqué</CardTitle>
               <Button size="sm" type="button" variant="ghost" onClick={() => setOpenCreate(false)}>
                 Fermer
               </Button>
@@ -307,7 +307,7 @@ export function CommuniquesClient({
                 <label className="text-sm font-medium" htmlFor="communique-title">
                   Titre
                 </label>
-                <Input id="communique-title" name="title" placeholder="Titre du communique" required />
+                <Input id="communique-title" name="title" placeholder="Titre du communiqué" required />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium" htmlFor="communique-body">
@@ -317,13 +317,13 @@ export function CommuniquesClient({
                   className="min-h-[140px] w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-4 focus:ring-primary/20"
                   id="communique-body"
                   name="body"
-                  placeholder="Ecrivez votre annonce..."
+                  placeholder="Écrivez votre annonce..."
                   required
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="communique-scope-type">
-                  Portee
+                  Portée
                 </label>
                 <Select
                   value={createScopeType}
@@ -341,8 +341,8 @@ export function CommuniquesClient({
                   }}
                 >
                   <option value="all">National</option>
-                  <option value="region">Par region</option>
-                  <option value="prefecture">Par prefecture</option>
+                  <option value="region">Par région</option>
+                  <option value="prefecture">Par préfecture</option>
                   <option value="commune">Par commune</option>
                 </Select>
               </div>
@@ -352,12 +352,12 @@ export function CommuniquesClient({
                 </label>
                 <Select defaultValue="true" id="communique-is-published" name="is_published">
                   <option value="true">Publier maintenant</option>
-                  <option value="false">Enregistrer en brouillon</option>
+                  <option value="false">Enregistrér en brouillon</option>
                 </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="communique-region">
-                  Region
+                  Région
                 </label>
                 <Select
                   disabled={createScopeType === "all"}
@@ -368,7 +368,7 @@ export function CommuniquesClient({
                     setCreateSelectedPrefecture("");
                   }}
                 >
-                  <option value="">Selectionner une region</option>
+                  <option value="">Sélectionner une région</option>
                   {regions.map((region) => (
                     <option key={region.id} value={region.id}>
                       {region.name}
@@ -378,7 +378,7 @@ export function CommuniquesClient({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="communique-prefecture">
-                  Prefecture
+                  Préfecture
                 </label>
                 <Select
                   disabled={createScopeType === "all"}
@@ -392,7 +392,7 @@ export function CommuniquesClient({
                     }
                   }}
                 >
-                  <option value="">Selectionner une prefecture</option>
+                  <option value="">Sélectionner une préfecture</option>
                   {createAvailablePrefectures.map((prefecture) => (
                     <option key={prefecture.id} value={prefecture.id}>
                       {prefecture.name}
@@ -424,7 +424,7 @@ export function CommuniquesClient({
                     }
                   }}
                 >
-                  <option value="">Selectionner une commune</option>
+                  <option value="">Sélectionner une commune</option>
                   {createAvailableCommunes.map((commune) => (
                     <option key={commune.id} value={commune.id}>
                       {commune.name}
@@ -440,7 +440,7 @@ export function CommuniquesClient({
               ) : null}
               <div className="md:col-span-2">
                 <Button disabled={createPending} type="submit">
-                  {createPending ? "Publication..." : "Publier le communique"}
+                  {createPending ? "Publication..." : "Publier le communiqué"}
                 </Button>
               </div>
             </form>
@@ -452,7 +452,7 @@ export function CommuniquesClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <Card className="w-full max-w-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Modifier le communique</CardTitle>
+              <CardTitle>Modifier le communiqué</CardTitle>
               <Button size="sm" type="button" variant="ghost" onClick={() => setOpenEdit(false)}>
                 Fermer
               </Button>
@@ -471,7 +471,7 @@ export function CommuniquesClient({
                   defaultValue={editingItem.title}
                   id="edit-communique-title"
                   name="title"
-                  placeholder="Titre du communique"
+                  placeholder="Titre du communiqué"
                   required
                 />
               </div>
@@ -484,13 +484,13 @@ export function CommuniquesClient({
                   defaultValue={editingItem.body}
                   id="edit-communique-body"
                   name="body"
-                  placeholder="Ecrivez votre annonce..."
+                  placeholder="Écrivez votre annonce..."
                   required
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="edit-communique-scope-type">
-                  Portee
+                  Portée
                 </label>
                 <Select
                   value={editScopeType}
@@ -510,8 +510,8 @@ export function CommuniquesClient({
                   }}
                 >
                   <option value="all">National</option>
-                  <option value="region">Par region</option>
-                  <option value="prefecture">Par prefecture</option>
+                  <option value="region">Par région</option>
+                  <option value="prefecture">Par préfecture</option>
                   <option value="commune">Par commune</option>
                 </Select>
               </div>
@@ -525,12 +525,12 @@ export function CommuniquesClient({
                   name="is_published"
                 >
                   <option value="true">Publier maintenant</option>
-                  <option value="false">Enregistrer en brouillon</option>
+                  <option value="false">Enregistrér en brouillon</option>
                 </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="edit-communique-region">
-                  Region
+                  Région
                 </label>
                 <Select
                   disabled={editScopeType === "all"}
@@ -543,7 +543,7 @@ export function CommuniquesClient({
                     setEditSelectedCommune("");
                   }}
                 >
-                  <option value="">Selectionner une region</option>
+                  <option value="">Sélectionner une région</option>
                   {regions.map((region) => (
                     <option key={region.id} value={region.id}>
                       {region.name}
@@ -553,7 +553,7 @@ export function CommuniquesClient({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="edit-communique-prefecture">
-                  Prefecture
+                  Préfecture
                 </label>
                 <Select
                   disabled={editScopeType === "all"}
@@ -569,7 +569,7 @@ export function CommuniquesClient({
                     }
                   }}
                 >
-                  <option value="">Selectionner une prefecture</option>
+                  <option value="">Sélectionner une préfecture</option>
                   {editAvailablePrefectures.map((prefecture) => (
                     <option key={prefecture.id} value={prefecture.id}>
                       {prefecture.name}
@@ -603,7 +603,7 @@ export function CommuniquesClient({
                     }
                   }}
                 >
-                  <option value="">Selectionner une commune</option>
+                  <option value="">Sélectionner une commune</option>
                   {editAvailableCommunes.map((commune) => (
                     <option key={commune.id} value={commune.id}>
                       {commune.name}
@@ -619,7 +619,7 @@ export function CommuniquesClient({
               ) : null}
               <div className="md:col-span-2">
                 <Button disabled={updatePending} type="submit">
-                  {updatePending ? "Mise a jour..." : "Enregistrer les modifications"}
+                  {updatePending ? "Mise à jour..." : "Enregistrér les modifications"}
                 </Button>
               </div>
             </form>

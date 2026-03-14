@@ -83,7 +83,7 @@ export function MemberEditForm({
     <form className="grid gap-4 md:grid-cols-2" action={formAction}>
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="member-first-name">
-          Prenom
+          Prénom
         </label>
         <Input
           defaultValue={member.first_name ?? ""}
@@ -105,7 +105,7 @@ export function MemberEditForm({
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="member-phone">
-          Telephone
+          Téléphone
         </label>
         <Input defaultValue={member.phone ?? ""} id="member-phone" name="phone" required />
       </div>
@@ -117,7 +117,7 @@ export function MemberEditForm({
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="member-status">
-          Status
+          Statut
         </label>
         <Select
           id="member-status"
@@ -145,15 +145,15 @@ export function MemberEditForm({
           }}
           required
         >
-          <option value="personal">Personal</option>
+          <option value="personal">Individuel</option>
           <option value="association">Association</option>
-          <option value="enterprise">Enterprise</option>
+          <option value="enterprise">Entreprise</option>
         </Select>
       </div>
 
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="member-region">
-          Region
+          Région
         </label>
         <Select
           id="member-region"
@@ -167,7 +167,7 @@ export function MemberEditForm({
           required
         >
           <option value="" disabled>
-            Selectionner une region
+            Sélectionner une région
           </option>
           {regions.map((region) => (
             <option key={region.id} value={region.id}>
@@ -178,7 +178,7 @@ export function MemberEditForm({
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="member-prefecture">
-          Prefecture
+          Préfecture
         </label>
         <Select
           id="member-prefecture"
@@ -192,7 +192,7 @@ export function MemberEditForm({
           required
         >
           <option value="" disabled>
-            Selectionner une prefecture
+            Sélectionner une préfecture
           </option>
           {filteredPrefectures.map((prefecture) => (
             <option key={prefecture.id} value={prefecture.id}>
@@ -214,7 +214,7 @@ export function MemberEditForm({
           required
         >
           <option value="" disabled>
-            {regionId ? "Selectionner une commune" : "Selectionner d'abord une region"}
+            {regionId ? "Sélectionner une commune" : "Sélectionner d'abord une région"}
           </option>
           {filteredCommunes.map((commune) => (
             <option key={commune.id} value={commune.id}>
@@ -234,7 +234,7 @@ export function MemberEditForm({
           onChange={(event) => setOrganisationId(event.target.value)}
           disabled={joinMode === "personal"}
         >
-          <option value="">Selectionner une organisation</option>
+          <option value="">Sélectionner une organisation</option>
           {filteredOrganisations.map((organisation) => (
             <option key={organisation.id} value={organisation.id}>
               {organisation.name}
@@ -261,7 +261,7 @@ export function MemberEditForm({
 
       <div className="md:col-span-2">
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Enregistrement..." : "Enregistrer"}
+          {isPending ? "Enregistrément..." : "Enregistrér"}
         </Button>
       </div>
     </form>

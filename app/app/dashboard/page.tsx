@@ -16,13 +16,13 @@ type DashboardKpi = {
 export default async function DashboardPage() {
   let kpis: DashboardKpi[] = [
     { label: "Membres visibles", value: "0", trend: "RLS actif" },
-    { label: "Demandes en attente", value: "0", trend: "A traiter" },
+    { label: "Demandes en attente", value: "0", trend: "? traiter" },
     { label: "Comptes suspendus", value: "0", trend: "Surveillance" },
   ];
   let loadError: string | null = null;
   let loadNotice: string | null = null;
   let cardRequestLabel = "Configurer ma carte";
-  let cardRequestHint = "Ajoutez photo, remise et demande membre depuis l'espace carte.";
+  let cardRequestHint = "Ajoutez la photo, le mode de remise et la demande depuis l'espace carte.";
 
   if (isSupabaseConfigured) {
     try {
@@ -47,8 +47,8 @@ export default async function DashboardPage() {
           cardRequestHint = "La demande de carte est disponible depuis votre espace membre.";
         }
       } else {
-        cardRequestLabel = "Terminer mon onboarding";
-        cardRequestHint = "La carte membre devient accessible juste apres la creation de la fiche.";
+        cardRequestLabel = "Compl?ter ma fiche membre";
+        cardRequestHint = "La carte membre devient accessible juste apres la création de la fiche.";
       }
       kpis = [
         {
@@ -59,7 +59,7 @@ export default async function DashboardPage() {
         {
           label: "Demandes en attente",
           value: String(overview.pending_members),
-          trend: "A traiter",
+          trend: "? traiter",
         },
         {
           label: "Comptes suspendus",
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
           {
             label: "Demandes en attente",
             value: String(pendingMembers),
-            trend: "A traiter",
+            trend: "? traiter",
           },
           {
             label: "Comptes suspendus",
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
         loadNotice = "Indicateurs backend indisponibles. Mode secours Supabase actif (RLS).";
       } catch (fallbackError) {
         console.error("Unable to load dashboard fallback metrics", fallbackError);
-        loadError = "Impossible de charger les indicateurs dashboard.";
+        loadError = "Impossible de charger les indicateurs du tableau de bord.";
       }
     }
   }
@@ -142,7 +142,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Dashboard</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Tableau de bord</p>
         <h2 className="mt-1 text-3xl font-semibold tracking-tight">Vue d&apos;ensemble</h2>
       </div>
       {loadError ? (
@@ -172,7 +172,7 @@ export default async function DashboardPage() {
           <CardTitle className="mt-2">Activez la carte CZI</CardTitle>
           <CardDescription className="mt-2">{cardRequestHint}</CardDescription>
         </div>
-        <Link href={cardRequestLabel === "Terminer mon onboarding" ? "/onboarding" : "/app/carte-membre"}>
+        <Link href={cardRequestLabel === "Compl?ter ma fiche membre" ? "/onboarding" : "/app/carte-membre"}>
           <Button>{cardRequestLabel}</Button>
         </Link>
       </Card>

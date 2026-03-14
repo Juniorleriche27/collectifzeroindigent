@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
     setInfoMessage(null);
 
     if (!isSupabaseConfigured) {
-      setErrorMessage("Supabase non configure. Ajoutez les variables d'environnement.");
+      setErrorMessage("Supabase non configuré. Ajoutez les variables d'environnement.");
       return;
     }
 
@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
       }
 
       setInfoMessage(
-        "Un email de reinitialisation a ete envoye. Ouvrez le lien pour definir un nouveau mot de passe.",
+        "Un email de réinitialisation a été envoye. Ouvrez le lien pour définir un nouveau mot de passe.",
       );
     } finally {
       setLoading(false);
@@ -50,9 +50,9 @@ export default function ForgotPasswordPage() {
   return (
     <Card>
       <CziBrand subtitle={false} />
-      <CardTitle className="mt-2">Mot de passe oublie</CardTitle>
+      <CardTitle className="mt-2">Mot de passe oublié</CardTitle>
       <CardDescription className="mt-2">
-        Saisissez votre email pour recevoir un lien de reinitialisation.
+        Saisissez votre email pour recevoir un lien de réinitialisation.
       </CardDescription>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <div className="space-y-2">
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
       <p className="mt-6 text-sm text-muted">
-        Retour a la{" "}
+        Retour à la{" "}
         <Link className="font-semibold text-primary" href="/login">
           connexion
         </Link>

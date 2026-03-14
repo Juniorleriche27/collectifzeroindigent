@@ -44,8 +44,8 @@ function isEnterprise(item: OrganisationCardItem): boolean {
 }
 
 function actionTitle(action: PartnershipActionType): string {
-  if (action === "create-enterprise") return "Creer une entreprise";
-  if (action === "create-association") return "Creer une association";
+  if (action === "create-enterprise") return "Créer une entreprise";
+  if (action === "create-association") return "Créer une association";
   if (action === "link-enterprise") return "Ajouter son entreprise";
   return "Ajouter son association";
 }
@@ -109,25 +109,25 @@ export function OrganisationsClient({
     {
       action: "create-enterprise" as const,
       icon: PlusCircle,
-      summary: "Creer une nouvelle entreprise partenaire dans le reseau CZI.",
-      title: "Creer une entreprise",
+      summary: "Créer une nouvelle entreprise partenaire dans le réseau CZI.",
+      title: "Créer une entreprise",
     },
     {
       action: "create-association" as const,
       icon: PlusCircle,
-      summary: "Creer une nouvelle association/mouvement partenaire.",
-      title: "Creer une association",
+      summary: "Créer une nouvelle association/mouvement partenaire.",
+      title: "Créer une association",
     },
     {
       action: "link-enterprise" as const,
       icon: Link2,
-      summary: "Rattacher votre profil a une entreprise existante.",
+      summary: "Rattacher votre profil ? une entreprise existante.",
       title: "Ajouter son entreprise",
     },
     {
       action: "link-association" as const,
       icon: Handshake,
-      summary: "Rattacher votre profil a une association existante.",
+      summary: "Rattacher votre profil ? une association existante.",
       title: "Ajouter son association",
     },
   ];
@@ -149,15 +149,15 @@ export function OrganisationsClient({
         <CardTitle className="text-base">Votre rattachement actuel</CardTitle>
         <CardDescription>
           {currentMember?.org_name
-            ? `${currentMember.org_name} (${currentMember.join_mode ?? "non defini"})`
-            : "Aucun partenariat rattache pour le moment."}
+            ? `${currentMember.org_name} (${currentMember.join_mode ?? "non défini"})`
+            : "Aucun partenariat rattaché pour le moment."}
         </CardDescription>
       </Card>
 
       {!canCreate ? (
         <Card>
           <CardDescription className="text-amber-700">
-            Creation table organisation desactivee: {sourceNote ?? "table organisation absente."}
+            Création de la table organisation désactivée : {sourceNote ?? "table organisation absente."}
           </CardDescription>
         </Card>
       ) : null}
@@ -176,7 +176,7 @@ export function OrganisationsClient({
           </Button>
           <Link href="/app/partenariat">
             <Button type="button" variant="ghost">
-              Reinitialiser
+              Réinitialiser
             </Button>
           </Link>
         </form>
@@ -219,7 +219,7 @@ export function OrganisationsClient({
 
       {items.length === 0 ? (
         <Card>
-          <CardDescription>Aucun partenaire ne correspond a votre recherche.</CardDescription>
+          <CardDescription>Aucun partenaire ne correspond à votre recherche.</CardDescription>
         </Card>
       ) : (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -277,7 +277,7 @@ export function OrganisationsClient({
                   <p className="text-sm text-emerald-700">{createState.success}</p>
                 ) : null}
                 <Button disabled={createPending} type="submit">
-                  {createPending ? "Creation..." : "Valider"}
+                  {createPending ? "Création..." : "Valider"}
                 </Button>
               </form>
             ) : (
@@ -305,7 +305,7 @@ export function OrganisationsClient({
                     required
                     value={selectedAttachId}
                   >
-                    <option value="">Selectionner</option>
+                    <option value="">Sélectionner</option>
                     {currentLinkItems.map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.name}
@@ -315,7 +315,7 @@ export function OrganisationsClient({
                 </div>
                 {currentLinkItems.length === 0 ? (
                   <p className="text-sm text-amber-700">
-                    Aucun partenaire de cette categorie disponible.
+                    Aucun partenaire de cette catégorie disponible.
                   </p>
                 ) : null}
                 {attachState.error ? <p className="text-sm text-red-600">{attachState.error}</p> : null}
@@ -323,7 +323,7 @@ export function OrganisationsClient({
                   <p className="text-sm text-emerald-700">{attachState.success}</p>
                 ) : null}
                 <Button disabled={attachPending || currentLinkItems.length === 0} type="submit">
-                  {attachPending ? "Ajout..." : "Ajouter a mon profil"}
+                  {attachPending ? "Ajout..." : "Ajouter à mon profil"}
                 </Button>
               </form>
             )}

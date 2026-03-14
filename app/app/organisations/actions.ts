@@ -32,7 +32,7 @@ export async function createOrganisationAction(
 ): Promise<OrganisationCreateState> {
   if (!isSupabaseConfigured) {
     return {
-      error: "Supabase non configure.",
+      error: "Supabase non configuré.",
       success: null,
     };
   }
@@ -87,7 +87,7 @@ export async function attachPartnershipAction(
 ): Promise<PartnershipAttachState> {
   if (!isSupabaseConfigured) {
     return {
-      error: "Supabase non configure.",
+      error: "Supabase non configuré.",
       success: null,
     };
   }
@@ -106,7 +106,7 @@ export async function attachPartnershipAction(
 
   if (!selectedName) {
     return {
-      error: "Selectionnez un partenaire existant.",
+      error: "Sélectionnez un partenaire existant.",
       success: null,
     };
   }

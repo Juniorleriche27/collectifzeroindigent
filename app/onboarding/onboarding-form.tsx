@@ -25,9 +25,9 @@ type OnboardingFormProps = {
 
 const engagementDomainOptions = [
   "Action communautaire",
-  "Education civique",
+  "Éducation civique",
   "Environnement",
-  "Sante communautaire",
+  "Santé communautaire",
   "Entrepreneuriat social",
 ];
 
@@ -35,7 +35,7 @@ const businessNeedsOptions = [
   "Mentorat",
   "Formation",
   "Financement",
-  "Reseautage",
+  "Réseautage",
   "Accompagnement juridique",
 ];
 
@@ -44,7 +44,7 @@ const supportTypeOptions = [
   "Formation",
   "Mise en relation",
   "Financement",
-  "Visibilite",
+  "Visibilité",
   "Coaching projet",
 ];
 
@@ -57,10 +57,10 @@ const totalSteps = 6;
 const onboardingDraftStorageKey = "czi.onboarding.draft.v1";
 const onboardingDraftStepKey = "__wizard_step";
 const onboardingStepTitles = [
-  "Identite et contact",
+  "Identité et contact",
   "Localisation",
   "Profil CZI",
-  "Competences et objectifs",
+  "Compétences et objectifs",
   "Besoins et partenariat",
   "Consentements et validation",
 ] as const;
@@ -134,8 +134,8 @@ export function OnboardingForm({
           [
             getProfileMemberIdByAuthUser(supabase, user.id),
             supabase.from("region").select("id, name").order("name"),
-            supabase.from("prefecture").select("id, name, region_id").order("name"),
-            supabase.from("commune").select("id, name, prefecture_id").order("name"),
+            supabase.from("prefecture").select("id, name, région_id").order("name"),
+            supabase.from("commune").select("id, name, préfecture_id").order("name"),
           ],
         );
 
@@ -146,7 +146,7 @@ export function OnboardingForm({
         } else if (profileLookup.memberId) {
           setAlreadyOnboarded(true);
           setRuntimeDisabledReason(
-            "Votre profil est deja complete. Ouvrez directement le dashboard.",
+            "Votre profil est déjà complet. Ouvrez directement le tableau de bord.",
           );
           return;
         }
@@ -165,7 +165,7 @@ export function OnboardingForm({
 
         if (nextRegions.length === 0 || nextPrefectures.length === 0 || nextCommunes.length === 0) {
           setRuntimeDisabledReason(
-            "Configuration territoriale incomplete (region/prefecture/commune). Ajoutez ces donnees dans Supabase avant de terminer l'onboarding.",
+            "Configuration territoriale incomplète (région/préfecture/commune). Ajoutez ces données dans Supabase avant de terminer l'onboarding.",
           );
         } else {
           setRuntimeDisabledReason(null);
@@ -174,7 +174,7 @@ export function OnboardingForm({
         console.error("Unable to load onboarding dependencies", error);
         if (active) {
           setRuntimeDisabledReason(
-            "Impossible de charger region/prefecture/commune pour le moment.",
+            "Impossible de charger région/préfecture/commune pour le moment.",
           );
         }
       } finally {
@@ -421,20 +421,20 @@ export function OnboardingForm({
 
     if (step === 1) {
       if (!firstName || !lastName || !phone) {
-        return "Etape 1: renseignez prenom, nom et telephone.";
+        return "Étape 1 : renseignez prénom, nom et téléphone.";
       }
       if (!birthDate && !ageRange) {
-        return "Etape 1: date de naissance ou tranche d'age obligatoire.";
+        return "tape 1 : date de naissance ou tranche d'ge obligatoire.";
       }
       if (!educationLevel || !occupationStatus) {
-        return "Etape 1: niveau d'education et statut professionnel obligatoires.";
+        return "Étape 1 : niveau d'éducation et statut professionnel obligatoires.";
       }
       return null;
     }
 
     if (step === 2) {
       if (!regionValue || !prefectureValue || !communeValue) {
-        return "Etape 2: selectionnez region, prefecture et commune.";
+        return "Étape 2 : sélectionnez région, préfecture et commune.";
       }
       return null;
     }
@@ -451,16 +451,16 @@ export function OnboardingForm({
             : "engaged");
 
       if (!onboardingJoinModeValues.has(normalizedJoinMode)) {
-        return "Etape 3: type d'inscription invalide.";
+        return "Étape 3 : type d'inscription invalide.";
       }
       if (!onboardingCelluleValues.has(normalizedPrimary)) {
-        return "Etape 3: cellule principale invalide.";
+        return "Étape 3 : cellule principale invalide.";
       }
       if (celluleSecondaryValue && !onboardingCelluleValues.has(celluleSecondaryValue)) {
-        return "Etape 3: cellule secondaire invalide.";
+        return "Étape 3 : cellule secondaire invalide.";
       }
       if (normalizedJoinMode !== "personal" && !orgNameValue) {
-        return "Etape 3: nom d'association/entreprise obligatoire.";
+        return "Étape 3 : nom d'association/entreprise obligatoire.";
       }
 
       if (normalizedPrimary === "engaged") {
@@ -468,7 +468,7 @@ export function OnboardingForm({
         const frequency = formValueForStep(formData, "engagement_frequency");
         const recentAction = formValueForStep(formData, "engagement_recent_action");
         if (domains.length === 0 || !frequency || !recentAction) {
-          return "Etape 3: profil engage incomplet (domaines/frequence/action).";
+          return "Étape 3 : profil engagé incomplet (domaines/fréquence/action).";
         }
       }
 
@@ -477,7 +477,7 @@ export function OnboardingForm({
         const businessSector = formValueForStep(formData, "business_sector");
         const businessNeeds = formValuesForStep(formData, "business_needs");
         if (!businessStage || !businessSector || businessNeeds.length === 0) {
-          return "Etape 3: profil entrepreneur incomplet (stade/secteur/besoins).";
+          return "Étape 3 : profil entrepreneur incomplet (stade/secteur/besoins).";
         }
       }
 
@@ -485,7 +485,7 @@ export function OnboardingForm({
         const orgRole = formValueForStep(formData, "org_role");
         const orgNameDeclared = formValueForStep(formData, "org_name_declared");
         if (!orgRole || !orgNameDeclared) {
-          return "Etape 3: profil responsable incomplet (role/organisation).";
+          return "Étape 3: profil responsable incomplet (rôle/organisation).";
         }
       }
 
@@ -494,34 +494,34 @@ export function OnboardingForm({
 
     if (step === 4) {
       if (!skillsText || !interestsText || !goal) {
-        return "Etape 4: competences, interets et objectif sont obligatoires.";
+        return "Étape 4: competences, intérêts et objectif sont obligatoires.";
       }
       if (oddPriorities.length === 0 || oddPriorities.length > 3) {
-        return "Etape 4: selectionnez entre 1 et 3 ODD prioritaires.";
+        return "Étape 4 : sélectionnez entre 1 et 3 ODD prioritaires.";
       }
       return null;
     }
 
     if (step === 5) {
       if (supportTypes.length === 0) {
-        return "Etape 5: au moins un type de support est obligatoire.";
+        return "Étape 5 : au moins un type de support est obligatoire.";
       }
       if (!onboardingContactPreferenceValues.has(contactPreference)) {
-        return "Etape 5: preference de contact invalide.";
+        return "Étape 5 : préférence de contact invalide.";
       }
       if (partnerRequested) {
         if (!orgType || !onboardingOrgTypes.has(orgType)) {
-          return "Etape 5: type organisation obligatoire pour demande partenaire.";
+          return "Étape 5 : type d'organisation obligatoire pour une demande partenaire.";
         }
         if (!orgNameValue) {
-          return "Etape 5: nom organisation obligatoire pour demande partenaire.";
+          return "Étape 5 : nom de l'organisation obligatoire pour une demande partenaire.";
         }
       }
       return null;
     }
 
     if (step === 6 && !consentTerms) {
-      return "Etape 6: vous devez accepter les conditions d'utilisation.";
+      return "Étape 6 : vous devez accepter les conditions d'utilisation.";
     }
 
     return null;
@@ -594,7 +594,7 @@ export function OnboardingForm({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-              Etape {currentStep}/{totalSteps}
+              Étape {currentStep}/{totalSteps}
             </p>
             <p className="text-sm text-muted-foreground">{onboardingStepTitles[currentStep - 1]}</p>
           </div>
@@ -609,11 +609,11 @@ export function OnboardingForm({
       </section>
 
       <section className={cn("rounded-xl border border-border bg-surface p-4", currentStep === 1 ? "block" : "hidden")}>
-        <h3 className="text-base font-semibold">A. Identite et contact</h3>
+        <h3 className="text-base font-semibold">A. Identité et contact</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="first-name">
-              Prenom
+              Prénom
             </label>
             <Input id="first-name" name="first_name" placeholder="Ex: Afiwa" required />
           </div>
@@ -625,7 +625,7 @@ export function OnboardingForm({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="phone">
-              Telephone
+              Téléphone
             </label>
             <Input id="phone" name="phone" placeholder="+228 90 00 00 00" required />
           </div>
@@ -647,7 +647,7 @@ export function OnboardingForm({
               Genre (optionnel)
             </label>
             <Select id="gender" name="gender" defaultValue="">
-              <option value="">Selectionner</option>
+              <option value="">Sélectionner</option>
               <option value="male">Homme</option>
               <option value="female">Femme</option>
               <option value="other">Autre</option>
@@ -661,10 +661,10 @@ export function OnboardingForm({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="age-range">
-              Tranche d&apos;age (si pas de date)
+              Tranche d&apos;ge (si pas de date)
             </label>
             <Select id="age-range" name="age_range" defaultValue="">
-              <option value="">Selectionner</option>
+              <option value="">Sélectionner</option>
               <option value="15-19">15-19</option>
               <option value="20-24">20-24</option>
               <option value="25-29">25-29</option>
@@ -674,11 +674,11 @@ export function OnboardingForm({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="education-level">
-              Niveau d&apos;education
+              Niveau d&apos;éducation
             </label>
             <Select id="education-level" name="education_level" defaultValue="" required>
               <option value="" disabled>
-                Selectionner
+                Sélectionner
               </option>
               <option value="primaire">Primaire</option>
               <option value="secondaire">Secondaire</option>
@@ -693,11 +693,11 @@ export function OnboardingForm({
             </label>
             <Select id="occupation-status" name="occupation_status" defaultValue="" required>
               <option value="" disabled>
-                Selectionner
+                Sélectionner
               </option>
-              <option value="etudiant">Etudiant</option>
-              <option value="salarie">Salarie</option>
-              <option value="independant">Independant</option>
+              <option value="etudiant">Étudiant</option>
+              <option value="salarie">Salarié</option>
+              <option value="independant">Indépendant</option>
               <option value="entrepreneur">Entrepreneur</option>
               <option value="recherche">En recherche</option>
             </Select>
@@ -709,7 +709,7 @@ export function OnboardingForm({
             <Input
               id="profession-title"
               name="profession_title"
-              placeholder="Ex: Charge de projet, Developpeur, Artisane"
+              placeholder="Ex. : Chargé de projet, Développeur, Artisane"
             />
           </div>
         </div>
@@ -720,7 +720,7 @@ export function OnboardingForm({
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="region">
-              Region
+              Région
             </label>
             <Select
               id="region"
@@ -734,7 +734,7 @@ export function OnboardingForm({
               required
             >
               <option value="" disabled>
-                Selectionner une region
+                Sélectionner une région
               </option>
               {regionsState.map((region) => (
                 <option key={region.id} value={region.id}>
@@ -745,7 +745,7 @@ export function OnboardingForm({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="prefecture">
-              Prefecture
+              Préfecture
             </label>
             <Select
               id="prefecture"
@@ -759,7 +759,7 @@ export function OnboardingForm({
               required
             >
               <option value="" disabled>
-                Selectionner une prefecture
+                Sélectionner une préfecture
               </option>
               {filteredPrefectures.map((prefecture) => (
                 <option key={prefecture.id} value={prefecture.id}>
@@ -781,7 +781,7 @@ export function OnboardingForm({
               required
             >
               <option value="" disabled>
-                {regionId ? "Selectionner une commune" : "Selectionner d'abord une region"}
+                {regionId ? "Sélectionner une commune" : "Sélectionner d'abord une région"}
               </option>
               {filteredCommunes.map((commune) => (
                 <option key={commune.id} value={commune.id}>
@@ -792,7 +792,7 @@ export function OnboardingForm({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="locality">
-              Quartier/Localite (optionnel)
+              Quartier/Localité (optionnel)
             </label>
             <Input id="locality" name="locality" placeholder="Ex: Adidogome" />
           </div>
@@ -804,12 +804,12 @@ export function OnboardingForm({
                 checked={mobility}
                 onChange={(event) => setMobility(event.target.checked)}
               />
-              Disponible pour activites hors commune
+              Disponible pour activités hors commune
             </label>
             <Input
               id="mobility-zones"
               name="mobility_zones"
-              placeholder="Zones de mobilite (optionnel)"
+              placeholder="Zones de mobilité (optionnel)"
               disabled={!mobility}
             />
           </div>
@@ -840,9 +840,9 @@ export function OnboardingForm({
               }}
               required
             >
-              <option value="personal">Personal</option>
+              <option value="personal">Individuel</option>
               <option value="association">Association</option>
-              <option value="enterprise">Enterprise</option>
+              <option value="enterprise">Entreprise</option>
             </Select>
           </div>
           <div className="space-y-2">
@@ -858,9 +858,9 @@ export function OnboardingForm({
               }
               required
             >
-              <option value="engaged">Jeune engage</option>
+              <option value="engaged">Jeune engagé</option>
               <option value="entrepreneur">Jeune entrepreneur</option>
-              <option value="org_leader">Responsable organisation</option>
+              <option value="org_leader">Responsable d’organisation</option>
             </Select>
           </div>
           <div className="space-y-2">
@@ -869,9 +869,9 @@ export function OnboardingForm({
             </label>
             <Select id="cellule-secondary" name="cellule_secondary" defaultValue="">
               <option value="">Aucune</option>
-              <option value="engaged">Jeune engage</option>
+              <option value="engaged">Jeune engagé</option>
               <option value="entrepreneur">Jeune entrepreneur</option>
-              <option value="org_leader">Responsable organisation</option>
+              <option value="org_leader">Responsable d’organisation</option>
             </Select>
           </div>
           <div className="space-y-2 md:col-span-2">
@@ -902,11 +902,11 @@ export function OnboardingForm({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="engagement-frequency">
-                  Frequence d&apos;engagement
+                  Fréquence d&apos;engagement
                 </label>
                 <Select id="engagement-frequency" name="engagement_frequency" defaultValue="">
                   <option value="" disabled>
-                    Selectionner
+                    Sélectionner
                   </option>
                   <option value="hebdomadaire">Hebdomadaire</option>
                   <option value="mensuelle">Mensuelle</option>
@@ -915,13 +915,13 @@ export function OnboardingForm({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="engagement-recent-action">
-                  Action recente
+                  Action récente
                 </label>
                 <textarea
                   id="engagement-recent-action"
                   name="engagement_recent_action"
                   className="min-h-24 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-4 focus:ring-primary/20"
-                  placeholder="Decrivez une action recente"
+                  placeholder="Décrivez une action récente"
                 />
               </div>
             </>
@@ -931,13 +931,13 @@ export function OnboardingForm({
             <>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="business-stage">
-                  Stade business
+                  Stade du projet
                 </label>
                 <Select id="business-stage" name="business_stage" defaultValue="">
                   <option value="" disabled>
-                    Selectionner
+                    Sélectionner
                   </option>
-                  <option value="idee">Idee</option>
+                  <option value="idee">Idée</option>
                   <option value="prototype">Prototype</option>
                   <option value="lancement">Lancement</option>
                   <option value="croissance">Croissance</option>
@@ -945,12 +945,12 @@ export function OnboardingForm({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="business-sector">
-                  Secteur business
+                  Secteur d’activité
                 </label>
                 <Input id="business-sector" name="business_sector" placeholder="Ex: Agro, Tech" />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <p className="text-sm font-medium">Besoins business</p>
+                <p className="text-sm font-medium">Besoins du projet</p>
                 <div className="grid gap-2 md:grid-cols-2">
                   {businessNeedsOptions.map((option) => (
                     <label key={option} className="inline-flex items-center gap-2 text-sm">
@@ -967,13 +967,13 @@ export function OnboardingForm({
             <>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="org-role">
-                  Role dans l&apos;organisation
+                  Rôle dans l&apos;organisation
                 </label>
-                <Input id="org-role" name="org_role" placeholder="Ex: President, Coordinatrice" />
+                <Input id="org-role" name="org_role" placeholder="Ex. : Président, Coordinatrice" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="org-name-declared">
-                  Nom organisation declaree
+                  Nom de l’organisation déclarée
                 </label>
                 <Input id="org-name-declared" name="org_name_declared" placeholder="Nom officiel" />
               </div>
@@ -983,11 +983,11 @@ export function OnboardingForm({
       </section>
 
       <section className={cn("rounded-xl border border-border bg-surface p-4", currentStep === 4 ? "block" : "hidden")}>
-        <h3 className="text-base font-semibold">D. Competences, ODD et objectifs</h3>
+        <h3 className="text-base font-semibold">D. Compétences, ODD et objectifs</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="skills-text">
-              Competences (separees par virgules)
+              Compétences (separees par virgules)
             </label>
             <Input
               id="skills-text"
@@ -998,7 +998,7 @@ export function OnboardingForm({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="interests-text">
-              Centres d&apos;interet (virgules)
+              Centres d&apos;intérêt (virgules)
             </label>
             <Input
               id="interests-text"
@@ -1020,13 +1020,13 @@ export function OnboardingForm({
           </div>
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium" htmlFor="goal-short-term">
-              Objectif 3-6 mois
+              Objectif à 3-6 mois
             </label>
             <textarea
               id="goal-short-term"
               name="goal_3_6_months"
               className="min-h-24 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-4 focus:ring-primary/20"
-              placeholder="Quel est votre objectif principal sur 3 a 6 mois ?"
+              placeholder="Quel est votre objectif principal sur 3 à 6 mois ?"
               required
             />
           </div>
@@ -1049,17 +1049,17 @@ export function OnboardingForm({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="availability">
-              Disponibilite (optionnel)
+              Disponibilité (optionnel)
             </label>
             <Input id="availability" name="availability" placeholder="Ex: Soirs et weekends" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="contact-preference">
-              Preference de contact
+              Préférence de contact
             </label>
             <Select id="contact-preference" name="contact_preference" defaultValue="" required>
               <option value="" disabled>
-                Selectionner
+                Sélectionner
               </option>
               <option value="whatsapp">WhatsApp</option>
               <option value="email">Email</option>
@@ -1080,10 +1080,10 @@ export function OnboardingForm({
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="org-type">
-                  Type organisation
+                  Type d’organisation
                 </label>
                 <Select id="org-type" name="org_type" defaultValue="" disabled={!partnerRequest}>
-                  <option value="">Selectionner</option>
+                  <option value="">Sélectionner</option>
                   <option value="association">Association</option>
                   <option value="enterprise">Entreprise</option>
                 </Select>
@@ -1107,28 +1107,28 @@ export function OnboardingForm({
             </label>
             <label className="mt-2 inline-flex items-center gap-2 text-sm">
               <input type="checkbox" name="consent_ai_training_agg" />
-              J&apos;accepte l&apos;usage IA agrege/anonyme (optionnel)
+              J&apos;accepte l&apos;usage IA agrégé/anonyme (optionnel)
             </label>
           </div>
 
           <div className="rounded-md border border-border bg-muted-surface/50 p-3 text-sm text-muted-foreground">
             <p className="font-medium text-foreground">Validation</p>
             <p className="mt-1">
-              Verifiez vos informations, puis cliquez sur <strong>Terminer l&apos;onboarding</strong>.
-              Vos donnees sont sauvegardees localement a chaque etape tant que la soumission finale
-              n&apos;est pas envoyee.
+              Vérifiez vos informations, puis cliquez sur <strong>Finaliser la fiche membre</strong>.
+              Vos donnes sont sauvegardes localement  chaque tape tant que la soumission finale
+              n&apos;est pas envoye.
             </p>
             <p className="mt-2">
-              Apres validation de votre fiche, vous retrouverez la nouvelle page{" "}
-              <strong>Carte membre</strong> dans la plateforme pour demander votre carte CZI a
-              2900 F, ajouter votre photo et preciser la remise.
+              Après validation de votre fiche, vous retrouverez la nouvelle page{" "}
+              <strong>Carte membre</strong> dans la plateforme pour demander votre carte CZI à
+              2900 F, ajouter votre photo et préciser la remise.
             </p>
           </div>
         </div>
       </section>
 
       {loadingLocations ? (
-        <p className="text-sm text-muted-foreground">Chargement des donnees...</p>
+        <p className="text-sm text-muted-foreground">Chargement des données...</p>
       ) : null}
       {effectiveDisabledReason ? (
         <p className="text-sm text-amber-700">{effectiveDisabledReason}</p>
@@ -1136,7 +1136,7 @@ export function OnboardingForm({
       {alreadyOnboarded ? (
         <p className="text-sm text-primary">
           <Link className="font-semibold underline" href="/app/dashboard">
-            Aller au dashboard
+            Aller au tableau de bord
           </Link>
         </p>
       ) : null}
@@ -1147,12 +1147,12 @@ export function OnboardingForm({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-xs text-muted-foreground">
-          Wizard onboarding: etape {currentStep}/{totalSteps}
+          Parcours d’intégration : étape {currentStep}/{totalSteps}
         </div>
         <div className="flex flex-wrap gap-2">
           {currentStep > 1 ? (
             <Button type="button" variant="ghost" onClick={goToPreviousStep}>
-              Precedent
+              Précédent
             </Button>
           ) : null}
           {currentStep < totalSteps ? (
@@ -1161,7 +1161,7 @@ export function OnboardingForm({
             </Button>
           ) : (
             <Button size="lg" type="submit" disabled={formDisabled}>
-              {isPending ? "Creation en cours..." : "Terminer l'onboarding"}
+              {isPending ? "Création en cours..." : "Terminer l'inscription"}
             </Button>
           )}
         </div>

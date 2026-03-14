@@ -22,7 +22,7 @@ export function PublicHeader({ showAboutLink = true }: PublicHeaderProps) {
           <span className="leading-tight">
             <span className="block text-lg font-extrabold tracking-tight text-[#0f2a40]">CZI</span>
             <span className="block text-xs font-medium uppercase tracking-[0.12em] text-[#4f7086]">
-              Collectif Zero Indigent
+              Collectif Zéro Indigent
             </span>
           </span>
         </Link>
@@ -32,7 +32,7 @@ export function PublicHeader({ showAboutLink = true }: PublicHeaderProps) {
             Accueil
           </Link>
           <Link className="transition-colors hover:text-[#0f7e8f]" href="/#apropos">
-            A propos
+            À propos
           </Link>
           <Link className="transition-colors hover:text-[#0f7e8f]" href="/#axes">
             Axes

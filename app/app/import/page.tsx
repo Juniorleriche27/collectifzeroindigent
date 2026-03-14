@@ -8,7 +8,7 @@ export default function ImportPage() {
     <div className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-wider text-primary">Import</p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight">Import de donnees</h2>
+        <h2 className="mt-1 text-3xl font-semibold tracking-tight">Import de données</h2>
       </div>
       <Card className="space-y-4">
         <div className="rounded-full bg-muted-surface p-4 text-muted w-fit">

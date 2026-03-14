@@ -16,7 +16,7 @@ import {
 } from "./actions";
 import type { SettingsState } from "./actions";
 
-const tabs = ["Compte", "Securite", "Notifications", "Roles"] as const;
+const tabs = ["Compte", "Sécurité", "Notifications", "Rôles"] as const;
 type TabName = (typeof tabs)[number];
 
 type ParametresClientProps = {
@@ -58,7 +58,7 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
         <form action={accountAction} className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="account-first-name">
-              Prenom
+              Prénom
             </label>
             <Input
               defaultValue={defaults.firstName}
@@ -80,7 +80,7 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="account-phone">
-              Telephone
+              Téléphone
             </label>
             <Input defaultValue={defaults.phone} id="account-phone" name="phone" required />
           </div>
@@ -98,14 +98,14 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
           ) : null}
           <div className="md:col-span-2">
             <Button disabled={accountPending} type="submit">
-              {accountPending ? "Mise a jour..." : "Mettre a jour"}
+              {accountPending ? "Mise à jour..." : "Mettre à jour"}
             </Button>
           </div>
         </form>
       );
     }
 
-    if (activeTab === "Securite") {
+    if (activeTab === "Sécurité") {
       return (
         <form action={securityAction} className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
@@ -127,8 +127,7 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
             <Input id="new-password-confirm" name="confirm_password" type="password" required />
           </div>
           <p className="text-xs text-muted md:col-span-2">
-            Supabase peut exiger une re-authentification recente pour le changement de mot de
-            passe.
+            Supabase peut exiger une ré-authentification récente pour le changement de mot de passe.
           </p>
           {securityState.error ? (
             <p className="md:col-span-2 text-sm text-red-600">{securityState.error}</p>
@@ -138,7 +137,7 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
           ) : null}
           <div className="md:col-span-2">
             <Button disabled={securityPending} type="submit">
-              {securityPending ? "Mise a jour..." : "Mettre a jour la securite"}
+              {securityPending ? "Mise à jour..." : "Mettre à jour la sécurité"}
             </Button>
           </div>
         </form>
@@ -151,19 +150,19 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
           <div className="flex items-center justify-between rounded-lg border border-border p-4">
             <div>
               <p className="font-medium">Notifications email</p>
-              <p className="text-sm text-muted">Recevoir les mises a jour membres par email.</p>
+              <p className="text-sm text-muted">Recevoir les mises à jour des membres par e-mail.</p>
             </div>
             <Select
               defaultValue={defaults.notifications.emailUpdates ? "enabled" : "disabled"}
               name="email_updates"
             >
-              <option value="enabled">Active</option>
-              <option value="disabled">Desactive</option>
+              <option value="enabled">Activé</option>
+              <option value="disabled">Désactivé</option>
             </Select>
           </div>
           <div className="flex items-center justify-between rounded-lg border border-border p-4">
             <div>
-              <p className="font-medium">Alertes securite</p>
+              <p className="font-medium">Alertes sécurité</p>
               <p className="text-sm text-muted">
                 Recevoir une alerte en cas de connexion suspecte.
               </p>
@@ -172,8 +171,8 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
               defaultValue={defaults.notifications.securityAlerts ? "enabled" : "disabled"}
               name="security_alerts"
             >
-              <option value="enabled">Active</option>
-              <option value="disabled">Desactive</option>
+              <option value="enabled">Activé</option>
+              <option value="disabled">Désactivé</option>
             </Select>
           </div>
           {notificationState.error ? (
@@ -183,7 +182,7 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
             <p className="text-sm text-emerald-700">{notificationState.success}</p>
           ) : null}
           <Button disabled={notificationPending} type="submit">
-            {notificationPending ? "Mise a jour..." : "Enregistrer les notifications"}
+            {notificationPending ? "Mise à jour..." : "Enregistrér les notifications"}
           </Button>
         </form>
       );
@@ -192,13 +191,12 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
     return (
       <div className="space-y-4">
         <CardDescription>
-          Configuration de role UI. Le role final reste controle par la base
-          (`public.profile.role`).
+          Configuration du rôle dans l’interface. Le rôle final reste contrôlé par la base (`public.profile.rôle`).
         </CardDescription>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Role principal
+              Rôle principal
             </label>
             <div className="rounded-lg border border-border bg-muted-surface p-3">
               <Badge>{defaults.role}</Badge>
@@ -206,10 +204,10 @@ export function ParametresClient({ defaults }: ParametresClientProps) {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Portee
+              Portée
             </label>
             <div className="rounded-lg border border-border bg-muted-surface p-3 text-sm text-muted">
-              Controle par les policies RLS et les mandats metier.
+              Contrôle par les politiques RLS et les mandats métier.
             </div>
           </div>
         </div>

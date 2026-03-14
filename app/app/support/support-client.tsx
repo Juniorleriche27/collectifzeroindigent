@@ -222,7 +222,7 @@ export function SupportClient({
       }
 
       if (!isAskSupportAiResponse(payload)) {
-        throw new Error("Reponse support invalide.");
+        throw new Error("Réponse de l'assistant invalide.");
       }
 
       const cleanAnswer = normalizedParagraph(payload.item.answer);
@@ -268,7 +268,7 @@ export function SupportClient({
     } catch (caughtError) {
       setDraftMessages((previous) => previous.filter((entry) => entry.id !== pendingAssistantId));
       setQuestion(normalizedQuestion);
-      setError(toErrorMessage(caughtError, "Erreur support IA."));
+      setError(toErrorMessage(caughtError, "Erreur de l'assistant IA."));
       setTypingMessageId(null);
     } finally {
       setSending(false);
@@ -292,10 +292,10 @@ export function SupportClient({
   return (
     <div className="space-y-3">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Support</p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight">Support CZI</h2>
+        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Assistance</p>
+        <h2 className="mt-1 text-3xl font-semibold tracking-tight">Assistance CZI</h2>
         <CardDescription className="mt-1">
-          Discussion fluide. Reponses courtes et precises.
+          Discussion fluide. Réponses courtes et précises.
         </CardDescription>
       </div>
 
@@ -311,14 +311,14 @@ export function SupportClient({
               Nouvelle discussion
             </button>
             <p className="mt-2 text-xs text-muted">
-              {usedToday}/{dailyLimit} utilisees, {remainingToday} restantes.
+              {usedToday}/{dailyLimit} utilisées, {remainingToday} restantes.
             </p>
           </div>
 
           <div className="flex-1 space-y-2 overflow-y-auto p-3">
             {history.length === 0 ? (
               <p className="rounded-lg bg-muted-surface/60 p-3 text-sm text-muted">
-                Aucune discussion archivee.
+                Aucune discussion archivée.
               </p>
             ) : (
               history.map((entry) => {
@@ -369,7 +369,7 @@ export function SupportClient({
                         : "rounded-2xl rounded-bl-sm border border-border bg-surface px-4 py-3 text-sm leading-relaxed text-foreground"
                     }
                   >
-                    {message.content || (message.pending ? "Generation..." : "")}
+                    {message.content || (message.pending ? "Génération..." : "")}
                     {typingMessageId === message.id ? <span className="ml-1 animate-pulse">|</span> : null}
                   </div>
                 </div>

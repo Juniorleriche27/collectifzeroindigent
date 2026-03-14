@@ -7,9 +7,9 @@ import { PublicHeader } from "@/components/marketing/public-header";
 
 const governancePillars = [
   "Synergie d'actions entre les jeunes",
-  "Orientation, formation et employabilite",
-  "Innovation, entrepreneuriat et creation de richesses",
-  "Inclusion des filles, femmes et personnes vulnerables",
+  "Orientation, formation et employabilité",
+  "Innovation, entrepreneuriat et création de richesses",
+  "Inclusion des filles, femmes et personnes vulnérables",
 ];
 
 const targets = [
@@ -21,11 +21,11 @@ const targets = [
 ];
 
 const domains = [
-  "Citoyennete et developpement local",
-  "Sante et bien-etre",
-  "Inclusion, securite et droits humains",
-  "Insertion professionnelle et croissance economique",
-  "Rechauffement climatique et energies renouvelables",
+  "Citoyenneté et développement local",
+  "Santé et bien-être",
+  "Inclusion, sécurité et droits humains",
+  "Insertion professionnelle et croissance économique",
+  "Réchauffement climatique et énergies renouvelables",
 ];
 
 export default function PublicAboutPage() {
@@ -38,7 +38,7 @@ export default function PublicAboutPage() {
       <main className="mx-auto w-full max-w-7xl space-y-10 px-4 pb-16 pt-12 sm:px-6 lg:px-8">
         <section className="grid gap-8 rounded-[2rem] border border-[#cde1ef] bg-white/90 p-8 shadow-[0_20px_60px_rgba(17,43,62,0.1)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div className="space-y-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#3e6d87]">A propos du CZI</p>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#3e6d87]">À propos du CZI</p>
             <h1
               className="text-4xl font-extrabold leading-tight text-[#0f2d44] sm:text-5xl"
               style={{ fontFamily: "var(--font-marketing-display), var(--font-sans), sans-serif" }}
@@ -46,9 +46,9 @@ export default function PublicAboutPage() {
               Construire un avenir durable avec la jeunesse.
             </h1>
             <p className="text-base leading-relaxed text-[#48697f]">
-              Le Collectif Zero Indigent (CZI) est un cadre d engagement citoyen et entrepreneurial fonde par des
-              jeunes pour des jeunes, avec pour objectif de transformer les communautes par l innovation sociale,
-              economique et environnementale.
+              Le Collectif Zro Indigent (CZI) est un cadre dengagement citoyen et entrepreneurial fond par des
+              jeunes pour des jeunes, avec pour objectif de transformer les communauts par l’innovation sociale,
+              conomique et environnementale.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
@@ -61,7 +61,7 @@ export default function PublicAboutPage() {
                 className="rounded-full border border-[#c3d9e9] px-6 py-3 text-sm font-bold text-[#193d56] transition hover:bg-white"
                 href="/"
               >
-                Retour accueil
+                Retour à l’accueil
               </Link>
             </div>
           </div>
@@ -87,12 +87,12 @@ export default function PublicAboutPage() {
             </h2>
             <div className="mt-4 space-y-4 text-sm leading-relaxed text-[#355a73]">
               <p>
-                <span className="font-bold text-[#174764]">Vision:</span> contribuer, grace a la synergie d actions
-                des jeunes, a l atteinte des Objectifs de Developpement Durable, avec un accent sur l ODD 1.
+                <span className="font-bold text-[#174764]">Vision:</span> contribuer, grce  la synergie dactions
+                des jeunes,  l’atteinte des Objectifs de Dveloppement Durable, avec un accent sur l’ODD 1.
               </p>
               <p>
                 <span className="font-bold text-[#174764]">Mission:</span> outiller, orienter et accompagner les
-                jeunes pour accelerer leur insertion, promouvoir l innovation, l entrepreneuriat et l impact social.
+                jeunes pour accelerer leur insertion, promouvoir l’innovation, l’entrepreneuriat et l’impact social.
               </p>
             </div>
           </article>
@@ -150,7 +150,7 @@ export default function PublicAboutPage() {
                 key={src}
               >
                 <Image
-                  alt="Activites CZI"
+                  alt="Activités CZI"
                   className="h-56 w-full rounded-2xl object-cover"
                   height={960}
                   src={src}

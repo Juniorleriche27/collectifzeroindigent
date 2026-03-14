@@ -30,7 +30,7 @@ export function SignOutButton() {
 
   return (
     <Button variant="secondary" size="sm" onClick={onSignOut} disabled={loading}>
-      {loading ? "..." : "Deconnexion"}
+      {loading ? "..." : "Déconnexion"}
     </Button>
   );
 }

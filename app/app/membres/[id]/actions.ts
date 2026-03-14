@@ -40,7 +40,7 @@ function toErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message;
   }
-  return "Impossible de mettre a jour ce membre.";
+  return "Impossible de mettre à jour ce membre.";
 }
 
 function toRoleErrorMessage(error: unknown): string {
@@ -48,7 +48,7 @@ function toRoleErrorMessage(error: unknown): string {
     const candidate = error as { code?: string; message?: string };
     if (candidate.code === "42501") {
       return (
-        "Permission RLS insuffisante pour modifier le role. " +
+        "Permission RLS insuffisante pour modifier le rôle. " +
         "Appliquez le script SQL `sql/2026-02-22_profile_role_governance_access.sql`."
       );
     }
@@ -59,7 +59,7 @@ function toRoleErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message;
   }
-  return "Impossible de mettre a jour le role.";
+  return "Impossible de mettre à jour le rôle.";
 }
 
 export async function updateMember(
@@ -69,7 +69,7 @@ export async function updateMember(
 ): Promise<MemberUpdateState> {
   if (!isSupabaseConfigured) {
     return {
-      error: "Supabase non configure.",
+      error: "Supabase non configuré.",
       success: null,
     };
   }
@@ -97,13 +97,13 @@ export async function updateMember(
     !joinMode
   ) {
     return {
-      error: "Tous les champs obligatoires doivent etre renseignes.",
+      error: "Tous les champs obligatoires doivent être renseignés.",
       success: null,
     };
   }
 
   if (!allowedStatuses.has(status)) {
-    return { error: "Status invalide.", success: null };
+    return { error: "Statut invalide.", success: null };
   }
 
   if (!joinModes.has(joinMode)) {
@@ -113,7 +113,7 @@ export async function updateMember(
   if (joinMode !== "personal" && !orgName && !organisationId) {
     return {
       error:
-        "Selectionnez une organisation existante ou renseignez un nouveau nom d'organisation.",
+        "Sélectionnez une organisation existante ou renseignez un nouveau nom d'organisation.",
       success: null,
     };
   }
@@ -144,11 +144,11 @@ export async function updateMember(
 
   return {
     error: null,
-    success: "Membre mis a jour.",
+    success: "Membre mis à jour.",
   };
 }
 
-export async function updateMemberRole(
+export async function updateMemberRôle(
   memberId: string,
   targetUserId: string,
   targetEmail: string | null,
@@ -156,12 +156,12 @@ export async function updateMemberRole(
   formData: FormData,
 ): Promise<MemberRoleState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
-  const nextRole = formValue(formData, "role").toLowerCase();
-  if (!allowedRoles.has(nextRole)) {
-    return { error: "Role invalide.", success: null };
+  const nextRôle = formValue(formData, "role").toLowerCase();
+  if (!allowedRoles.has(nextRôle)) {
+    return { error: "Rôle invalide.", success: null };
   }
 
   const supabase = await createClient();
@@ -174,39 +174,39 @@ export async function updateMemberRole(
     return { error: "Session invalide. Reconnectez-vous.", success: null };
   }
 
-  const actorRoleLookup = await getProfileRoleByAuthUser(supabase, user.id);
-  if (actorRoleLookup.error) {
-    return { error: toRoleErrorMessage(actorRoleLookup.error), success: null };
+  const actorRôleLookup = await getProfileRoleByAuthUser(supabase, user.id);
+  if (actorRôleLookup.error) {
+    return { error: toRoleErrorMessage(actorRôleLookup.error), success: null };
   }
-  const actorRole = (actorRoleLookup.role ?? "member").toLowerCase();
+  const actorRôle = (actorRôleLookup.role ?? "member").toLowerCase();
 
-  if (actorRole !== "admin" && actorRole !== "ca") {
-    return { error: "Seuls les roles admin/ca peuvent modifier un role.", success: null };
+  if (actorRôle !== "admin" && actorRôle !== "ca") {
+    return { error: "Seuls les rôles admin/ca peuvent modifier un rôle.", success: null };
   }
 
-  if (actorRole === "ca" && (nextRole === "ca" || nextRole === "admin")) {
+  if (actorRôle === "ca" && (nextRôle === "ca" || nextRôle === "admin")) {
     return {
-      error: "Le role CA peut attribuer uniquement member/pf/cn.",
+      error: "Le rôle CA peut attribuer uniquement member/pf/cn.",
       success: null,
     };
   }
 
-  if (targetUserId === user.id && nextRole !== actorRole && actorRole === "ca") {
+  if (targetUserId === user.id && nextRôle !== actorRôle && actorRôle === "ca") {
     return {
-      error: "Un role CA ne peut pas modifier son propre role.",
+      error: "Un rôle CA ne peut pas modifier son propre rôle.",
       success: null,
     };
   }
 
   const normalizedTargetEmail = (targetEmail ?? "").trim().toLowerCase();
-  if (normalizedTargetEmail === OWNER_ADMIN_EMAIL && nextRole !== "admin") {
+  if (normalizedTargetEmail === OWNER_ADMIN_EMAIL && nextRôle !== "admin") {
     return {
-      error: `Le compte proprietaire ${OWNER_ADMIN_EMAIL} doit conserver le role admin.`,
+      error: `Le compte propriétaire ${OWNER_ADMIN_EMAIL} doit conserver le rôle admin.`,
       success: null,
     };
   }
 
-  const updateResult = await updateProfileRoleByAuthUser(supabase, targetUserId, nextRole);
+  const updateResult = await updateProfileRoleByAuthUser(supabase, targetUserId, nextRôle);
   if (updateResult.error) {
     return { error: toRoleErrorMessage(updateResult.error), success: null };
   }
@@ -215,10 +215,10 @@ export async function updateMemberRole(
   if (verification.error) {
     return { error: toRoleErrorMessage(verification.error), success: null };
   }
-  if (verification.role?.toLowerCase() !== nextRole) {
+  if (verification.role?.toLowerCase() !== nextRôle) {
     return {
       error:
-        "Role non modifie. Verifiez les policies profile puis reappliquez `sql/2026-02-22_profile_role_governance_access.sql`.",
+        "Rôle non modifié. Vérifiez les policies profile puis réappliquez `sql/2026-02-22_profile_role_governance_access.sql`.",
       success: null,
     };
   }
@@ -230,7 +230,7 @@ export async function updateMemberRole(
 
   return {
     error: null,
-    success: `Role mis a jour: ${nextRole}.`,
+    success: `Rôle mis à jour : ${nextRôle}.`,
   };
 }
 
@@ -240,7 +240,7 @@ export async function validateMember(
   formData: FormData,
 ): Promise<MemberValidationState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const decision = formValue(formData, "decision").toLowerCase();
@@ -249,7 +249,7 @@ export async function validateMember(
   const reason = formValue(formData, "reason");
 
   if (!allowedValidationDecisions.has(decision)) {
-    return { error: "Decision de validation invalide.", success: null };
+    return { error: "Décision de validation invalide.", success: null };
   }
 
   if (!allowedCellules.has(cellulePrimary)) {
@@ -262,7 +262,7 @@ export async function validateMember(
 
   if (celluleSecondaryRaw && celluleSecondaryRaw === cellulePrimary) {
     return {
-      error: "La cellule secondaire doit etre differente de la cellule primaire.",
+      error: "La cellule secondaire doit être différente de la cellule primaire.",
       success: null,
     };
   }

@@ -50,7 +50,7 @@ export default async function OrganisationsPage({
       loadError = "Impossible de charger les organisations pour le moment.";
     }
   } else {
-    loadError = "Supabase non configure. Ajoutez les variables d'environnement.";
+    loadError = "Supabase non configuré. Ajoutez les variables d'environnement.";
   }
 
   return (

@@ -11,7 +11,7 @@ export default function ImportExportPage() {
         <p className="text-sm font-semibold uppercase tracking-wider text-primary">
           Import/Export
         </p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight">Flux de donnees</h2>
+        <h2 className="mt-1 text-3xl font-semibold tracking-tight">Flux de données</h2>
       </div>
 
       <Card className="space-y-4">
@@ -20,7 +20,7 @@ export default function ImportExportPage() {
         </div>
         <CardTitle>Importer ou exporter</CardTitle>
         <CardDescription>
-          Point d&apos;entree pour les operations de migration de donnees.
+          Point d&apos;entree pour les operations de migration de données.
         </CardDescription>
         <div className="flex flex-wrap gap-3">
           <Link href="/app/import">

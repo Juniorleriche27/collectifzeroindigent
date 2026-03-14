@@ -48,7 +48,7 @@ export async function saveMemberCardRequestAction(formData: FormData) {
     buildRedirect(
       "/app/carte-membre",
       "error",
-      "Completer d'abord l'onboarding avant de demander une carte membre.",
+      "Compl?tez d'abord votre fiche membre avant de demander une carte de membre.",
     );
   }
 
@@ -101,7 +101,7 @@ export async function saveMemberCardRequestAction(formData: FormData) {
       buildRedirect(
         "/app/carte-membre",
         "error",
-        error instanceof Error ? error.message : "Impossible de televerser la photo.",
+        error instanceof Error ? error.message : "Impossible de téléverser la photo.",
       );
     }
   }
@@ -139,7 +139,7 @@ export async function saveMemberCardRequestAction(formData: FormData) {
     "/app/carte-membre",
     "notice",
     requested
-      ? "Demande de carte enregistree. Les informations de livraison et la photo ont ete mises a jour."
-      : "Preference carte enregistree.",
+      ? "Demande de carte enregistrée. Les informations de livraison et la photo ont été mises à jour."
+      : "Préférence de carte enregistrée.",
   );
 }

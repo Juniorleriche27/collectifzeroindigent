@@ -38,7 +38,7 @@ export default async function ParametresPage() {
         console.error("Unable to load current user metadata for settings page", userResult.reason);
       }
       if (roleResult.status === "rejected") {
-        console.error("Unable to load current role for settings page", roleResult.reason);
+        console.error("Unable to load current rôle for settings page", roleResult.reason);
       }
       if (member) {
         defaults.firstName = member.first_name ?? defaults.firstName;
@@ -72,14 +72,14 @@ export default async function ParametresPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Parametres</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Paramètres</p>
         <h2 className="mt-1 text-3xl font-semibold tracking-tight">Compte et configuration</h2>
       </div>
 
       {!isSupabaseConfigured ? (
         <Card>
           <CardDescription>
-            Supabase non configure: formulaire actif avec donnees de demonstration.
+            Supabase non configuré : formulaire actif avec données de demonstration.
           </CardDescription>
         </Card>
       ) : null}

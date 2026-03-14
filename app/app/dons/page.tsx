@@ -64,9 +64,9 @@ export default async function DonsPage({ searchParams }: { searchParams: SearchP
       }
     } else if (paymentEvent === "callback") {
       paymentInfo =
-        "Retour de paiement detecte. Si le statut n'est pas encore a jour, actualisez dans quelques secondes.";
+        "Retour de paiement détecté. Si le statut n'est pas encore à jour, actualisez dans quelques secondes.";
     } else if (paymentEvent === "cancelled") {
-      paymentInfo = "Paiement annule ou non finalise.";
+      paymentInfo = "Paiement annulé ou non finalisé.";
     }
 
     try {
@@ -83,7 +83,7 @@ export default async function DonsPage({ searchParams }: { searchParams: SearchP
       loadError = error instanceof Error ? error.message : "Impossible de charger les dons.";
     }
   } else {
-    loadError = "Supabase non configure.";
+    loadError = "Supabase non configuré.";
   }
 
   return (

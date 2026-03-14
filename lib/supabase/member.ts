@@ -78,8 +78,8 @@ export async function getOnboardingLocations(): Promise<{
   const supabase = await createClient();
   const [regionsResult, prefecturesResult, communesResult] = await Promise.all([
     supabase.from("region").select("id, name").order("name"),
-    supabase.from("prefecture").select("id, name, region_id").order("name"),
-    supabase.from("commune").select("id, name, prefecture_id").order("name"),
+    supabase.from("prefecture").select("id, name, région_id").order("name"),
+    supabase.from("commune").select("id, name, préfecture_id").order("name"),
   ]);
 
   if (regionsResult.error) throw regionsResult.error;
@@ -112,7 +112,7 @@ export async function listMembers(filters?: {
   let query = supabase
     .from("member")
     .select(
-      "id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, org_name, created_at",
+      "id, user_id, first_name, last_name, phone, email, status, région_id, préfecture_id, commune_id, join_mode, org_name, created_at",
       { count: "exact" },
     )
     .range(rangeFrom, rangeTo);
@@ -169,7 +169,7 @@ export async function getMemberById(memberId: string): Promise<MemberListItem | 
   const { data, error } = await supabase
     .from("member")
     .select(
-      "id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, org_name",
+      "id, user_id, first_name, last_name, phone, email, status, région_id, préfecture_id, commune_id, join_mode, org_name",
     )
     .eq("id", memberId)
     .maybeSingle();

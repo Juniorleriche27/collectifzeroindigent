@@ -38,7 +38,7 @@ export async function createEmailCampaignAction(
   formData: FormData,
 ): Promise<EmailCampaignActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const subject = formValue(formData, "subject");
@@ -66,13 +66,13 @@ export async function createEmailCampaignAction(
   }
 
   if (effectiveScope === "region" && !regionId) {
-    return { error: "Selectionnez une region cible.", success: null };
+    return { error: "Sélectionnez une région cible.", success: null };
   }
   if (effectiveScope === "prefecture" && !prefectureId) {
-    return { error: "Selectionnez une prefecture cible.", success: null };
+    return { error: "Sélectionnez une préfecture cible.", success: null };
   }
   if (effectiveScope === "commune" && !communeId) {
-    return { error: "Selectionnez une commune cible.", success: null };
+    return { error: "Sélectionnez une commune cible.", success: null };
   }
 
   try {
@@ -101,7 +101,7 @@ export async function queueEmailCampaignAction(
   formData: FormData,
 ): Promise<EmailCampaignActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const campaignId = formValue(formData, "campaign_id");
@@ -126,7 +126,7 @@ export async function sendEmailCampaignAction(
   formData: FormData,
 ): Promise<EmailCampaignActionState> {
   if (!isSupabaseConfigured) {
-    return { error: "Supabase non configure.", success: null };
+    return { error: "Supabase non configuré.", success: null };
   }
 
   const campaignId = formValue(formData, "campaign_id");

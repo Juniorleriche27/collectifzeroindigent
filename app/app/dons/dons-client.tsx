@@ -47,12 +47,12 @@ function statusVariant(status: DonationStatus): "default" | "success" | "warning
 }
 
 function formatDonationStatusLabel(status: DonationStatus): string {
-  if (status === "pledged") return "Enregistre";
+  if (status === "pledged") return "Enregistré";
   if (status === "pending") return "En attente";
-  if (status === "paid") return "Paye";
-  if (status === "failed") return "Echec";
-  if (status === "cancelled") return "Annule";
-  if (status === "refunded") return "Rembourse";
+  if (status === "paid") return "Payé";
+  if (status === "failed") return "Échec";
+  if (status === "cancelled") return "Annulé";
+  if (status === "refunded") return "Remboursé";
   return status;
 }
 
@@ -100,7 +100,7 @@ export function DonsClient({
       {role ? (
         <Card>
           <CardDescription>
-            Role actif: <span className="font-semibold text-foreground">{role}</span>
+            Rôle actif: <span className="font-semibold text-foreground">{role}</span>
           </CardDescription>
         </Card>
       ) : null}
@@ -126,7 +126,7 @@ export function DonsClient({
             <div className="space-y-2">
               <CardTitle className="text-base">Paiement temporaire par mobile money</CardTitle>
               <CardDescription className="text-sm leading-6 text-foreground/80">
-                Les dons sont actuellement enregistres puis verifies manuellement par CZI. Apres le
+                Les dons sont actuellement enregistrés puis vérifiés manuellement par CZI. Apres le
                 transfert, conservez votre reference ou votre capture de paiement.
               </CardDescription>
             </div>
@@ -184,11 +184,11 @@ export function DonsClient({
           <CardTitle className="mt-2 text-2xl">{summary.count}</CardTitle>
         </Card>
         <Card>
-          <CardDescription>Montant cumule</CardDescription>
+          <CardDescription>Montant cumulé</CardDescription>
           <CardTitle className="mt-2 text-2xl">{formatAmount(summary.total_amount_cfa)} F</CardTitle>
         </Card>
         <Card>
-          <CardDescription>Montant paye</CardDescription>
+          <CardDescription>Montant payé</CardDescription>
           <CardTitle className="mt-2 text-2xl">{formatAmount(summary.paid_amount_cfa)} F</CardTitle>
         </Card>
         <Card>
@@ -221,10 +221,10 @@ export function DonsClient({
             <Button disabled={createPending} type="submit">
               {createPending
                 ? donationPaymentMode === "manual"
-                  ? "Enregistrement..."
+                  ? "Enregistrément..."
                   : "Redirection..."
                 : donationPaymentMode === "manual"
-                  ? "Enregistrer le don"
+                  ? "Enregistrér le don"
                   : "Continuer"}
             </Button>
           </div>
@@ -238,16 +238,16 @@ export function DonsClient({
             className="min-w-[260px] flex-1"
             defaultValue={initialQuery}
             name="q"
-            placeholder="Message, reference paiement..."
+            placeholder="Message, référence paiement..."
           />
           <Select defaultValue={initialStatus} name="status">
             <option value="all">Tous les statuts</option>
-            <option value="pledged">Enregistre</option>
+            <option value="pledged">Enregistré</option>
             <option value="pending">En attente</option>
-            <option value="paid">Paye</option>
-            <option value="failed">Echec</option>
-            <option value="cancelled">Annule</option>
-            <option value="refunded">Rembourse</option>
+            <option value="paid">Payé</option>
+            <option value="failed">Échec</option>
+            <option value="cancelled">Annulé</option>
+            <option value="refunded">Remboursé</option>
           </Select>
           <Button type="submit" variant="secondary">
             Filtrer
@@ -314,7 +314,7 @@ export function DonsClient({
                             <form action={checkoutAction}>
                               <input name="donation_id" type="hidden" value={item.id} />
                               <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
-                                {checkoutPending ? "Redirection..." : "Payer maintenant"}
+                                {checkoutPending ? "Redirection..." : "Payér maintenant"}
                               </Button>
                             </form>
                           ) : null}
@@ -322,14 +322,14 @@ export function DonsClient({
                             <input name="donation_id" type="hidden" value={item.id} />
                             <input name="status" type="hidden" value="paid" />
                             <Button disabled={updatePending} size="sm" type="submit">
-                              Marquer paye
+                              Marquer payé
                             </Button>
                           </form>
                           <form action={updateAction}>
                             <input name="donation_id" type="hidden" value={item.id} />
                             <input name="status" type="hidden" value="failed" />
                             <Button disabled={updatePending} size="sm" type="submit" variant="secondary">
-                              Marquer echec
+                              Marquer Échec
                             </Button>
                           </form>
                         </>
@@ -339,7 +339,7 @@ export function DonsClient({
                           <input name="donation_id" type="hidden" value={item.id} />
                           <input name="status" type="hidden" value="refunded" />
                           <Button disabled={updatePending} size="sm" type="submit" variant="secondary">
-                            Rembourser
+                            Remboursér
                           </Button>
                         </form>
                       ) : null}
@@ -349,7 +349,7 @@ export function DonsClient({
                             <form action={checkoutAction}>
                               <input name="donation_id" type="hidden" value={item.id} />
                               <Button disabled={checkoutPending} size="sm" type="submit" variant="secondary">
-                                {checkoutPending ? "Redirection..." : "Payer maintenant"}
+                                {checkoutPending ? "Redirection..." : "Payér maintenant"}
                               </Button>
                             </form>
                           ) : null}

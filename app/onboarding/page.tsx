@@ -9,11 +9,11 @@ export default function OnboardingPage() {
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-10">
       <Card>
         <p className="text-sm font-semibold uppercase tracking-wider text-primary">
-          Etape obligatoire
+          Étape obligatoire
         </p>
-        <CardTitle className="mt-2">Onboarding membre</CardTitle>
+        <CardTitle className="mt-2">Finalisation de la fiche membre</CardTitle>
         <CardDescription className="mt-2">
-          Fiche membre complete: identite, localisation, orientation CZI et besoins.
+          Fiche membre complète : identité, localisation, orientation CZI et besoins.
         </CardDescription>
         <OnboardingForm />
       </Card>

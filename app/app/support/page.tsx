@@ -5,7 +5,7 @@ import { SupportClient } from "./support-client";
 export default async function SupportPage() {
   let items = [] as Awaited<ReturnType<typeof listSupportAiHistory>>["items"];
   let disclaimer =
-    "Assistant IA informatif uniquement: ne remplace pas un avis juridique, medical ou financier professionnel.";
+    "Assistant IA informatif uniquement : ne remplace pas un avis juridique, médical ou financier professionnel.";
   let dailyLimit = 0;
   let remainingToday = 0;
   let usedToday = 0;
@@ -19,7 +19,7 @@ export default async function SupportPage() {
     remainingToday = response.remaining_today;
     usedToday = response.used_today;
   } catch (error) {
-    loadError = error instanceof Error ? error.message : "Erreur chargement support IA.";
+    loadError = error instanceof Error ? error.message : "Erreur de chargement de l'assistant IA.";
   }
 
   return (

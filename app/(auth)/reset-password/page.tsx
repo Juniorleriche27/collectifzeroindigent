@@ -56,17 +56,17 @@ export default function ResetPasswordPage() {
     setInfoMessage(null);
 
     if (!isSupabaseConfigured) {
-      setErrorMessage("Supabase non configure. Ajoutez les variables d'environnement.");
+      setErrorMessage("Supabase non configuré. Ajoutez les variables d'environnement.");
       return;
     }
 
     if (!canReset) {
-      setErrorMessage("Session de reinitialisation invalide ou expiree.");
+      setErrorMessage("Session de réinitialisation invalide ou expirée.");
       return;
     }
 
     if (password.length < 8) {
-      setErrorMessage("Le mot de passe doit contenir au moins 8 caracteres.");
+      setErrorMessage("Le mot de passe doit contenir au moins 8 caractères.");
       return;
     }
 
@@ -84,7 +84,7 @@ export default function ResetPasswordPage() {
         return;
       }
 
-      setInfoMessage("Mot de passe mis a jour. Redirection vers la connexion...");
+      setInfoMessage("Mot de passe mis à jour. Redirection vers la connexion...");
       setTimeout(() => {
         router.replace("/login");
         router.refresh();
@@ -97,15 +97,15 @@ export default function ResetPasswordPage() {
   return (
     <Card>
       <CziBrand subtitle={false} />
-      <CardTitle className="mt-2">Reinitialiser le mot de passe</CardTitle>
+      <CardTitle className="mt-2">Réinitialiser le mot de passe</CardTitle>
       <CardDescription className="mt-2">
-        Definissez un nouveau mot de passe pour votre compte.
+        Définissez un nouveau mot de passe pour votre compte.
       </CardDescription>
       {checkingSession ? (
-        <p className="mt-6 text-sm text-muted">Verification de la session...</p>
+        <p className="mt-6 text-sm text-muted">Vérification de la session...</p>
       ) : !canReset ? (
         <p className="mt-6 text-sm text-red-600">
-          Lien invalide ou expire. Redemandez un nouvel email de reinitialisation.
+          Lien invalide ou expiré. Redemandez un nouvel e-mail de réinitialisation.
         </p>
       ) : (
         <form className="mt-6 space-y-4" onSubmit={onSubmit}>
@@ -138,12 +138,12 @@ export default function ResetPasswordPage() {
           {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
           {infoMessage ? <p className="text-sm text-emerald-700">{infoMessage}</p> : null}
           <Button className="w-full" type="submit" disabled={loading}>
-            {loading ? "Mise a jour..." : "Mettre a jour"}
+            {loading ? "Mise à jour..." : "Mettre à jour"}
           </Button>
         </form>
       )}
       <p className="mt-6 text-sm text-muted">
-        Retour a la{" "}
+        Retour à la{" "}
         <Link className="font-semibold text-primary" href="/login">
           connexion
         </Link>

@@ -35,8 +35,8 @@ type CommunauteClientProps = {
 
 const ROOT_ORDER: CommunityKind[] = ["czi", "engaged", "entrepreneur", "org_leader"];
 const ROOT_LABEL: Record<CommunityKind, string> = {
-  czi: "Communaute CZI",
-  engaged: "Cellule des jeunes engages",
+  czi: "Communauté CZI",
+  engaged: "Cellule des jeunes engagés",
   entrepreneur: "Cellule des jeunes entrepreneurs",
   org_leader: "Cellule des responsables d'associations et mouvements de jeunes",
 };
@@ -49,12 +49,12 @@ function memberName(member: MemberRecord | ConversationMessage["sender"] | null)
   return `${member.first_name ?? ""} ${member.last_name ?? ""}`.trim() || member.email || "Membre";
 }
 function conversationLabel(item: ConversationItem, currentMemberId: string | null) {
-  if (item.conversation_type === "community") return item.title?.trim() || "Communaute";
+  if (item.conversation_type === "community") return item.title?.trim() || "Communauté";
   const peers = item.participants
     .filter((p) => p.member_id !== currentMemberId)
     .map((p) => `${p.member?.first_name ?? ""} ${p.member?.last_name ?? ""}`.trim())
     .filter(Boolean);
-  return peers[0] || "Discussion privee";
+  return peers[0] || "Discussion privée";
 }
 function mentionQuery(text: string) {
   const m = text.match(/(?:^|\s)@([a-zA-Z0-9._-]{1,30})$/);
@@ -199,7 +199,7 @@ export function CommunauteClient({
             <p className="mt-2 whitespace-pre-wrap text-sm">{message.body}</p>
           )}
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Button onClick={() => setReplyTo(message.id)} size="sm" type="button" variant="ghost"><MessageCircleReply size={14} />Repondre</Button>
+            <Button onClick={() => setReplyTo(message.id)} size="sm" type="button" variant="ghost"><MessageCircleReply size={14} />Répondre</Button>
             <form action={toggleConversationMessageLikeAction}>
               <input name="conversation_id" type="hidden" value={selectedConversation?.id ?? ""} />
               <input name="message_id" type="hidden" value={message.id} />
@@ -213,7 +213,7 @@ export function CommunauteClient({
             ) : null}
             {message.can_delete ? (
               <form action={deleteMessageAction} onSubmit={(event) => {
-                if (!window.confirm("Supprimer ce message ? Cette action est definitive.")) {
+                if (!window.confirm("Supprimer ce message ? Cette action est définitive.")) {
                   event.preventDefault();
                 }
               }}>
@@ -225,7 +225,7 @@ export function CommunauteClient({
                 </Button>
               </form>
             ) : null}
-            {message.edited_at ? <Badge variant="default">modifie</Badge> : null}
+            {message.edited_at ? <Badge variant="default">modifié</Badge> : null}
           </div>
         </div>
         {children.map((child) => renderNode(child, depth + 1))}
@@ -237,9 +237,9 @@ export function CommunauteClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Communaute CZI</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Communauté CZI</p>
           <h2 className="mt-1 text-3xl font-semibold tracking-tight">Discussions</h2>
-          <CardDescription className="mt-2">Espace discussion style reseau social: reponses, likes, edition, tags.</CardDescription>
+          <CardDescription className="mt-2">Espace discussion style réseau social: réponses, likes, édition, tags.</CardDescription>
         </div>
         <Button onClick={() => setOpen(true)}>Nouvelle discussion</Button>
       </div>
@@ -247,34 +247,34 @@ export function CommunauteClient({
       <Card className="space-y-3">
         <CardTitle className="text-base">Recherche</CardTitle>
         <form className="grid gap-3 md:grid-cols-3" method="get">
-          <Input defaultValue={initialQuery} name="q" placeholder="Titre de communaute..." />
+          <Input defaultValue={initialQuery} name="q" placeholder="Titre de communauté..." />
           <Select defaultValue={initialConversationType} name="conversation_type">
-            <option value="">Toutes discussions</option><option value="community">Communaute</option><option value="direct">Prive</option>
+            <option value="">Toutes les discussions</option><option value="community">Communauté</option><option value="direct">Privé</option>
           </Select>
-          <div className="flex gap-2"><Button type="submit" variant="secondary">Filtrer</Button><Link href="/app/communaute"><Button type="button" variant="ghost">Reinitialiser</Button></Link></div>
+          <div className="flex gap-2"><Button type="submit" variant="secondary">Filtrer</Button><Link href="/app/communaute"><Button type="button" variant="ghost">Réinitialiser</Button></Link></div>
         </form>
       </Card>
 
       {loadError ? <Card><CardDescription className="text-red-600">{loadError}</CardDescription></Card> : (
         <div className="grid gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
           <Card className="space-y-4 bg-gradient-to-b from-surface to-surface/80">
-            <CardTitle className="text-base">Communautes</CardTitle>
+            <CardTitle className="text-base">Communautés</CardTitle>
             <div className="space-y-4">
               {ROOT_ORDER.map((kind) => {
                 const root = rootByKind.get(kind); const children = root ? childrenByRoot.get(root.id) ?? [] : [];
                 return (
                   <div className="rounded-xl border border-border/80 bg-background/70 p-3" key={kind}>
                     <div className="flex items-center justify-between"><p className="text-sm font-semibold">{ROOT_LABEL[kind]}</p><Badge variant={kind === "czi" ? "default" : "success"}>{kind === "czi" ? "national" : "cellule"}</Badge></div>
-                    {!root ? <p className="mt-2 text-xs text-red-600">Communaute racine non disponible.</p> : <div className="mt-2 space-y-2">
+                    {!root ? <p className="mt-2 text-xs text-red-600">Communauté racine non disponible.</p> : <div className="mt-2 space-y-2">
                       <Link className={cn("block rounded-md border px-3 py-2 text-sm", root.id === selectedConversationId ? "border-primary/30 bg-primary/10" : "border-border bg-muted-surface/50")} href={link(root.id)}>{root.title?.trim() || ROOT_LABEL[kind]}</Link>
-                      {children.map((child) => <Link className={cn("ml-3 block rounded-md border px-3 py-2 text-sm", child.id === selectedConversationId ? "border-primary/30 bg-primary/10" : "border-border bg-surface")} href={link(child.id)} key={child.id}>{child.title?.trim() || "Sous-communaute"}</Link>)}
+                      {children.map((child) => <Link className={cn("ml-3 block rounded-md border px-3 py-2 text-sm", child.id === selectedConversationId ? "border-primary/30 bg-primary/10" : "border-border bg-surface")} href={link(child.id)} key={child.id}>{child.title?.trim() || "Sous-communauté"}</Link>)}
                     </div>}
                   </div>
                 );
               })}
             </div>
             <div className="rounded-xl border border-border bg-background/70 p-3">
-              <p className="text-sm font-semibold">Discussions privees</p>
+              <p className="text-sm font-semibold">Discussions privées</p>
               <div className="mt-2 space-y-2">
                 {directList.map((item) => {
                   const unreadCount = item.id === selectedConversationId ? 0 : item.unread_count;
@@ -294,33 +294,33 @@ export function CommunauteClient({
           <Card className="space-y-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <CardTitle>{selectedConversation ? conversationLabel(selectedConversation, currentMemberId) : "Selectionnez une conversation"}</CardTitle>
-                <CardDescription className="mt-1">{selectedConversation ? "Fil social de la conversation." : "Choisissez une communaute ou discussion privee."}</CardDescription>
+                <CardTitle>{selectedConversation ? conversationLabel(selectedConversation, currentMemberId) : "Sélectionnez une conversation"}</CardTitle>
+                <CardDescription className="mt-1">{selectedConversation ? "Fil social de la conversation." : "Choisissez une communaut ou une discussion privé."}</CardDescription>
               </div>
               {selectedConversation?.can_delete ? (
                 <form action={deleteConversationFormAction} onSubmit={(event) => {
-                  if (!window.confirm("Supprimer cette sous-communaute ? Cette action est definitive.")) {
+                  if (!window.confirm("Supprimer cette sous-communaut ? Cette action est dfinitive.")) {
                     event.preventDefault();
                   }
                 }}>
                   <input name="conversation_id" type="hidden" value={selectedConversation.id} />
                   <Button disabled={deleteConversationPending} size="sm" type="submit" variant="danger">
                     <Trash2 size={14} />
-                    Supprimer la sous-communaute
+                    Supprimer la sous-communauté
                   </Button>
                 </form>
               ) : null}
             </div>
             <div className="max-h-[460px] space-y-3 overflow-y-auto rounded-xl border border-border bg-background/60 p-3">
-              {!selectedConversation ? <CardDescription>Aucune conversation selectionnee.</CardDescription> : rootMessages.length === 0 ? <CardDescription>Aucun message.</CardDescription> : rootMessages.map((m) => renderNode(m))}
+              {!selectedConversation ? <CardDescription>Aucune conversation sélectionnée.</CardDescription> : rootMessages.length === 0 ? <CardDescription>Aucun message.</CardDescription> : rootMessages.map((m) => renderNode(m))}
             </div>
             {selectedConversation ? (
               <form action={postAction} className="space-y-3 rounded-xl border border-border bg-background/60 p-3">
                 <input name="conversation_id" type="hidden" value={selectedConversation.id} />
                 <input name="parent_message_id" type="hidden" value={replyTo ?? ""} />
                 <input name="mention_member_ids" type="hidden" value={mentionIds.join(",")} />
-                {replyTo ? <div className="flex items-center justify-between rounded-md border border-border bg-muted-surface px-3 py-2"><p className="text-xs">Reponse a {memberName(msgById.get(replyTo)?.sender ?? null)}</p><Button onClick={() => setReplyTo(null)} size="sm" type="button" variant="ghost">Annuler</Button></div> : null}
-                <textarea className="min-h-[108px] w-full rounded-md border border-border bg-surface px-3 py-2 text-sm" name="body" onChange={(e) => setBody(e.target.value)} placeholder="Ecrivez votre message... Utilisez @ pour taguer un membre." required value={body} />
+                {replyTo ? <div className="flex items-center justify-between rounded-md border border-border bg-muted-surface px-3 py-2"><p className="text-xs">Réponse à {memberName(msgById.get(replyTo)?.sender ?? null)}</p><Button onClick={() => setReplyTo(null)} size="sm" type="button" variant="ghost">Annuler</Button></div> : null}
+                <textarea className="min-h-[108px] w-full rounded-md border border-border bg-surface px-3 py-2 text-sm" name="body" onChange={(e) => setBody(e.target.value)} placeholder="Écrivez votre message... Utilisez @ pour taguer un membre." required value={body} />
                 {mentionSuggestions.length > 0 ? <div className="rounded-md border border-border bg-surface p-2"><p className="mb-1 text-xs font-semibold text-muted">Tags</p><div className="flex flex-wrap gap-2">{mentionSuggestions.map((s) => <button className="rounded-full border border-border px-2 py-1 text-xs hover:border-primary" key={s.id} onClick={(e) => { e.preventDefault(); addMention(s.id, s.label); }} type="button">@{s.label}</button>)}</div></div> : null}
                 {postState.error ? <p className="text-sm text-red-600">{postState.error}</p> : null}
                 {postState.success ? <p className="text-sm text-emerald-700">{postState.success}</p> : null}
@@ -330,7 +330,7 @@ export function CommunauteClient({
                 {deleteMessageState.success ? <p className="text-sm text-emerald-700">{deleteMessageState.success}</p> : null}
                 {deleteConversationState.error ? <p className="text-sm text-red-600">{deleteConversationState.error}</p> : null}
                 {deleteConversationState.success ? <p className="text-sm text-emerald-700">{deleteConversationState.success}</p> : null}
-                <Button disabled={postPending} type="submit">{postPending ? "Envoi..." : replyTo ? "Repondre" : "Publier"}</Button>
+                <Button disabled={postPending} type="submit">{postPending ? "Envoi..." : replyTo ? "Répondre" : "Publier"}</Button>
               </form>
             ) : null}
           </Card>
@@ -342,11 +342,11 @@ export function CommunauteClient({
           <Card className="w-full max-w-2xl space-y-4">
             <div className="flex items-center justify-between"><CardTitle>Nouvelle discussion</CardTitle><Button size="sm" type="button" variant="ghost" onClick={() => setOpen(false)}>Fermer</Button></div>
             <form action={createAction} className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-conversation-type">Type</label><Select value={createType} id="create-conversation-type" name="conversation_type" onChange={(e) => setCreateType(e.target.value === "direct" ? "direct" : "community")}><option value="community">Sous-communaute de cellule</option><option value="direct">Message prive</option></Select></div>
-              {createType === "community" ? (<><div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-community-parent">Communaute de cellule</label><Select id="create-community-parent" name="parent_conversation_id" required disabled={cellRootOptions.length === 0}><option value="">Selectionner une communaute</option>{cellRootOptions.map((root) => <option key={root.id} value={root.id}>{root.title?.trim() || (root.community_kind ? ROOT_LABEL[root.community_kind] : "Communaute cellule")}</option>)}</Select></div><div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-community-title">Titre de la sous-communaute</label><Input id="create-community-title" name="title" placeholder="Ex: Discussion locale cellule" required /></div></>) : (<><div className="space-y-2 md:col-span-2"><label className="text-sm font-medium" htmlFor="create-direct-member">Membre cible</label><Select id="create-direct-member" name="participant_member_id" required><option value="">Selectionner un membre</option>{members.filter((m) => m.id !== currentMemberId).map((m) => <option key={m.id} value={m.id}>{memberName(m)}</option>)}</Select></div><div className="space-y-2 md:col-span-2"><label className="text-sm font-medium" htmlFor="create-direct-title">Sujet (optionnel)</label><Input id="create-direct-title" name="title" placeholder="Sujet de discussion" /></div></>)}
+              <div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-conversation-type">Type</label><Select value={createType} id="create-conversation-type" name="conversation_type" onChange={(e) => setCreateType(e.target.value === "direct" ? "direct" : "community")}><option value="community">Sous-communauté de cellule</option><option value="direct">Message privé</option></Select></div>
+              {createType === "community" ? (<><div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-community-parent">Communauté de cellule</label><Select id="create-community-parent" name="parent_conversation_id" required disabled={cellRootOptions.length === 0}><option value="">Sélectionner une communauté</option>{cellRootOptions.map((root) => <option key={root.id} value={root.id}>{root.title?.trim() || (root.community_kind ? ROOT_LABEL[root.community_kind] : "Communauté cellule")}</option>)}</Select></div><div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-community-title">Titre de la sous-communauté</label><Input id="create-community-title" name="title" placeholder="Ex: Discussion locale cellule" required /></div></>) : (<><div className="space-y-2 md:col-span-2"><label className="text-sm font-medium" htmlFor="create-direct-member">Membre cible</label><Select id="create-direct-member" name="participant_member_id" required><option value="">Sélectionner un membre</option>{members.filter((m) => m.id !== currentMemberId).map((m) => <option key={m.id} value={m.id}>{memberName(m)}</option>)}</Select></div><div className="space-y-2 md:col-span-2"><label className="text-sm font-medium" htmlFor="create-direct-title">Sujet (optionnel)</label><Input id="create-direct-title" name="title" placeholder="Sujet de discussion" /></div></>)}
               {createState.error ? <p className="text-sm text-red-600 md:col-span-2">{createState.error}</p> : null}
               {createState.success ? <p className="text-sm text-emerald-700 md:col-span-2">{createState.success}</p> : null}
-              <div className="md:col-span-2"><Button disabled={createPending || (createType === "community" && cellRootOptions.length === 0)} type="submit">{createPending ? "Creation..." : "Creer la discussion"}</Button></div>
+              <div className="md:col-span-2"><Button disabled={createPending || (createType === "community" && cellRootOptions.length === 0)} type="submit">{createPending ? "Création..." : "Créer la discussion"}</Button></div>
             </form>
           </Card>
         </div>

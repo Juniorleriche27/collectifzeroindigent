@@ -43,15 +43,15 @@ function normalizePageSize(value: number): number {
 
 function roleVisibilityHint(role: string): string {
   if (role === "pf") {
-    return "PF: region personnelle appliquee par defaut. Utilisez le filtre region pour elargir la vue.";
+    return "PF : région personnelle appliquée par défaut. Utilisez le filtre région pour élargir la vue.";
   }
   if (role === "member") {
-    return "Membre: lecture reseau autorisee. Region personnelle appliquee par defaut, filtres ouverts sur toutes les regions.";
+    return "Membre: lecture réseau autorisée. Région personnelle appliquée par défaut, filtres ouverts sur toutes les régions.";
   }
   if (role === "admin" || role === "ca" || role === "cn") {
-    return "RLS gouvernance: vue elargie sur plusieurs membres.";
+    return "RLS gouvernance : vue élargie sur plusieurs membres.";
   }
-  return "RLS membre: seuls vos enregistrements sont visibles.";
+  return "RLS membre : seuls vos enregistrements sont visibles.";
 }
 
 function roleLabel(role: string): string {
@@ -66,8 +66,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   const params = await searchParams;
   const query = paramValue(params.q).trim();
   const status = paramValue(params.status);
-  const requestedRegionId = paramValue(params.region_id);
-  const hasExplicitRegionFilter = Object.prototype.hasOwnProperty.call(params, "region_id");
+  const requestedRégionId = paramValue(params.region_id);
+  const hasExplicitRégionFilter = Object.prototype.hasOwnProperty.call(params, "region_id");
   const prefectureId = paramValue(params.prefecture_id);
   const communeId = paramValue(params.commune_id);
   const organisationId = paramValue(params.organisation_id);
@@ -78,12 +78,12 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   let loadError: string | null = null;
   let members = [] as Awaited<ReturnType<typeof listMembers>>["rows"];
   let totalCount = 0;
-  let regions = [] as Awaited<ReturnType<typeof getLocations>>["regions"];
+  let régions = [] as Awaited<ReturnType<typeof getLocations>>["régions"];
   let prefectures = [] as Awaited<ReturnType<typeof getLocations>>["prefectures"];
   let communes = [] as Awaited<ReturnType<typeof getLocations>>["communes"];
   let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
   let currentRole = "member";
-  let effectiveRegionId = requestedRegionId;
+  let effectiveRégionId = requestedRégionId;
 
   if (isSupabaseConfigured) {
     try {
@@ -94,9 +94,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           currentRole = currentProfileRole.trim().toLowerCase();
         }
 
-        if ((currentRole === "pf" || currentRole === "member") && !hasExplicitRegionFilter) {
+        if ((currentRole === "pf" || currentRole === "member") && !hasExplicitRégionFilter) {
           const currentMember = await getCurrentMember();
-          effectiveRegionId = String(currentMember?.region_id ?? "");
+          effectiveRégionId = String(currentMember?.region_id ?? "");
         }
       }
 
@@ -110,7 +110,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           page_size: pageSize,
           prefecture_id: prefectureId || undefined,
           q: query || undefined,
-          region_id: effectiveRegionId || undefined,
+          region_id: effectiveRégionId || undefined,
           sort:
             sort === "created_asc" || sort === "name_asc" || sort === "name_desc" || sort === "status_asc"
               ? sort
@@ -118,7 +118,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           status: status || undefined,
         }),
       ]);
-      regions = locationData.regions;
+      régions = locationData.régions;
       prefectures = locationData.prefectures;
       communes = locationData.communes;
       organisations = organisationData.items;
@@ -130,14 +130,14 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     }
   }
 
-  const availablePrefectures = effectiveRegionId
-    ? prefectures.filter((prefecture) => String(prefecture.region_id) === effectiveRegionId)
+  const availablePrefectures = effectiveRégionId
+    ? prefectures.filter((prefecture) => String(prefecture.region_id) === effectiveRégionId)
     : prefectures;
   const availableCommunes = prefectureId
     ? communes.filter((commune) => String(commune.prefecture_id) === prefectureId)
     : communes;
 
-  const regionsById = new Map(regions.map((region) => [String(region.id), region.name]));
+  const régionsById = new Map(régions.map((region) => [String(region.id), region.name]));
   const prefecturesById = new Map(
     prefectures.map((prefecture) => [String(prefecture.id), prefecture.name]),
   );
@@ -157,8 +157,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     const urlParams = new URLSearchParams();
     if (query) urlParams.set("q", query);
     if (status) urlParams.set("status", status);
-    if (effectiveRegionId || hasExplicitRegionFilter) {
-      urlParams.set("region_id", effectiveRegionId);
+    if (effectiveRégionId || hasExplicitRégionFilter) {
+      urlParams.set("region_id", effectiveRégionId);
     }
     if (prefectureId) urlParams.set("prefecture_id", prefectureId);
     if (communeId) urlParams.set("commune_id", communeId);
@@ -181,12 +181,12 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           <h2 className="mt-1 text-3xl font-semibold tracking-tight">Liste & filtres</h2>
           <CardDescription className="mt-2">{roleVisibilityHint(currentRole)}</CardDescription>
           <CardDescription className="mt-1">
-            Role actif detecte: <span className="font-semibold text-foreground">{roleLabel(currentRole)}</span>
+            Rôle actif détecté: <span className="font-semibold text-foreground">{roleLabel(currentRole)}</span>
           </CardDescription>
         </div>
         {currentRole !== "member" ? (
           <Link href="/app/membres">
-            <Button variant="secondary">Reinitialiser</Button>
+            <Button variant="secondary">Réinitialiser</Button>
           </Link>
         ) : null}
       </div>
@@ -194,24 +194,24 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
       <Card className="space-y-4">
         <CardTitle className="text-base">Recherche</CardTitle>
         <form className="grid gap-3 md:grid-cols-7" method="get">
-          <Input defaultValue={query} name="q" placeholder="Nom, email, telephone..." />
+          <Input defaultValue={query} name="q" placeholder="Nom, email, téléphone..." />
           <Select defaultValue={status} name="status">
             <option value="">Tous statuts</option>
             <option value="active">Actif</option>
             <option value="pending">En attente</option>
-            <option value="rejected">Rejete</option>
+            <option value="rejected">Rejeté</option>
             <option value="suspended">Suspendu</option>
           </Select>
-          <Select defaultValue={effectiveRegionId} name="region_id">
-            <option value="">Toutes regions</option>
-            {regions.map((region) => (
+          <Select defaultValue={effectiveRégionId} name="region_id">
+            <option value="">Toutes les régions</option>
+            {régions.map((region) => (
               <option key={region.id} value={region.id}>
                 {region.name}
               </option>
             ))}
           </Select>
           <Select defaultValue={prefectureId} name="prefecture_id">
-            <option value="">Toutes prefectures</option>
+            <option value="">Toutes les préfectures</option>
             {availablePrefectures.map((prefecture) => (
               <option key={prefecture.id} value={prefecture.id}>
                 {prefecture.name}
@@ -235,11 +235,11 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             ))}
           </Select>
           <Select defaultValue={sort} name="sort">
-            <option value="created_desc">Plus recents</option>
+            <option value="created_desc">Plus récents</option>
             <option value="created_asc">Plus anciens</option>
             <option value="name_asc">Nom A-Z</option>
             <option value="name_desc">Nom Z-A</option>
-            <option value="status_asc">Status</option>
+            <option value="status_asc">Statut</option>
           </Select>
           <Select defaultValue={String(pageSize)} name="page_size">
             <option value="10">10 / page</option>
@@ -248,7 +248,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           </Select>
           <div className="md:col-span-7 flex items-center gap-3">
             <Button type="submit">Appliquer les filtres</Button>
-            <p className="text-sm text-muted">{totalCount} resultat(s)</p>
+            <p className="text-sm text-muted">{totalCount} résultat(s)</p>
           </div>
         </form>
       </Card>
@@ -284,7 +284,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             {!isSupabaseConfigured ? (
               <tr className="border-t border-border">
                 <td className="px-4 py-6 text-sm text-muted" colSpan={7}>
-                  Configurez Supabase pour charger les donnees membres.
+                  Configurez Supabase pour charger les données membres.
                 </td>
               </tr>
             ) : loadError ? (
@@ -336,7 +336,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm text-muted">
-                    {(regionsById.get(String(member.region_id)) ?? "-") +
+                    {(régionsById.get(String(member.region_id)) ?? "-") +
                       " / " +
                       (prefecturesById.get(String(member.prefecture_id)) ?? "-") +
                       " / " +
@@ -368,7 +368,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                           className="text-sm font-medium text-muted hover:text-foreground"
                           href={`/app/membres/${member.id}#role-gouvernance`}
                         >
-                          Gerer role
+                          Gérer rôle
                         </Link>
                       ) : null}
                       {member.email ? (
@@ -408,7 +408,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
         <div className="flex gap-2">
           <Link href={buildPageHref(Math.max(1, safePage - 1))}>
             <Button disabled={!hasPreviousPage} variant="secondary">
-              Precedent
+              Précédent
             </Button>
           </Link>
           <Link href={buildPageHref(Math.min(totalPages, safePage + 1))}>

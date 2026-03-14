@@ -28,7 +28,7 @@ export function CziBrand({ className, compact = false, subtitle = true }: CziBra
           <p className="truncate text-xl font-bold tracking-tight text-foreground">CZI</p>
           {subtitle ? (
             <p className="truncate text-[11px] font-medium uppercase tracking-wider text-muted">
-              Collectif Zero Indigent
+              Collectif Zéro Indigent
             </p>
           ) : null}
         </div>

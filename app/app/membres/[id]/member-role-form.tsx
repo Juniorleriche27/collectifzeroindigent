@@ -95,10 +95,10 @@ export function MemberRoleForm({
     return (
       <div className="space-y-2">
         <p className="text-sm text-muted">
-          Role actuel: <Badge>{roleLabels[normalizedCurrentRole] ?? normalizedCurrentRole}</Badge>
+          Rôle actuel : <Badge>{roleLabels[normalizedCurrentRole] ?? normalizedCurrentRole}</Badge>
         </p>
         <p className="text-sm text-muted">
-          Ce role ne permet pas de modifier les roles gouvernance.
+          Ce rôle ne permet pas de modifier les roles gouvernance.
         </p>
       </div>
     );
@@ -108,10 +108,10 @@ export function MemberRoleForm({
     return (
       <div className="space-y-2">
         <p className="text-sm text-muted">
-          Role actuel: <Badge>{roleLabels[normalizedCurrentRole] ?? normalizedCurrentRole}</Badge>
+          Rôle actuel : <Badge>{roleLabels[normalizedCurrentRole] ?? normalizedCurrentRole}</Badge>
         </p>
         <p className="text-sm text-muted">
-          Compte proprietaire technique (`{OWNER_ADMIN_EMAIL}`): role admin verrouille en interface.
+          Compte proprietaire technique (`{OWNER_ADMIN_EMAIL}`): rôle admin verrouille en interface.
         </p>
       </div>
     );
@@ -121,7 +121,7 @@ export function MemberRoleForm({
     <form className="grid gap-3 md:max-w-sm" action={formAction}>
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="member-role">
-          Role du membre
+          Rôle du membre
         </label>
         <Select defaultValue={normalizedCurrentRole} id="member-role" name="role" required>
           {roleOptions.map((option) => (
@@ -137,7 +137,7 @@ export function MemberRoleForm({
 
       <div>
         <Button type="submit" variant="secondary" disabled={isPending}>
-          {isPending ? "Mise a jour..." : "Mettre a jour le role"}
+          {isPending ? "Mise à jour..." : "Mettre à jour le rôle"}
         </Button>
       </div>
     </form>

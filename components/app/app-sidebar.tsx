@@ -40,16 +40,16 @@ const navItems: NavItem[] = [
   { href: "/app/membres", icon: UsersRound, label: "Membres" },
   { href: "/app/profils", icon: CircleUserRound, label: "Profils" },
   { href: "/app/partenariat", icon: Handshake, label: "Partenariat" },
-  { href: "/app/a-propos", icon: CircleAlert, label: "A propos" },
-  { href: "/app/communiques", icon: Megaphone, label: "Communiques" },
-  { href: "/app/communaute", icon: MessagesSquare, label: "Communaute" },
+  { href: "/app/a-propos", icon: CircleAlert, label: "À propos" },
+  { href: "/app/communiques", icon: Megaphone, label: "Communiqués" },
+  { href: "/app/communaute", icon: MessagesSquare, label: "Communauté" },
   { href: "/app/campagnes-email", icon: Mail, label: "Campagnes email" },
-  { href: "/app/communes-regions", icon: MapPin, label: "Communes/Regions" },
+  { href: "/app/communes-regions", icon: MapPin, label: "Communes/Régions" },
   { href: "/app/import-export", icon: ArrowUpDown, label: "Import/Export" },
-  { href: "/app/parametres", icon: Settings, label: "Parametres" },
+  { href: "/app/parametres", icon: Settings, label: "Paramètres" },
   { href: "/app/carte-membre", icon: CreditCard, label: "Carte membre" },
   { href: "/app/dons", icon: HandCoins, label: "Dons" },
-  { href: "/app/support", icon: CircleHelp, label: "Support" },
+  { href: "/app/support", icon: CircleHelp, label: "Assistance" },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -115,7 +115,7 @@ export function AppSidebar() {
           >
             <CziBrand compact={collapsed} subtitle={!collapsed} />
             <Button
-              aria-label={collapsed ? "Agrandir le menu" : "Reduire le menu"}
+              aria-label={collapsed ? "Agrandir le menu" : "Réduire le menu"}
               onClick={toggleSidebar}
               size="sm"
               type="button"

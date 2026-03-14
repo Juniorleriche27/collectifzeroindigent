@@ -28,7 +28,7 @@ export async function updateAccountSettings(
 ): Promise<SettingsState> {
   if (!isSupabaseConfigured) {
     return {
-      error: "Supabase non configure.",
+      error: "Supabase non configuré.",
       success: null,
     };
   }
@@ -40,7 +40,7 @@ export async function updateAccountSettings(
 
   if (!firstName || !lastName || !phone) {
     return {
-      error: "Prenom, nom et telephone sont obligatoires.",
+      error: "Prénom, nom et téléphone sont obligatoires.",
       success: null,
     };
   }
@@ -54,7 +54,7 @@ export async function updateAccountSettings(
     });
   } catch (error) {
     return {
-      error: toErrorMessage(error, "Impossible de mettre a jour votre compte."),
+      error: toErrorMessage(error, "Impossible de mettre à jour votre compte."),
       success: null,
     };
   }
@@ -64,7 +64,7 @@ export async function updateAccountSettings(
 
   return {
     error: null,
-    success: "Informations mises a jour.",
+    success: "Informations mises à jour.",
   };
 }
 
@@ -74,7 +74,7 @@ export async function updateSecuritySettings(
 ): Promise<SettingsState> {
   if (!isSupabaseConfigured) {
     return {
-      error: "Supabase non configure.",
+      error: "Supabase non configuré.",
       success: null,
     };
   }
@@ -91,7 +91,7 @@ export async function updateSecuritySettings(
 
   if (newPassword.length < 8) {
     return {
-      error: "Le mot de passe doit contenir au moins 8 caracteres.",
+      error: "Le mot de passe doit contenir au moins 8 caractères.",
       success: null,
     };
   }
@@ -114,7 +114,7 @@ export async function updateSecuritySettings(
     }
   } catch (error) {
     return {
-      error: toErrorMessage(error, "Impossible de mettre a jour la securite."),
+      error: toErrorMessage(error, "Impossible de mettre à jour la sécurité."),
       success: null,
     };
   }
@@ -123,7 +123,7 @@ export async function updateSecuritySettings(
 
   return {
     error: null,
-    success: "Mot de passe mis a jour.",
+    success: "Mot de passe mis à jour.",
   };
 }
 
@@ -133,7 +133,7 @@ export async function updateNotificationSettings(
 ): Promise<SettingsState> {
   if (!isSupabaseConfigured) {
     return {
-      error: "Supabase non configure.",
+      error: "Supabase non configuré.",
       success: null,
     };
   }
@@ -160,7 +160,7 @@ export async function updateNotificationSettings(
     }
   } catch (error) {
     return {
-      error: toErrorMessage(error, "Impossible de mettre a jour les notifications."),
+      error: toErrorMessage(error, "Impossible de mettre à jour les notifications."),
       success: null,
     };
   }
@@ -169,6 +169,6 @@ export async function updateNotificationSettings(
 
   return {
     error: null,
-    success: "Preferences de notifications mises a jour.",
+    success: "Préférences de notifications mises à jour.",
   };
 }

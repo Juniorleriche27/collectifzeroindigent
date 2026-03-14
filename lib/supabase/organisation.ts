@@ -56,7 +56,7 @@ function hasCode(error: unknown, set: Set<string>): boolean {
 function normalizeCategory(value: string): string {
   if (value === "association") return "Association";
   if (value === "enterprise") return "Entreprise";
-  if (value === "personal") return "Personnel";
+  if (value === "personal") return "Individuel";
   return value ? value[0].toUpperCase() + value.slice(1) : "Organisation";
 }
 
@@ -225,7 +225,7 @@ export async function listOrganisations(filters?: {
   return {
     canCreate: false,
     items,
-    note: "Aucune table organisations detectee. Donnees derivees depuis public.member.",
+    note: "Aucune table organisations détectée. Données dérivées depuis public.member.",
     source: "member_derived",
   };
 }
@@ -262,7 +262,7 @@ async function tryInsertIntoTable(
   if (lastSchemaError) {
     return {
       error:
-        "Table organisations detectee mais schema incompatible avec l'insertion MVP. " +
+        "Table organisations détectée mais schéma incompatible avec l'insertion MVP. " +
         `Detail: ${lastSchemaError}`,
       missing: false,
       success: false,
@@ -326,7 +326,7 @@ export async function createOrganisationRecord(input: {
   }
 
   return {
-    error: "Aucune table organisation/organization detectee pour l'insertion.",
+    error: "Aucune table organisation/organization détectée pour l'insertion.",
     ok: false,
     unsupported: true,
   };

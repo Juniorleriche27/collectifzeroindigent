@@ -33,7 +33,7 @@ function toErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message;
   }
-  return "Impossible de publier ce communique.";
+  return "Impossible de publier ce communiqué.";
 }
 
 function parseScopeType(value: string): ScopeLevel {
@@ -72,13 +72,13 @@ function parseScopeSelection(formData: FormData):
   }
 
   if (effectiveScope === "region" && !regionId) {
-    return { error: "Selectionnez une region.", scope: null };
+    return { error: "Sélectionnez une région.", scope: null };
   }
   if (effectiveScope === "prefecture" && !prefectureId) {
-    return { error: "Selectionnez une prefecture.", scope: null };
+    return { error: "Sélectionnez une préfecture.", scope: null };
   }
   if (effectiveScope === "commune" && !communeId) {
-    return { error: "Selectionnez une commune.", scope: null };
+    return { error: "Sélectionnez une commune.", scope: null };
   }
 
   return {
@@ -98,7 +98,7 @@ export async function createCommuniqueAction(
 ): Promise<CommuniqueCreateState> {
   if (!isSupabaseConfigured) {
     return {
-      error: "Supabase non configure.",
+      error: "Supabase non configuré.",
       success: null,
     };
   }
@@ -117,7 +117,7 @@ export async function createCommuniqueAction(
 
   if (parsedScope.error || !parsedScope.scope) {
     return {
-      error: parsedScope.error ?? "Portee invalide.",
+      error: parsedScope.error ?? "Portée invalide.",
       success: null,
     };
   }
@@ -140,7 +140,7 @@ export async function createCommuniqueAction(
 
   return {
     error: null,
-    success: "Communique publie avec succes.",
+    success: "Communiqu? publié avec succès.",
   };
 }
 
@@ -150,7 +150,7 @@ export async function updateCommuniqueAction(
 ): Promise<CommuniqueUpdateState> {
   if (!isSupabaseConfigured) {
     return {
-      error: "Supabase non configure.",
+      error: "Supabase non configuré.",
       success: null,
     };
   }
@@ -163,7 +163,7 @@ export async function updateCommuniqueAction(
 
   if (!announcementId) {
     return {
-      error: "Identifiant du communique manquant.",
+      error: "Identifiant du communiqué manquant.",
       success: null,
     };
   }
@@ -175,7 +175,7 @@ export async function updateCommuniqueAction(
   }
   if (parsedScope.error || !parsedScope.scope) {
     return {
-      error: parsedScope.error ?? "Portee invalide.",
+      error: parsedScope.error ?? "Portée invalide.",
       success: null,
     };
   }
@@ -198,7 +198,7 @@ export async function updateCommuniqueAction(
 
   return {
     error: null,
-    success: "Communique mis a jour.",
+    success: "Communiqu? mis à jour.",
   };
 }
 
@@ -208,7 +208,7 @@ export async function deleteCommuniqueAction(
 ): Promise<CommuniqueDeleteState> {
   if (!isSupabaseConfigured) {
     return {
-      error: "Supabase non configure.",
+      error: "Supabase non configuré.",
       success: null,
     };
   }
@@ -216,7 +216,7 @@ export async function deleteCommuniqueAction(
   const announcementId = formValue(formData, "announcement_id");
   if (!announcementId) {
     return {
-      error: "Identifiant du communique manquant.",
+      error: "Identifiant du communiqué manquant.",
       success: null,
     };
   }

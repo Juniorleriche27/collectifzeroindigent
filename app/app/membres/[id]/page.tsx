@@ -30,7 +30,7 @@ export default async function MemberDetailPage({
     return (
       <div className="space-y-6">
         <Card>
-          <CardTitle>Supabase non configure</CardTitle>
+          <CardTitle>Supabase non configuré</CardTitle>
           <CardDescription className="mt-2">
             Ajoutez les variables d&apos;environnement pour charger le detail membre.
           </CardDescription>
@@ -67,7 +67,7 @@ export default async function MemberDetailPage({
           targetRole = targetProfileRole.trim().toLowerCase();
         }
       } catch (error) {
-        console.error("Unable to load target member role", error);
+        console.error("Unable to load target member rôle", error);
       }
     }
   } catch (error) {
@@ -92,10 +92,10 @@ export default async function MemberDetailPage({
         <Card>
           <CardTitle>Membre introuvable</CardTitle>
           <CardDescription className="mt-2">
-            Ce membre n&apos;existe pas ou n&apos;est pas visible avec votre role actuel.
+            Ce membre n&apos;existe pas ou n&apos;est pas visible avec votre rôle actuel.
           </CardDescription>
           <Link className="mt-4 inline-block text-sm font-semibold text-primary" href="/app/membres">
-            Retour a la liste membres
+            Retour à la liste membres
           </Link>
         </Card>
       </div>
@@ -112,7 +112,7 @@ export default async function MemberDetailPage({
             {member.first_name} {member.last_name}
           </CardDescription>
           <CardDescription className="mt-1">
-            Role actif detecte: <span className="font-semibold text-foreground">{currentRole}</span>
+            Rôle actif détecté: <span className="font-semibold text-foreground">{currentRole}</span>
           </CardDescription>
         </div>
         <Badge variant={statusVariant(member.status)}>{member.status ?? "unknown"}</Badge>
@@ -123,7 +123,7 @@ export default async function MemberDetailPage({
           <Card className="space-y-2">
             <CardTitle>Mode lecture</CardTitle>
             <CardDescription>
-              Ce profil est visible pour contact reseau. Les modifications sont reservees aux roles
+              Ce profil est visible pour contact réseau. Les modifications sont réservées aux rôles
               gouvernance.
             </CardDescription>
           </Card>
@@ -161,10 +161,10 @@ export default async function MemberDetailPage({
       ) : (
         <>
           <Card className="space-y-2">
-            <CardTitle>Edition membre</CardTitle>
+            <CardTitle>Édition du membre</CardTitle>
             <CardDescription>
               Les modifications sont soumises a RLS. Un compte standard ne peut editer que ses
-              propres donnees.
+              propres données.
             </CardDescription>
           </Card>
 
@@ -179,12 +179,12 @@ export default async function MemberDetailPage({
                 <MemberValidationForm member={member} />
               ) : (
                 <CardDescription>
-                  Ce membre n&apos;est plus en attente. Decision enregistree: {member.status ?? "unknown"}.
+                  Ce membre n&apos;est plus en attente. Décision enregistrée : {member.status ?? "unknown"}.
                 </CardDescription>
               )
             ) : (
               <CardDescription>
-                Ce role ne peut pas executer la validation membre.
+                Ce rôle ne peut pas exécuter la validation du membre.
               </CardDescription>
             )}
           </Card>
@@ -200,9 +200,9 @@ export default async function MemberDetailPage({
           </Card>
 
           <Card className="space-y-2" id="role-gouvernance">
-            <CardTitle>Role gouvernance</CardTitle>
+            <CardTitle>Rôle gouvernance</CardTitle>
             <CardDescription>
-              Admin peut nommer un autre admin et lui retirer ce role. CA peut attribuer
+              Admin peut nommer un autre admin et lui retirer ce rôle. CA peut attribuer
               uniquement member/pf/cn. Le compte proprietaire technique reste verrouille en admin.
             </CardDescription>
             <MemberRoleForm

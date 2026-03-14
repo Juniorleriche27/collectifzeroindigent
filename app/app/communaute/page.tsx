@@ -90,7 +90,7 @@ export default async function CommunautePage({ searchParams }: { searchParams: S
       loadError = loadError ?? toErrorMessage(error, "Impossible de charger les discussions.");
     }
   } else {
-    loadError = "Supabase non configure.";
+    loadError = "Supabase non configuré.";
   }
 
   return (

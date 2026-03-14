@@ -10,11 +10,11 @@ function roleLabel(role: string): string {
     case "admin":
       return "Administrateur";
     case "ca":
-      return "Conseil administration";
+      return "Conseil d'administration";
     case "cn":
       return "Coordination nationale";
     case "pf":
-      return "Point focal regional";
+      return "Point focal régional";
     default:
       return "Membre";
   }
@@ -23,15 +23,15 @@ function roleLabel(role: string): string {
 function roleScope(role: string): string[] {
   switch (role) {
     case "admin":
-      return ["Membres (global)", "Partenariat", "A propos", "Parametres", "Import/Export"];
+      return ["Membres (global)", "Partenariat", "À propos", "Paramètres", "Import/Export"];
     case "ca":
-      return ["Dashboard gouvernance", "Membres (lecture globale)", "Partenariat", "Support"];
+      return ["Tableau de bord gouvernance", "Membres (lecture globale)", "Partenariat", "Assistance"];
     case "cn":
-      return ["Membres (coordination)", "Partenariat", "Communes/Regions", "Support"];
+      return ["Membres (coordination)", "Partenariat", "Communes/Régions", "Assistance"];
     case "pf":
-      return ["Membres (perimetre regional)", "Partenariat", "Onboarding", "Support"];
+      return ["Membres (périmètre régional)", "Partenariat", "Fiche membre", "Assistance"];
     default:
-      return ["Membres (RLS personnel)", "Partenariat", "A propos", "Parametres", "Support"];
+      return ["Membres (RLS personnel)", "Partenariat", "À propos", "Paramètres", "Assistance"];
   }
 }
 
@@ -65,7 +65,7 @@ export default async function ProfilsPage() {
         loadError = "Impossible de charger toutes les informations profils.";
       }
       if (roleResult.status === "rejected") {
-        console.error("Unable to load current role for profils page", roleResult.reason);
+        console.error("Unable to load current rôle for profils page", roleResult.reason);
       }
 
       if (user) {
@@ -86,7 +86,7 @@ export default async function ProfilsPage() {
       loadError = "Impossible de charger les informations profils.";
     }
   } else {
-    loadError = "Supabase non configure. Ajoutez les variables d'environnement.";
+    loadError = "Supabase non configuré. Ajoutez les variables d'environnement.";
   }
 
   const scope = roleScope(role);
@@ -106,7 +106,7 @@ export default async function ProfilsPage() {
 
       <section className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-3">
-          <CardTitle className="text-base">Profil connecte</CardTitle>
+          <CardTitle className="text-base">Profil connecté</CardTitle>
           <div className="space-y-2 text-sm">
             <p>
               <span className="text-muted">Nom:</span> {firstName} {lastName}
@@ -115,25 +115,25 @@ export default async function ProfilsPage() {
               <span className="text-muted">Email:</span> {userEmail}
             </p>
             <p>
-              <span className="text-muted">Telephone:</span> {phone}
+              <span className="text-muted">Téléphone:</span> {phone}
             </p>
             <p>
               <span className="text-muted">ID auth:</span> {userId}
             </p>
             <p>
-              <span className="text-muted">ID membre:</span> {memberId ?? "Non lie"}
+              <span className="text-muted">ID membre:</span> {memberId ?? "Non lié"}
             </p>
           </div>
         </Card>
 
         <Card className="space-y-3">
-          <CardTitle className="text-base">Role et gouvernance</CardTitle>
+          <CardTitle className="text-base">Rôle et gouvernance</CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="success">{roleLabel(role)}</Badge>
-            <CardDescription>role DB: {role}</CardDescription>
+            <CardDescription>Rôle DB : {role}</CardDescription>
           </div>
           <div className="space-y-2">
-            <CardDescription>Perimetre acces actif:</CardDescription>
+            <CardDescription>Périmètre d’accès actif :</CardDescription>
             {scope.map((item) => (
               <div key={item} className="rounded-lg border border-border px-3 py-2 text-sm">
                 {item}

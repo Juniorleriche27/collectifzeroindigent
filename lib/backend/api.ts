@@ -347,7 +347,7 @@ export async function getCurrentMember() {
 
 const readDashboardOverview = cache(async () =>
   requestBackend<DashboardOverview>("/dashboard/overview", {
-    fallbackError: "Impossible de charger les indicateurs dashboard.",
+    fallbackError: "Impossible de charger les indicateurs du tableau de bord.",
   }),
 );
 
@@ -411,7 +411,7 @@ export async function getMemberById(memberId: string) {
 export async function updateMemberById(memberId: string, payload: Partial<MemberRecord>) {
   return requestBackend<MemberRecord | null>(`/members/${memberId}`, {
     body: JSON.stringify(payload),
-    fallbackError: "Impossible de mettre a jour ce membre.",
+    fallbackError: "Impossible de mettre à jour ce membre.",
     method: "PATCH",
   });
 }
@@ -419,7 +419,7 @@ export async function updateMemberById(memberId: string, payload: Partial<Member
 export async function updateCurrentMember(payload: Partial<MemberRecord>) {
   return requestBackend<MemberRecord | null>("/members/me", {
     body: JSON.stringify(payload),
-    fallbackError: "Impossible de mettre a jour votre compte.",
+    fallbackError: "Impossible de mettre à jour votre compte.",
     method: "PATCH",
   });
 }
@@ -488,7 +488,7 @@ export async function completeOnboarding(payload: {
 }) {
   return requestBackend<{ member_id: string; message: string }>("/onboarding", {
     body: JSON.stringify(payload),
-    fallbackError: "Impossible de finaliser l'onboarding.",
+    fallbackError: "Impossible de finaliser la fiche membre.",
     method: "POST",
   });
 }
@@ -535,7 +535,7 @@ const readAnnouncements = cache(async (search: string) => {
     items: AnnouncementItem[];
     role: string;
   }>(queryString ? `/announcements?${queryString}` : "/announcements", {
-    fallbackError: "Impossible de charger les communiques.",
+    fallbackError: "Impossible de charger les communiqués.",
   });
 });
 
@@ -559,7 +559,7 @@ export async function createAnnouncement(payload: {
     message: string;
   }>("/announcements", {
     body: JSON.stringify(payload),
-    fallbackError: "Impossible de publier le communique.",
+    fallbackError: "Impossible de publier le communiqué.",
     method: "POST",
   });
 }
@@ -583,7 +583,7 @@ export async function updateAnnouncement(
     message: string;
   }>(`/announcements/${announcementId}`, {
     body: JSON.stringify(payload),
-    fallbackError: "Impossible de modifier le communique.",
+    fallbackError: "Impossible de modifier le communiqué.",
     method: "PATCH",
   });
 }
@@ -593,7 +593,7 @@ export async function deleteAnnouncement(announcementId: string) {
     deleted: boolean;
     message: string;
   }>(`/announcements/${announcementId}`, {
-    fallbackError: "Impossible de supprimer le communique.",
+    fallbackError: "Impossible de supprimer le communiqué.",
     method: "DELETE",
   });
 }
@@ -645,7 +645,7 @@ export async function deleteConversation(conversationId: string) {
     deleted: boolean;
     message: string;
   }>(`/conversations/${conversationId}`, {
-    fallbackError: "Impossible de supprimer cette sous-communaute.",
+    fallbackError: "Impossible de supprimer cette sous-communauté.",
     method: "DELETE",
   });
 }
@@ -728,7 +728,7 @@ export async function toggleConversationMessageLike(
     liked: boolean;
     message: string;
   }>(`/conversations/${conversationId}/messages/${messageId}/likes/toggle`, {
-    fallbackError: "Impossible de mettre a jour le like.",
+    fallbackError: "Impossible de mettre à jour le like.",
     method: "POST",
   });
 }
@@ -900,7 +900,7 @@ export async function updateDonation(
     message: string;
   }>(`/donations/${donationId}`, {
     body: JSON.stringify(payload),
-    fallbackError: "Impossible de mettre a jour ce don.",
+    fallbackError: "Impossible de mettre à jour ce don.",
     method: "PATCH",
   });
 }
