@@ -66,8 +66,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   const params = await searchParams;
   const query = paramValue(params.q).trim();
   const status = paramValue(params.status);
-  const requestedRégionId = paramValue(params.region_id);
-  const hasExplicitRégionFilter = Object.prototype.hasOwnProperty.call(params, "region_id");
+  const requestedRegionId = paramValue(params.region_id);
+  const hasExplicitRegionFilter = Object.prototype.hasOwnProperty.call(params, "region_id");
   const prefectureId = paramValue(params.prefecture_id);
   const communeId = paramValue(params.commune_id);
   const organisationId = paramValue(params.organisation_id);
@@ -78,12 +78,12 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   let loadError: string | null = null;
   let members = [] as Awaited<ReturnType<typeof listMembers>>["rows"];
   let totalCount = 0;
-  let régions = [] as Awaited<ReturnType<typeof getLocations>>["régions"];
+  let regions = [] as Awaited<ReturnType<typeof getLocations>>["regions"];
   let prefectures = [] as Awaited<ReturnType<typeof getLocations>>["prefectures"];
   let communes = [] as Awaited<ReturnType<typeof getLocations>>["communes"];
   let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
   let currentRole = "member";
-  let effectiveRégionId = requestedRégionId;
+  let effectiveRegionId = requestedRegionId;
 
   if (isSupabaseConfigured) {
     try {
@@ -94,9 +94,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           currentRole = currentProfileRole.trim().toLowerCase();
         }
 
-        if ((currentRole === "pf" || currentRole === "member") && !hasExplicitRégionFilter) {
+        if ((currentRole === "pf" || currentRole === "member") && !hasExplicitRegionFilter) {
           const currentMember = await getCurrentMember();
-          effectiveRégionId = String(currentMember?.region_id ?? "");
+          effectiveRegionId = String(currentMember?.region_id ?? "");
         }
       }
 
@@ -110,7 +110,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           page_size: pageSize,
           prefecture_id: prefectureId || undefined,
           q: query || undefined,
-          region_id: effectiveRégionId || undefined,
+          region_id: effectiveRegionId || undefined,
           sort:
             sort === "created_asc" || sort === "name_asc" || sort === "name_desc" || sort === "status_asc"
               ? sort
@@ -118,7 +118,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           status: status || undefined,
         }),
       ]);
-      régions = locationData.régions;
+      regions = locationData.regions;
       prefectures = locationData.prefectures;
       communes = locationData.communes;
       organisations = organisationData.items;
@@ -130,14 +130,14 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     }
   }
 
-  const availablePrefectures = effectiveRégionId
-    ? prefectures.filter((prefecture) => String(prefecture.region_id) === effectiveRégionId)
+  const availablePrefectures = effectiveRegionId
+    ? prefectures.filter((prefecture) => String(prefecture.region_id) === effectiveRegionId)
     : prefectures;
   const availableCommunes = prefectureId
     ? communes.filter((commune) => String(commune.prefecture_id) === prefectureId)
     : communes;
 
-  const régionsById = new Map(régions.map((region) => [String(region.id), region.name]));
+  const regionsById = new Map(regions.map((region) => [String(region.id), region.name]));
   const prefecturesById = new Map(
     prefectures.map((prefecture) => [String(prefecture.id), prefecture.name]),
   );
@@ -157,8 +157,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     const urlParams = new URLSearchParams();
     if (query) urlParams.set("q", query);
     if (status) urlParams.set("status", status);
-    if (effectiveRégionId || hasExplicitRégionFilter) {
-      urlParams.set("region_id", effectiveRégionId);
+    if (effectiveRegionId || hasExplicitRegionFilter) {
+      urlParams.set("region_id", effectiveRegionId);
     }
     if (prefectureId) urlParams.set("prefecture_id", prefectureId);
     if (communeId) urlParams.set("commune_id", communeId);
@@ -202,9 +202,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             <option value="rejected">Rejeté</option>
             <option value="suspended">Suspendu</option>
           </Select>
-          <Select defaultValue={effectiveRégionId} name="region_id">
+          <Select defaultValue={effectiveRegionId} name="region_id">
             <option value="">Toutes les régions</option>
-            {régions.map((region) => (
+            {regions.map((region) => (
               <option key={region.id} value={region.id}>
                 {region.name}
               </option>
@@ -336,7 +336,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm text-muted">
-                    {(régionsById.get(String(member.region_id)) ?? "-") +
+                    {(regionsById.get(String(member.region_id)) ?? "-") +
                       " / " +
                       (prefecturesById.get(String(member.prefecture_id)) ?? "-") +
                       " / " +

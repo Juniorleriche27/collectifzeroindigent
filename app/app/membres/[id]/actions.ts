@@ -148,7 +148,7 @@ export async function updateMember(
   };
 }
 
-export async function updateMemberRôle(
+export async function updateMemberRole(
   memberId: string,
   targetUserId: string,
   targetEmail: string | null,
@@ -159,8 +159,8 @@ export async function updateMemberRôle(
     return { error: "Supabase non configuré.", success: null };
   }
 
-  const nextRôle = formValue(formData, "role").toLowerCase();
-  if (!allowedRoles.has(nextRôle)) {
+  const nextRole = formValue(formData, "role").toLowerCase();
+  if (!allowedRoles.has(nextRole)) {
     return { error: "Rôle invalide.", success: null };
   }
 
@@ -174,24 +174,24 @@ export async function updateMemberRôle(
     return { error: "Session invalide. Reconnectez-vous.", success: null };
   }
 
-  const actorRôleLookup = await getProfileRoleByAuthUser(supabase, user.id);
-  if (actorRôleLookup.error) {
-    return { error: toRoleErrorMessage(actorRôleLookup.error), success: null };
+  const actorRoleLookup = await getProfileRoleByAuthUser(supabase, user.id);
+  if (actorRoleLookup.error) {
+    return { error: toRoleErrorMessage(actorRoleLookup.error), success: null };
   }
-  const actorRôle = (actorRôleLookup.role ?? "member").toLowerCase();
+  const actorRole = (actorRoleLookup.role ?? "member").toLowerCase();
 
-  if (actorRôle !== "admin" && actorRôle !== "ca") {
+  if (actorRole !== "admin" && actorRole !== "ca") {
     return { error: "Seuls les rôles admin/ca peuvent modifier un rôle.", success: null };
   }
 
-  if (actorRôle === "ca" && (nextRôle === "ca" || nextRôle === "admin")) {
+  if (actorRole === "ca" && (nextRole === "ca" || nextRole === "admin")) {
     return {
       error: "Le rôle CA peut attribuer uniquement member/pf/cn.",
       success: null,
     };
   }
 
-  if (targetUserId === user.id && nextRôle !== actorRôle && actorRôle === "ca") {
+  if (targetUserId === user.id && nextRole !== actorRole && actorRole === "ca") {
     return {
       error: "Un rôle CA ne peut pas modifier son propre rôle.",
       success: null,
@@ -199,14 +199,14 @@ export async function updateMemberRôle(
   }
 
   const normalizedTargetEmail = (targetEmail ?? "").trim().toLowerCase();
-  if (normalizedTargetEmail === OWNER_ADMIN_EMAIL && nextRôle !== "admin") {
+  if (normalizedTargetEmail === OWNER_ADMIN_EMAIL && nextRole !== "admin") {
     return {
       error: `Le compte propriétaire ${OWNER_ADMIN_EMAIL} doit conserver le rôle admin.`,
       success: null,
     };
   }
 
-  const updateResult = await updateProfileRoleByAuthUser(supabase, targetUserId, nextRôle);
+  const updateResult = await updateProfileRoleByAuthUser(supabase, targetUserId, nextRole);
   if (updateResult.error) {
     return { error: toRoleErrorMessage(updateResult.error), success: null };
   }
@@ -215,7 +215,7 @@ export async function updateMemberRôle(
   if (verification.error) {
     return { error: toRoleErrorMessage(verification.error), success: null };
   }
-  if (verification.role?.toLowerCase() !== nextRôle) {
+  if (verification.role?.toLowerCase() !== nextRole) {
     return {
       error:
         "Rôle non modifié. Vérifiez les policies profile puis réappliquez `sql/2026-02-22_profile_role_governance_access.sql`.",
@@ -230,7 +230,7 @@ export async function updateMemberRôle(
 
   return {
     error: null,
-    success: `Rôle mis à jour : ${nextRôle}.`,
+    success: `Rôle mis à jour : ${nextRole}.`,
   };
 }
 

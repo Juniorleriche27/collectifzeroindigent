@@ -53,7 +53,7 @@ async function loadExportRows() {
     supabase
       .from("member")
       .select(
-        "id, first_name, last_name, email, phone, status, région_id, préfecture_id, commune_id, join_mode, org_name, cellule_primary, cellule_secondary, photo_status, photo_url, created_at, updated_at",
+        "id, first_name, last_name, email, phone, status, region_id, prefecture_id, commune_id, join_mode, org_name, cellule_primary, cellule_secondary, photo_status, photo_url, created_at, updated_at",
       )
       .order("created_at", { ascending: false })
       .range(0, 4999),
@@ -73,7 +73,7 @@ async function loadExportRows() {
   );
   const communesById = new Map((communesResult.data ?? []).map((item) => [String(item.id), item.name]));
 
-  const rows = ((membersResult.data ?? []) as ExportMemberRow[]).map((member) => ({
+  const rows = (membersResult.data ?? []).map((member) => ({
     cellule_principale: member.cellule_primary ?? "",
     cellule_secondaire: member.cellule_secondary ?? "",
     commune: communesById.get(String(member.commune_id)) ?? "",

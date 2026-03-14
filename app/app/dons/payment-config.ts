@@ -5,7 +5,7 @@ export const donationPaymentMode: DonationPaymentMode =
     ? "paydunya"
     : "manual";
 
-export const donationManuelTransfers = [
+export const donationManualTransfers = [
   {
     code: "yas",
     label: "Mixx by Yas / Tape Tap Send",
@@ -31,11 +31,11 @@ export function formatDonationPaymentProvider(value: string | null | undefined):
   return value;
 }
 
-export function getDonationManuelPaymentMessage(amountCfa: number): string {
+export function getDonationManualPaymentMessage(amountCfa: number): string {
   const formattedAmount = new Intl.NumberFormat("fr-FR").format(amountCfa);
   return [
     `Don enregistre pour ${formattedAmount} F.`,
-    `Envoyez le montant au ${donationManuelTransfers[0].number} (${donationManuelTransfers[0].label}) ou au ${donationManuelTransfers[1].number} (${donationManuelTransfers[1].label}).`,
+    `Envoyez le montant au ${donationManualTransfers[0].number} (${donationManualTransfers[0].label}) ou au ${donationManualTransfers[1].number} (${donationManualTransfers[1].label}).`,
     "Conservez la r?f?rence ou la capture du transfert, puis transmettez-la ? un responsable CZI pour validation manuelle.",
   ].join(" ");
 }

@@ -134,8 +134,8 @@ export function OnboardingForm({
           [
             getProfileMemberIdByAuthUser(supabase, user.id),
             supabase.from("region").select("id, name").order("name"),
-            supabase.from("prefecture").select("id, name, région_id").order("name"),
-            supabase.from("commune").select("id, name, préfecture_id").order("name"),
+            supabase.from("prefecture").select("id, name, region_id").order("name"),
+            supabase.from("commune").select("id, name, prefecture_id").order("name"),
           ],
         );
 
