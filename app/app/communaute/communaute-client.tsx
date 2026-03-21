@@ -1,7 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Heart, MessageCircleReply, Pencil, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { createClient as createSupabaseClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { CommunityKind, ConversationItem, ConversationMessage, MemberRecord } from "@/lib/backend/api";
 
@@ -34,6 +44,8 @@ type CommunauteClientProps = {
 };
 
 const ROOT_ORDER: CommunityKind[] = ["czi", "engaged", "entrepreneur", "org_leader"];
+const REFRESH_THROTTLE_MS = 1200;
+const REFRESH_FALLBACK_INTERVAL_MS = 5000;
 const ROOT_LABEL: Record<CommunityKind, string> = {
   czi: "Communauté CZI",
   engaged: "Cellule des jeunes engagés",
@@ -71,6 +83,7 @@ export function CommunauteClient({
   messages,
   selectedConversationId,
 }: CommunauteClientProps) {
+  const router = useRouter();
   const baseState: ConversationActionState = { error: null, success: null };
   const [createState, createAction, createPending] = useActionState(createConversationAction, baseState);
   const [deleteConversationState, deleteConversationFormAction, deleteConversationPending] = useActionState(deleteConversationAction, baseState);
@@ -86,6 +99,7 @@ export function CommunauteClient({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingBody, setEditingBody] = useState("");
   const [editingMentions, setEditingMentions] = useState<string[]>([]);
+  const lastRefreshAtRef = useRef(0);
 
   const selectedConversation = items.find((item) => item.id === selectedConversationId) ?? null;
   const msgById = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
@@ -144,6 +158,17 @@ export function CommunauteClient({
       .slice(0, 6);
   }, [members, mentionIds, query]);
 
+  const refreshConversationFeed = useEffectEvent((force = false) => {
+    const now = Date.now();
+    if (!force && now - lastRefreshAtRef.current < REFRESH_THROTTLE_MS) {
+      return;
+    }
+    lastRefreshAtRef.current = now;
+    startTransition(() => {
+      router.refresh();
+    });
+  });
+
   useEffect(() => {
     if (!postState.success) return;
     const timer = window.setTimeout(() => {
@@ -163,6 +188,74 @@ export function CommunauteClient({
     }, 0);
     return () => window.clearTimeout(timer);
   }, [editState.success]);
+
+  useEffect(() => {
+    if (
+      !createState.success &&
+      !deleteConversationState.success &&
+      !deleteMessageState.success &&
+      !editState.success &&
+      !postState.success
+    ) {
+      return;
+    }
+    refreshConversationFeed(true);
+  }, [
+    createState.success,
+    deleteConversationState.success,
+    deleteMessageState.success,
+    editState.success,
+    postState.success,
+  ]);
+
+  useEffect(() => {
+    let supabaseClient: ReturnType<typeof createSupabaseClient> | null = null;
+
+    try {
+      supabaseClient = createSupabaseClient();
+    } catch {
+      return;
+    }
+
+    const channel = supabaseClient
+      .channel(`communaute-live-${selectedConversationId ?? "all"}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conversation" },
+        () => refreshConversationFeed(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conversation_participant" },
+        () => refreshConversationFeed(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "message" },
+        () => refreshConversationFeed(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "message_like" },
+        () => refreshConversationFeed(),
+      )
+      .subscribe();
+
+    return () => {
+      void supabaseClient?.removeChannel(channel);
+    };
+  }, [selectedConversationId]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+      refreshConversationFeed();
+    }, REFRESH_FALLBACK_INTERVAL_MS);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   function link(id: string) {
     return `/app/communaute?q=${encodeURIComponent(initialQuery)}&conversation_type=${encodeURIComponent(initialConversationType)}&conversation=${id}`;
