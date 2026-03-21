@@ -36,6 +36,19 @@ export type MemberListItem = {
   created_at?: string | null;
 };
 
+type MemberLocationRow = {
+  commune_id: string | null;
+  prefecture_id: string | null;
+  region_id: string | null;
+};
+
+export type MemberLocationCounts = {
+  byCommuneId: Map<string, number>;
+  byPrefectureId: Map<string, number>;
+  byRegionId: Map<string, number>;
+  total: number;
+};
+
 const readMemberForUser = cache(async (userId: string): Promise<{ id: string } | null> => {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -90,6 +103,75 @@ export async function getOnboardingLocations(): Promise<{
     regions: regionsResult.data ?? [],
     prefectures: prefecturesResult.data ?? [],
     communes: communesResult.data ?? [],
+  };
+}
+
+function incrementCount(counts: Map<string, number>, key: string | null) {
+  const normalizedKey = key?.trim();
+  if (!normalizedKey) {
+    return;
+  }
+
+  counts.set(normalizedKey, (counts.get(normalizedKey) ?? 0) + 1);
+}
+
+export async function getVisibleMemberLocationCounts(filters?: {
+  prefectureId?: string;
+  regionId?: string;
+}): Promise<MemberLocationCounts> {
+  const supabase = await createClient();
+  const pageSize = 1000;
+  let rangeFrom = 0;
+
+  const byRegionId = new Map<string, number>();
+  const byPrefectureId = new Map<string, number>();
+  const byCommuneId = new Map<string, number>();
+  let total = 0;
+
+  while (true) {
+    let query = supabase
+      .from("member")
+      .select("region_id, prefecture_id, commune_id")
+      .order("id", { ascending: true })
+      .range(rangeFrom, rangeFrom + pageSize - 1);
+
+    if (filters?.regionId) {
+      query = query.eq("region_id", filters.regionId);
+    }
+    if (filters?.prefectureId) {
+      query = query.eq("prefecture_id", filters.prefectureId);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      throw error;
+    }
+
+    const rows = (data ?? []) as MemberLocationRow[];
+    if (!rows.length) {
+      break;
+    }
+
+    total += rows.length;
+
+    for (const row of rows) {
+      incrementCount(byRegionId, row.region_id);
+      incrementCount(byPrefectureId, row.prefecture_id);
+      incrementCount(byCommuneId, row.commune_id);
+    }
+
+    if (rows.length < pageSize) {
+      break;
+    }
+
+    rangeFrom += pageSize;
+  }
+
+  return {
+    byCommuneId,
+    byPrefectureId,
+    byRegionId,
+    total,
   };
 }
 

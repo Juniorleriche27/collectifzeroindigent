@@ -1,10 +1,12 @@
 import Link from "next/link";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { getLocations } from "@/lib/backend/api";
+import { getVisibleMemberLocationCounts } from "@/lib/supabase/member";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -25,6 +27,26 @@ function sortByName<T extends NamedRow>(rows: T[]): T[] {
   return [...rows].sort((first, second) => first.name.localeCompare(second.name, "fr"));
 }
 
+function membersHref(filters: {
+  communeId?: string;
+  prefectureId?: string;
+  regionId?: string;
+}) {
+  const params = new URLSearchParams();
+  if (filters.regionId) {
+    params.set("region_id", filters.regionId);
+  }
+  if (filters.prefectureId) {
+    params.set("prefecture_id", filters.prefectureId);
+  }
+  if (filters.communeId) {
+    params.set("commune_id", filters.communeId);
+  }
+
+  const query = params.toString();
+  return query ? `/app/membres?${query}` : "/app/membres";
+}
+
 export default async function CommunesRegionsPage({
   searchParams,
 }: {
@@ -38,14 +60,28 @@ export default async function CommunesRegionsPage({
   let regions: Awaited<ReturnType<typeof getLocations>>["regions"] = [];
   let prefectures: Awaited<ReturnType<typeof getLocations>>["prefectures"] = [];
   let communes: Awaited<ReturnType<typeof getLocations>>["communes"] = [];
+  let totalVisibleMembers = 0;
+  let memberCountByRegionId = new Map<string, number>();
+  let memberCountByPrefectureId = new Map<string, number>();
+  let memberCountByCommuneId = new Map<string, number>();
   let loadError: string | null = null;
 
   if (isSupabaseConfigured) {
     try {
-      const locations = await getLocations();
+      const [locations, locationCounts] = await Promise.all([
+        getLocations(),
+        getVisibleMemberLocationCounts({
+          prefectureId: prefectureId || undefined,
+          regionId: regionId || undefined,
+        }),
+      ]);
       regions = locations.regions;
       prefectures = locations.prefectures;
       communes = locations.communes;
+      totalVisibleMembers = locationCounts.total;
+      memberCountByRegionId = locationCounts.byRegionId;
+      memberCountByPrefectureId = locationCounts.byPrefectureId;
+      memberCountByCommuneId = locationCounts.byCommuneId;
     } catch (error) {
       console.error("Unable to load territorial data", error);
       loadError = "Impossible de charger les données territoriales.";
@@ -56,9 +92,14 @@ export default async function CommunesRegionsPage({
 
   const regionById = new Map(regions.map((region) => [region.id, region]));
   const prefectureById = new Map(prefectures.map((prefecture) => [prefecture.id, prefecture]));
+  const filteredRegions = sortByName(regions.filter((region) => !regionId || region.id === regionId));
 
   const filteredPrefectures = sortByName(
-    prefectures.filter((prefecture) => !regionId || prefecture.region_id === regionId),
+    prefectures.filter((prefecture) => {
+      if (regionId && prefecture.region_id !== regionId) return false;
+      if (prefectureId && prefecture.id !== prefectureId) return false;
+      return true;
+    }),
   );
   const filteredCommunes = sortByName(
     communes.filter((commune) => {
@@ -71,7 +112,7 @@ export default async function CommunesRegionsPage({
 
   const normalizedQuery = query.toLowerCase();
   const visibleRegions = sortByName(
-    regions.filter((region) => {
+    filteredRegions.filter((region) => {
       if (!normalizedQuery) return true;
       return region.name.toLowerCase().includes(normalizedQuery);
     }),
@@ -96,6 +137,9 @@ export default async function CommunesRegionsPage({
           Communes/Régions
         </p>
         <h2 className="mt-1 text-3xl font-semibold tracking-tight">Gestion territoriale</h2>
+        <CardDescription className="mt-2">
+          Référentiel territorial avec volume de membres visibles par région, préfecture et commune.
+        </CardDescription>
       </div>
 
       {loadError ? (
@@ -135,7 +179,7 @@ export default async function CommunesRegionsPage({
         </form>
       </Card>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardDescription>Régions</CardDescription>
           <CardTitle className="mt-2 text-3xl">{visibleRegions.length}</CardTitle>
@@ -148,6 +192,10 @@ export default async function CommunesRegionsPage({
           <CardDescription>Communes</CardDescription>
           <CardTitle className="mt-2 text-3xl">{visibleCommunes.length}</CardTitle>
         </Card>
+        <Card>
+          <CardDescription>Membres visibles</CardDescription>
+          <CardTitle className="mt-2 text-3xl">{totalVisibleMembers}</CardTitle>
+        </Card>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
@@ -158,9 +206,18 @@ export default async function CommunesRegionsPage({
               <CardDescription>Aucune région.</CardDescription>
             ) : (
               visibleRegions.map((region) => (
-                <div key={region.id} className="rounded-lg border border-border px-3 py-2 text-sm">
-                  {region.name}
-                </div>
+                <Link
+                  href={membersHref({ regionId: region.id })}
+                  key={region.id}
+                  className="block rounded-lg border border-border px-3 py-2 text-sm transition-colors hover:border-primary/40 hover:bg-muted-surface/50"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium">{region.name}</p>
+                    <Badge variant="default">
+                      {memberCountByRegionId.get(region.id) ?? 0} membre(s)
+                    </Badge>
+                  </div>
+                </Link>
               ))
             )}
           </div>
@@ -173,10 +230,22 @@ export default async function CommunesRegionsPage({
               <CardDescription>Aucune préfecture.</CardDescription>
             ) : (
               visiblePrefectures.map((prefecture) => (
-                <div key={prefecture.id} className="rounded-lg border border-border px-3 py-2 text-sm">
-                  <p className="font-medium">{prefecture.name}</p>
+                <Link
+                  href={membersHref({
+                    prefectureId: prefecture.id,
+                    regionId: prefecture.region_id,
+                  })}
+                  key={prefecture.id}
+                  className="block rounded-lg border border-border px-3 py-2 text-sm transition-colors hover:border-primary/40 hover:bg-muted-surface/50"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium">{prefecture.name}</p>
+                    <Badge variant="default">
+                      {memberCountByPrefectureId.get(prefecture.id) ?? 0} membre(s)
+                    </Badge>
+                  </div>
                   <p className="text-xs text-muted">{regionById.get(prefecture.region_id)?.name ?? "-"}</p>
-                </div>
+                </Link>
               ))
             )}
           </div>
@@ -193,12 +262,25 @@ export default async function CommunesRegionsPage({
                 const regionName = prefecture ? regionById.get(prefecture.region_id)?.name ?? "-" : "-";
 
                 return (
-                  <div key={commune.id} className="rounded-lg border border-border px-3 py-2 text-sm">
-                    <p className="font-medium">{commune.name}</p>
+                  <Link
+                    href={membersHref({
+                      communeId: commune.id,
+                      prefectureId: commune.prefecture_id,
+                      regionId: prefecture?.region_id,
+                    })}
+                    key={commune.id}
+                    className="block rounded-lg border border-border px-3 py-2 text-sm transition-colors hover:border-primary/40 hover:bg-muted-surface/50"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-medium">{commune.name}</p>
+                      <Badge variant="default">
+                        {memberCountByCommuneId.get(commune.id) ?? 0} membre(s)
+                      </Badge>
+                    </div>
                     <p className="text-xs text-muted">
                       {prefecture?.name ?? "-"} / {regionName}
                     </p>
-                  </div>
+                  </Link>
                 );
               })
             )}
