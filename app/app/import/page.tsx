@@ -9,7 +9,7 @@ export default function ImportPage() {
           Import des fiches onboarding
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Chargez un export onboarding CSV ou JSON pour mettre a jour les fiches membres deja
+          Chargez un export onboarding CSV, Excel ou JSON pour mettre a jour les fiches membres deja
           visibles selon vos droits.
         </p>
       </div>

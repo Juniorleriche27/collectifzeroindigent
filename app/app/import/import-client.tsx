@@ -22,9 +22,9 @@ export function ImportClient() {
       <Card className="space-y-4">
         <CardTitle>Importer une fiche onboarding</CardTitle>
         <CardDescription>
-          Import CSV ou JSON des fiches onboarding existantes. Le matching se fait par `id`, puis
-          `email`, puis `phone`. L&apos;import met a jour des membres deja visibles selon vos droits
-          RLS.
+          Import CSV, Excel ou JSON des fiches onboarding existantes. Le matching se fait par `id`,
+          puis `email`, puis `phone`. L&apos;import met a jour des membres deja visibles selon vos
+          droits RLS.
         </CardDescription>
 
         <form action={formAction} className="space-y-4">
@@ -33,7 +33,7 @@ export function ImportClient() {
               Fichier onboarding
             </label>
             <input
-              accept=".csv,application/json,.json,text/csv"
+              accept=".csv,.xlsx,.xls,application/json,.json,text/csv"
               className="block w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
               id="onboarding-file"
               name="file"
@@ -42,8 +42,9 @@ export function ImportClient() {
             />
           </div>
           <div className="rounded-md border border-border bg-muted-surface/50 p-3 text-sm text-muted-foreground">
-            Utilisez de preference le fichier exporte depuis la rubrique Export. Les colonnes de
-            localisation peuvent etre importees via les `*_id` ou les `*_name`.
+            Utilisez de preference le fichier exporte depuis la rubrique Export. Les formats CSV,
+            Excel et JSON sont acceptes. Les colonnes de localisation peuvent etre importees via
+            les `*_id` ou les `*_name`.
           </div>
           <Button disabled={isPending} type="submit">
             {isPending ? "Import en cours..." : "Importer la fiche onboarding"}

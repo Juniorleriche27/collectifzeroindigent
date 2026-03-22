@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { parseCsvDocument, type CsvRow } from "@/lib/import-export/csv";
+import { parseXlsxRows } from "@/lib/import-export/xlsx";
 import {
   buildOnboardingImportPayload,
   createLocationLookups,
@@ -102,20 +103,26 @@ export async function importOnboardingSheet(
   if (!(uploadedFile instanceof File) || uploadedFile.size === 0) {
     return {
       ...initialState,
-      error: "Choisissez un fichier CSV ou JSON d'onboarding à importer.",
+      error: "Choisissez un fichier CSV, Excel ou JSON d'onboarding a importer.",
     };
   }
 
   try {
-    const rawText = await uploadedFile.text();
     const extension = uploadedFile.name.toLowerCase().split(".").pop() ?? "";
-    const rows =
-      extension === "json" ? parseJsonRows(rawText) : parseCsvDocument(rawText);
+    let rows: CsvRow[] = [];
+
+    if (extension === "json") {
+      rows = parseJsonRows(await uploadedFile.text());
+    } else if (extension === "xlsx" || extension === "xls") {
+      rows = parseXlsxRows(await uploadedFile.arrayBuffer());
+    } else {
+      rows = parseCsvDocument(await uploadedFile.text());
+    }
 
     if (rows.length === 0) {
       return {
         ...initialState,
-        error: "Le fichier importé est vide ou illisible.",
+        error: "Le fichier importe est vide ou illisible.",
       };
     }
 
@@ -169,7 +176,7 @@ export async function importOnboardingSheet(
         const memberId = await findVisibleMemberId(supabase, prepared.memberLookup);
         if (!memberId) {
           report.push({
-            detail: "Aucun membre visible ne correspond à cette ligne.",
+            detail: "Aucun membre visible ne correspond a cette ligne.",
             row: rowNumber,
             status: "error",
           });
@@ -192,7 +199,7 @@ export async function importOnboardingSheet(
 
         succeeded += 1;
         report.push({
-          detail: `Fiche mise à jour pour le membre ${memberId}.`,
+          detail: `Fiche mise a jour pour le membre ${memberId}.`,
           row: rowNumber,
           status: "success",
         });
@@ -212,10 +219,10 @@ export async function importOnboardingSheet(
     const errors = report.filter((item) => item.status === "error").length;
 
     return {
-      error: errors > 0 && succeeded === 0 ? "Aucune ligne n'a pu être importée." : null,
+      error: errors > 0 && succeeded === 0 ? "Aucune ligne n'a pu etre importee." : null,
       message:
         succeeded > 0
-          ? `${succeeded} fiche(s) onboarding importée(s) avec ${errors} erreur(s).`
+          ? `${succeeded} fiche(s) onboarding importee(s) avec ${errors} erreur(s).`
           : null,
       report,
       summary: {

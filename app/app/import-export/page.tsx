@@ -43,8 +43,9 @@ export default function ImportExportPage() {
       <Card className="space-y-4">
         <CardTitle>Fiche onboarding</CardTitle>
         <CardDescription>
-          La rubrique export permet maintenant de telecharger la fiche onboarding complete, et la
-          rubrique import permet de la reimporter pour mettre a jour les membres existants.
+          La rubrique export permet maintenant de telecharger la fiche onboarding complete en CSV,
+          Excel ou JSON, et la rubrique import permet de la reimporter pour mettre a jour les
+          membres existants.
         </CardDescription>
       </Card>
     </div>

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { stringifyCsv } from "@/lib/import-export/csv";
+import { buildXlsxBuffer, XLSX_MIME_TYPE } from "@/lib/import-export/xlsx";
 import {
   buildOnboardingSheetRow,
   createLocationLabels,
@@ -9,7 +10,7 @@ import {
 } from "@/lib/onboarding/sheet";
 import { createClient } from "@/lib/supabase/server";
 
-function filenameFor(format: "csv" | "json"): string {
+function filenameFor(format: "csv" | "json" | "xlsx"): string {
   const stamp = new Date().toISOString().replaceAll(":", "-").slice(0, 19);
   return `czi-onboarding-${stamp}.${format}`;
 }
@@ -60,7 +61,9 @@ async function loadExportRows() {
 }
 
 export async function GET(request: NextRequest) {
-  const format = request.nextUrl.searchParams.get("format") === "json" ? "json" : "csv";
+  const requestedFormat = request.nextUrl.searchParams.get("format");
+  const format: "csv" | "json" | "xlsx" =
+    requestedFormat === "json" ? "json" : requestedFormat === "xlsx" ? "xlsx" : "csv";
 
   try {
     const result = await loadExportRows();
@@ -78,6 +81,22 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    if (format === "xlsx") {
+      const buffer = buildXlsxBuffer({
+        headers: [...ONBOARDING_SHEET_HEADERS],
+        rows: result.rows,
+        sheetName: "Onboarding",
+      });
+
+      return new Response(buffer, {
+        headers: {
+          "Cache-Control": "no-store",
+          "Content-Disposition": `attachment; filename="${filenameFor("xlsx")}"`,
+          "Content-Type": XLSX_MIME_TYPE,
+        },
+      });
+    }
+
     const csvContent = stringifyCsv([...ONBOARDING_SHEET_HEADERS], result.rows);
 
     return new Response(csvContent, {
@@ -89,7 +108,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Impossible de générer l'export onboarding.";
+      error instanceof Error ? error.message : "Impossible de generer l'export onboarding.";
     return new Response(message, { status: 500 });
   }
 }

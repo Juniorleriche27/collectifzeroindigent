@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { PostgrestError } from '@supabase/supabase-js';
 
 import {
@@ -29,14 +30,24 @@ type ListMembersQuery = {
   status?: string;
 };
 
+type MemberOnboardingRow = Database['public']['Tables']['member']['Row'];
+
 @Injectable()
 export class MembersService {
-  constructor(private readonly supabaseDataService: SupabaseDataService) {}
+  constructor(
+    private readonly supabaseDataService: SupabaseDataService,
+    private readonly configService: ConfigService,
+  ) {}
   private readonly allowedStatusFilters = new Set([
     'active',
     'pending',
     'rejected',
     'suspended',
+  ]);
+  private readonly allowedOnboardingReviewRoles = new Set([
+    'admin',
+    'ca',
+    'cn',
   ]);
   private readonly allowedValidationRoles = new Set([
     'admin',
@@ -121,6 +132,12 @@ export class MembersService {
       throw error;
     }
     return data;
+  }
+
+  async getOnboardingReview(accessToken: string, memberId: string) {
+    const client = this.supabaseDataService.forUser(accessToken);
+    await this.assertOnboardingReviewRole(client);
+    return this.loadOnboardingMember(client, memberId);
   }
 
   async getCurrent(accessToken: string) {
@@ -300,6 +317,25 @@ export class MembersService {
     };
   }
 
+  async generateOnboardingAnalysis(accessToken: string, memberId: string) {
+    const client = this.supabaseDataService.forUser(accessToken);
+    await this.assertOnboardingReviewRole(client);
+    const member = await this.loadOnboardingMember(client, memberId);
+    const model =
+      this.configService.get<string>('COHERE_MODEL')?.trim() ||
+      'command-r-plus';
+    const analysis = await this.requestMemberAnalysis({
+      model,
+      question: this.buildOnboardingAnalysisQuestion(member),
+    });
+
+    return {
+      analysis,
+      generated_at: new Date().toISOString(),
+      model,
+    };
+  }
+
   async logContactAction(
     accessToken: string,
     payload: LogMemberContactActionDto,
@@ -373,6 +409,21 @@ export class MembersService {
     return Math.min(Math.floor(parsed), max);
   }
 
+  private async assertOnboardingReviewRole(
+    client: ReturnType<SupabaseDataService['forUser']>,
+  ): Promise<string> {
+    const actorUserId = await requireUserId(client);
+    const actorRole = await getProfileRoleByUserId(client, actorUserId);
+
+    if (!this.allowedOnboardingReviewRoles.has(actorRole)) {
+      throw new ForbiddenException(
+        'Acces reserve aux roles admin/ca/cn pour la fiche onboarding detaillee.',
+      );
+    }
+
+    return actorRole;
+  }
+
   private async getCurrentUserId(accessToken: string): Promise<string> {
     const client = this.supabaseDataService.forUser(accessToken);
     const {
@@ -408,6 +459,228 @@ export class MembersService {
     }
 
     return data?.region_id ?? null;
+  }
+
+  private async loadOnboardingMember(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    memberId: string,
+  ): Promise<MemberOnboardingRow> {
+    const { data, error } = await client
+      .from('member')
+      .select('*')
+      .eq('id', memberId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+    if (!data) {
+      throw new BadRequestException('Membre introuvable ou non visible.');
+    }
+
+    return data as MemberOnboardingRow;
+  }
+
+  private buildOnboardingAnalysisQuestion(member: MemberOnboardingRow): string {
+    const skillNames = this.extractSkillNames(member.skills);
+    const lines = [
+      'Analyse cette fiche onboarding CZI pour un responsable gouvernance.',
+      `Identite: ${member.first_name ?? '-'} ${member.last_name ?? '-'} | sexe: ${member.gender ?? '-'} | naissance: ${member.birth_date ?? '-'} | tranche: ${member.age_range ?? '-'}`,
+      `Contact et statut: telephone ${member.phone ?? '-'} | email ${member.email ?? '-'} | statut ${member.status ?? '-'}`,
+      `Localisation: region ${member.region_id ?? '-'} | prefecture ${member.prefecture_id ?? '-'} | commune ${member.commune_id ?? '-'} | localite ${member.locality ?? '-'}`,
+      `Profil CZI: join_mode ${member.join_mode ?? '-'} | cellule primaire ${member.cellule_primary ?? '-'} | cellule secondaire ${member.cellule_secondary ?? '-'} | organisation ${member.org_name ?? member.association_name ?? member.enterprise_name ?? '-'}`,
+      `Parcours: education ${member.education_level ?? '-'} | occupation ${member.occupation_status ?? '-'} | profession ${member.profession_title ?? '-'}`,
+      `Engagement: domaines ${this.joinList(member.engagement_domains)} | frequence ${member.engagement_frequency ?? '-'} | action recente ${member.engagement_recent_action ?? '-'}`,
+      `Entrepreneuriat: stade ${member.business_stage ?? '-'} | secteur ${member.business_sector ?? '-'} | besoins ${this.joinList(member.business_needs)}`,
+      `Organisation: role ${member.org_role ?? '-'} | nom declare ${member.org_name_declared ?? '-'} | type ${member.org_type ?? '-'}`,
+      `Competences: libres ${this.joinList(skillNames)} | tags ${this.joinList(member.skills_tags)} | interets libres ${this.joinList(member.interests)} | tags interets ${this.joinList(member.interests_tags)} | ODD ${this.joinList((member.odd_priorities ?? []).map((value) => String(value)))}`,
+      `Objectif et besoins: objectif ${member.goal_3_6_months ?? '-'} | supports ${this.joinList(member.support_types)} | disponibilite ${member.availability ?? '-'} | contact prefere ${member.contact_preference ?? '-'} | besoin partenaire ${member.partner_request ? 'oui' : 'non'}`,
+      `Situation socio-economique: revenu ${member.income_range ?? '-'} | stabilite ${member.income_stability ?? '-'} | charges ${member.dependents_count ?? '-'} | logement ${member.housing_status ?? '-'} | nourriture ${member.food_security ?? '-'} | sante ${member.health_access ?? '-'} | epargne ${member.savings_level ?? '-'} | dette ${member.debt_level ?? '-'} | recherche emploi ${member.employment_duration_if_searching ?? '-'} | besoins urgents ${this.joinList(member.urgent_needs)} | choc recent ${member.recent_shock ?? '-'} | limitation ${member.disability_or_limitation ? 'oui' : 'non'}`,
+      `Indigence: score ${member.indigence_score ?? '-'} / 100 | niveau ${member.indigence_level ?? '-'} | facteurs ${this.joinList(member.indigence_factors)}`,
+      'Donne une interpretation breve en francais simple pour admin/ca/cn: niveau de vulnerabilite, principaux risques, points d appui, et priorite d accompagnement. Maximum 120 mots, sans markdown.',
+    ];
+
+    return lines.join('\n');
+  }
+
+  private extractSkillNames(
+    skills: Database['public']['Tables']['member']['Row']['skills'],
+  ): string[] {
+    if (!Array.isArray(skills)) {
+      return [];
+    }
+
+    return Array.from(
+      new Set(
+        skills
+          .map((item) => {
+            if (!item || typeof item !== 'object') {
+              return '';
+            }
+            const name = (item as { name?: unknown }).name;
+            return typeof name === 'string' ? name.trim() : '';
+          })
+          .filter(Boolean),
+      ),
+    );
+  }
+
+  private joinList(
+    values: Array<string | null | undefined> | null | undefined,
+  ): string {
+    const normalized = (values ?? [])
+      .map((value) => String(value ?? '').trim())
+      .filter(Boolean);
+
+    return normalized.length > 0 ? normalized.join(', ') : '-';
+  }
+
+  private async requestMemberAnalysis(args: {
+    model: string;
+    question: string;
+  }): Promise<string> {
+    const apiKey = this.configService.get<string>('COHERE_API_KEY')?.trim();
+    if (!apiKey) {
+      throw new BadRequestException(
+        'COHERE_API_KEY manquant. Configurez la cle API Cohere dans le backend.',
+      );
+    }
+
+    const response = await fetch('https://api.cohere.ai/v1/chat', {
+      body: JSON.stringify({
+        max_tokens: this.readCohereMaxTokens(),
+        message: args.question,
+        model: args.model,
+        preamble: this.memberAnalysisSystemPrompt(),
+        temperature: 0.2,
+      }),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    });
+
+    const rawBody = await response.text();
+    if (!response.ok) {
+      throw new BadRequestException(
+        this.extractCohereError(rawBody, response.status) ||
+          'Erreur Cohere. Reessayez dans quelques instants.',
+      );
+    }
+
+    let parsed: unknown = null;
+    try {
+      parsed = JSON.parse(rawBody);
+    } catch {
+      parsed = null;
+    }
+
+    const answer = this.extractCohereAnswer(parsed).trim();
+    if (!answer) {
+      throw new BadRequestException(
+        'Reponse vide de l analyse IA. Reessayez dans quelques instants.',
+      );
+    }
+
+    return this.normalizeMemberAnalysis(answer);
+  }
+
+  private extractCohereAnswer(payload: unknown): string {
+    if (!payload || typeof payload !== 'object') {
+      return '';
+    }
+
+    const candidate = payload as {
+      message?: unknown;
+      text?: unknown;
+    };
+
+    if (typeof candidate.text === 'string') {
+      return candidate.text;
+    }
+
+    if (candidate.message && typeof candidate.message === 'object') {
+      const content = (candidate.message as { content?: unknown }).content;
+      if (Array.isArray(content)) {
+        const textParts = content
+          .map((part) => {
+            if (!(typeof part === 'object' && part && 'text' in part)) {
+              return '';
+            }
+            const rawText = (part as { text?: unknown }).text;
+            return typeof rawText === 'string' ? rawText : '';
+          })
+          .filter(Boolean);
+        if (textParts.length > 0) {
+          return textParts.join('\n');
+        }
+      }
+    }
+
+    return '';
+  }
+
+  private extractCohereError(rawBody: string, status: number): string {
+    if (!rawBody) {
+      return `Cohere: HTTP ${status}`;
+    }
+
+    try {
+      const parsed = JSON.parse(rawBody) as { message?: unknown };
+      if (typeof parsed.message === 'string' && parsed.message.trim()) {
+        return parsed.message.trim();
+      }
+    } catch {
+      // Ignore parse error.
+    }
+
+    return rawBody.slice(0, 260);
+  }
+
+  private memberAnalysisSystemPrompt(): string {
+    return [
+      'Tu es l assistant IA d analyse des fiches onboarding CZI.',
+      'Tu aides uniquement les roles admin, ca et cn a lire rapidement une situation membre.',
+      'Tu analyses la vulnerabilite socio-economique, les points d appui, et la priorite d accompagnement.',
+      'Format obligatoire: un seul paragraphe, 4 a 6 phrases, maximum 120 mots.',
+      'Style attendu: francais clair, professionnel, direct, sans markdown, sans liste, sans titres.',
+      'Ne jamais inventer une information absente.',
+      'Si les donnees sont insuffisantes, le dire explicitement.',
+    ].join('\n');
+  }
+
+  private normalizeMemberAnalysis(rawAnswer: string): string {
+    const normalized = rawAnswer
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/[*_`#>]/g, ' ')
+      .replace(/^\s*[-+•]\s+/gm, ' ')
+      .replace(/^\s*\d+[.)-]\s+/gm, ' ')
+      .replace(/\s*\n+\s*/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+
+    if (!normalized) {
+      return '';
+    }
+
+    const words = normalized.split(/\s+/).filter(Boolean);
+    if (words.length <= 140) {
+      return normalized;
+    }
+
+    return `${words.slice(0, 140).join(' ')}...`;
+  }
+
+  private readCohereMaxTokens(): number {
+    const raw =
+      this.configService.get<string>('SUPPORT_AI_MAX_TOKENS')?.trim() ?? '';
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return 220;
+    }
+
+    return Math.min(parsed, 260);
   }
 
   private mapMemberValidationError(error: PostgrestError): Error {

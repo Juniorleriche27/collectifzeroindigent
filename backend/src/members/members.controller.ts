@@ -43,6 +43,17 @@ export class MembersController {
     return this.membersService.getById(request.supabaseAccessToken, memberId);
   }
 
+  @Get(':id/onboarding-review')
+  async getOnboardingReview(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') memberId: string,
+  ) {
+    return this.membersService.getOnboardingReview(
+      request.supabaseAccessToken,
+      memberId,
+    );
+  }
+
   @Patch('me')
   async updateCurrent(
     @Req() request: AuthenticatedRequest,
@@ -77,6 +88,17 @@ export class MembersController {
       request.supabaseAccessToken,
       memberId,
       payload,
+    );
+  }
+
+  @Post(':id/onboarding-analysis')
+  async generateOnboardingAnalysis(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') memberId: string,
+  ) {
+    return this.membersService.generateOnboardingAnalysis(
+      request.supabaseAccessToken,
+      memberId,
     );
   }
 

@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
-import { updateMemberById, validateMemberById } from "@/lib/backend/api";
+import {
+  generateMemberOnboardingAnalysis,
+  updateMemberById,
+  validateMemberById,
+} from "@/lib/backend/api";
 import { OWNER_ADMIN_EMAIL } from "@/lib/constants/governance";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
@@ -24,6 +28,13 @@ export type MemberRoleState = {
 export type MemberValidationState = {
   error: string | null;
   success: string | null;
+};
+
+export type MemberOnboardingAnalysisState = {
+  analysis: string | null;
+  error: string | null;
+  generatedAt: string | null;
+  model: string | null;
 };
 
 const joinModes = new Set(["personal", "association", "enterprise"]);
@@ -232,6 +243,43 @@ export async function updateMemberRole(
     error: null,
     success: `Rôle mis à jour : ${nextRole}.`,
   };
+}
+
+export async function requestMemberOnboardingAnalysis(
+  memberId: string,
+  _previousState: MemberOnboardingAnalysisState,
+): Promise<MemberOnboardingAnalysisState> {
+  void _previousState;
+
+  if (!isSupabaseConfigured) {
+    return {
+      analysis: null,
+      error: "Supabase non configurÃ©.",
+      generatedAt: null,
+      model: null,
+    };
+  }
+
+  try {
+    const result = await generateMemberOnboardingAnalysis(memberId);
+
+    return {
+      analysis: result.analysis,
+      error: null,
+      generatedAt: result.generated_at,
+      model: result.model,
+    };
+  } catch (error) {
+    return {
+      analysis: null,
+      error:
+        error instanceof Error && error.message
+          ? error.message
+          : "Impossible de generer l'analyse IA de cette fiche.",
+      generatedAt: null,
+      model: null,
+    };
+  }
 }
 
 export async function validateMember(

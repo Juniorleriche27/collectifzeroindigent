@@ -1,4 +1,4 @@
-import { Download, FileDown, FileJson2 } from "lucide-react";
+import { Download, FileDown, FileJson2, FileSpreadsheet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,13 @@ function ExportButtons({ action }: { action: string }) {
           Exporter JSON
         </Button>
       </form>
+      <form action={action} method="get">
+        <input name="format" type="hidden" value="xlsx" />
+        <Button type="submit" variant="secondary">
+          <FileSpreadsheet size={16} />
+          Exporter Excel
+        </Button>
+      </form>
     </div>
   );
 }
@@ -38,7 +45,7 @@ export default function ExportPage() {
         </div>
         <CardTitle>Exporter les membres</CardTitle>
         <CardDescription>
-          Export CSV ou JSON des membres visibles selon vos droits RLS.
+          Export CSV, Excel ou JSON des membres visibles selon vos droits RLS.
         </CardDescription>
         <ExportButtons action="/api/exports/members" />
       </Card>

@@ -25,6 +25,23 @@ export type IndigenceAssessment = {
   indigenceScore: number;
 };
 
+export type IndigenceBreakdownItem = {
+  code:
+    | "income_range"
+    | "income_stability"
+    | "dependents_count"
+    | "housing_status"
+    | "food_security"
+    | "health_access"
+    | "savings_level"
+    | "debt_level"
+    | "shock_vulnerability";
+  label: string;
+  maxPoints: number;
+  points: number;
+  valueLabel: string;
+};
+
 export const incomeRangeOptions: ChoiceOption[] = [
   { value: "0-10000", label: "0-10 000" },
   { value: "10001-25000", label: "10 001-25 000" },
@@ -312,6 +329,171 @@ export function labelForIndigenceLevel(level: IndigenceAssessment["indigenceLeve
     return "vulnérabilité modérée";
   }
   return "faible vulnérabilité";
+}
+
+export function buildIndigenceBreakdown(input: IndigenceInput): IndigenceBreakdownItem[] {
+  const incomePoints =
+    {
+      "0-10000": 20,
+      "10001-25000": 15,
+      "25001-50000": 10,
+      "50001-100000": 5,
+      "100001-200000": 0,
+      "200000+": 0,
+    }[input.incomeRange ?? ""] ?? 0;
+
+  const stabilityPoints =
+    {
+      no_income: 10,
+      very_irregular: 8,
+      irregular: 5,
+      somewhat_stable: 2,
+      stable: 0,
+    }[input.incomeStability ?? ""] ?? 0;
+
+  const dependentsPoints =
+    {
+      "0": 0,
+      "1-2": 3,
+      "3-5": 7,
+      "6+": 10,
+    }[input.dependentsCount ?? ""] ?? 0;
+
+  const housingPoints =
+    {
+      no_stable_housing: 10,
+      hosted: 6,
+      tenant: 3,
+      owner: 0,
+    }[input.housingStatus ?? ""] ?? 0;
+
+  const foodPoints =
+    {
+      regular: 0,
+      sometimes_difficult: 8,
+      often_difficult: 15,
+    }[input.foodSecurity ?? ""] ?? 0;
+
+  const healthPoints =
+    {
+      easy: 0,
+      difficult: 5,
+      very_difficult: 10,
+    }[input.healthAccess ?? ""] ?? 0;
+
+  const savingsPoints =
+    {
+      none: 8,
+      under_25000: 5,
+      "25000-100000": 2,
+      over_100000: 0,
+    }[input.savingsLevel ?? ""] ?? 0;
+
+  const debtPoints =
+    {
+      none: 0,
+      low: 2,
+      medium: 4,
+      high: 7,
+    }[input.debtLevel ?? ""] ?? 0;
+
+  const recentShockPoints =
+    {
+      none: 0,
+      income_loss: 6,
+      illness: 5,
+      bereavement: 6,
+      disaster: 8,
+      other: 4,
+    }[input.recentShock ?? ""] ?? 0;
+
+  const disabilityPoints = input.disabilityOrLimitation ? 4 : 0;
+  const employmentSearchPoints =
+    input.occupationStatus === "recherche"
+      ? {
+          under_3_months: 2,
+          "3_6_months": 4,
+          "6_12_months": 6,
+          over_12_months: 8,
+        }[input.employmentDurationIfSearching ?? ""] ?? 0
+      : 0;
+
+  const shockValueParts = [
+    labelForChoiceValue(input.recentShock, recentShockOptions) || "aucun choc",
+    `limitation: ${formatBooleanChoice(input.disabilityOrLimitation) || "non renseigne"}`,
+    input.occupationStatus === "recherche"
+      ? `recherche: ${labelForChoiceValue(
+          input.employmentDurationIfSearching,
+          employmentDurationOptions,
+        ) || "non renseigne"}`
+      : null,
+  ].filter((value): value is string => Boolean(value));
+
+  return [
+    {
+      code: "income_range",
+      label: "Revenu mensuel",
+      maxPoints: 20,
+      points: incomePoints,
+      valueLabel: labelForChoiceValue(input.incomeRange, incomeRangeOptions) || "-",
+    },
+    {
+      code: "income_stability",
+      label: "Stabilite du revenu",
+      maxPoints: 10,
+      points: stabilityPoints,
+      valueLabel: labelForChoiceValue(input.incomeStability, incomeStabilityOptions) || "-",
+    },
+    {
+      code: "dependents_count",
+      label: "Personnes a charge",
+      maxPoints: 10,
+      points: dependentsPoints,
+      valueLabel: labelForChoiceValue(input.dependentsCount, dependentsCountOptions) || "-",
+    },
+    {
+      code: "housing_status",
+      label: "Situation de logement",
+      maxPoints: 10,
+      points: housingPoints,
+      valueLabel: labelForChoiceValue(input.housingStatus, housingStatusOptions) || "-",
+    },
+    {
+      code: "food_security",
+      label: "Acces a la nourriture",
+      maxPoints: 15,
+      points: foodPoints,
+      valueLabel: labelForChoiceValue(input.foodSecurity, foodSecurityOptions) || "-",
+    },
+    {
+      code: "health_access",
+      label: "Acces aux soins",
+      maxPoints: 10,
+      points: healthPoints,
+      valueLabel: labelForChoiceValue(input.healthAccess, healthAccessOptions) || "-",
+    },
+    {
+      code: "savings_level",
+      label: "Niveau d'epargne",
+      maxPoints: 8,
+      points: savingsPoints,
+      valueLabel: labelForChoiceValue(input.savingsLevel, savingsLevelOptions) || "-",
+    },
+    {
+      code: "debt_level",
+      label: "Niveau d'endettement",
+      maxPoints: 7,
+      points: debtPoints,
+      valueLabel: labelForChoiceValue(input.debtLevel, debtLevelOptions) || "-",
+    },
+    {
+      code: "shock_vulnerability",
+      label: "Choc recent / vulnerabilite",
+      maxPoints: 10,
+      points: Math.min(10, recentShockPoints + disabilityPoints + employmentSearchPoints),
+      valueLabel: shockValueParts.join(" | "),
+    },
+  ];
 }
 
 export function computeIndigenceAssessment(input: IndigenceInput): IndigenceAssessment {

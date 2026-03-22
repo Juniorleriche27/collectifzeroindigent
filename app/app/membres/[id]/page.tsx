@@ -3,11 +3,21 @@ import Link from "next/link";
 import { MemberContactLink } from "@/components/app/member-contact-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { getLocations, getMemberById, listOrganisations } from "@/lib/backend/api";
+import {
+  getLocations,
+  getMemberById,
+  getMemberOnboardingReview,
+  listOrganisations,
+} from "@/lib/backend/api";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getCurrentProfileRole, getProfileRoleByAuthUserId } from "@/lib/supabase/profile-server";
+import {
+  getCurrentProfileRole,
+  getProfileRoleByAuthUserId,
+} from "@/lib/supabase/profile-server";
 
 import { MemberEditForm } from "./member-edit-form";
+import { MemberOnboardingAnalysisCard } from "./member-onboarding-analysis-card";
+import { MemberOnboardingReview } from "./member-onboarding-review";
 import { MemberRoleForm } from "./member-role-form";
 import { MemberValidationForm } from "./member-validation-form";
 
@@ -30,7 +40,7 @@ export default async function MemberDetailPage({
     return (
       <div className="space-y-6">
         <Card>
-          <CardTitle>Supabase non configuré</CardTitle>
+          <CardTitle>Supabase non configure</CardTitle>
           <CardDescription className="mt-2">
             Ajoutez les variables d&apos;environnement pour charger le detail membre.
           </CardDescription>
@@ -42,9 +52,11 @@ export default async function MemberDetailPage({
   let member: Awaited<ReturnType<typeof getMemberById>> | null = null;
   let locations: Awaited<ReturnType<typeof getLocations>> | null = null;
   let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
+  let onboardingReview: Awaited<ReturnType<typeof getMemberOnboardingReview>> | null = null;
   let currentRole = "member";
   let targetRole: string | null = null;
   let loadError: string | null = null;
+  let onboardingLoadError: string | null = null;
 
   try {
     const [currentProfileRole, memberData, locationData, organisationData] = await Promise.all([
@@ -53,9 +65,11 @@ export default async function MemberDetailPage({
       getLocations(),
       listOrganisations(),
     ]);
+
     if (currentProfileRole) {
       currentRole = currentProfileRole.trim().toLowerCase();
     }
+
     member = memberData;
     locations = locationData;
     organisations = organisationData.items;
@@ -67,7 +81,17 @@ export default async function MemberDetailPage({
           targetRole = targetProfileRole.trim().toLowerCase();
         }
       } catch (error) {
-        console.error("Unable to load target member rôle", error);
+        console.error("Unable to load target member role", error);
+      }
+    }
+
+    if (currentRole === "admin" || currentRole === "ca" || currentRole === "cn") {
+      try {
+        onboardingReview = await getMemberOnboardingReview(id);
+      } catch (error) {
+        console.error("Unable to load onboarding review", error);
+        onboardingLoadError =
+          "Impossible de charger la fiche onboarding detaillee pour le moment.";
       }
     }
   } catch (error) {
@@ -92,15 +116,35 @@ export default async function MemberDetailPage({
         <Card>
           <CardTitle>Membre introuvable</CardTitle>
           <CardDescription className="mt-2">
-            Ce membre n&apos;existe pas ou n&apos;est pas visible avec votre rôle actuel.
+            Ce membre n&apos;existe pas ou n&apos;est pas visible avec votre role actuel.
           </CardDescription>
           <Link className="mt-4 inline-block text-sm font-semibold text-primary" href="/app/membres">
-            Retour à la liste membres
+            Retour a la liste membres
           </Link>
         </Card>
       </div>
     );
   }
+
+  const canViewOnboardingReview =
+    currentRole === "admin" || currentRole === "ca" || currentRole === "cn";
+  const locationSource = onboardingReview ?? member;
+  const locationLabels = {
+    commune:
+      locations.communes.find((item) => String(item.id) === String(locationSource.commune_id))
+        ?.name ?? "-",
+    organisation:
+      organisations.find((item) => String(item.id) === String(locationSource.organisation_id))
+        ?.name ??
+      locationSource.org_name ??
+      "-",
+    prefecture:
+      locations.prefectures.find((item) => String(item.id) === String(locationSource.prefecture_id))
+        ?.name ?? "-",
+    region:
+      locations.regions.find((item) => String(item.id) === String(locationSource.region_id))?.name ??
+      "-",
+  };
 
   return (
     <div className="space-y-6">
@@ -112,7 +156,7 @@ export default async function MemberDetailPage({
             {member.first_name} {member.last_name}
           </CardDescription>
           <CardDescription className="mt-1">
-            Rôle actif détecté: <span className="font-semibold text-foreground">{currentRole}</span>
+            Role actif detecte: <span className="font-semibold text-foreground">{currentRole}</span>
           </CardDescription>
         </div>
         <Badge variant={statusVariant(member.status)}>{member.status ?? "unknown"}</Badge>
@@ -123,7 +167,7 @@ export default async function MemberDetailPage({
           <Card className="space-y-2">
             <CardTitle>Mode lecture</CardTitle>
             <CardDescription>
-              Ce profil est visible pour contact réseau. Les modifications sont réservées aux rôles
+              Ce profil est visible pour contact reseau. Les modifications sont reservees aux roles
               gouvernance.
             </CardDescription>
           </Card>
@@ -160,32 +204,51 @@ export default async function MemberDetailPage({
         </>
       ) : (
         <>
+          {canViewOnboardingReview ? (
+            onboardingLoadError ? (
+              <Card className="space-y-2">
+                <CardTitle>Fiche onboarding detaillee</CardTitle>
+                <CardDescription>{onboardingLoadError}</CardDescription>
+              </Card>
+            ) : onboardingReview ? (
+              <>
+                <MemberOnboardingReview
+                  locationLabels={locationLabels}
+                  member={onboardingReview}
+                />
+                <MemberOnboardingAnalysisCard memberId={member.id} />
+              </>
+            ) : null
+          ) : null}
+
           <Card className="space-y-2">
-            <CardTitle>Édition du membre</CardTitle>
+            <CardTitle>Edition du membre</CardTitle>
             <CardDescription>
               Les modifications sont soumises a RLS. Un compte standard ne peut editer que ses
-              propres données.
+              propres donnees.
             </CardDescription>
           </Card>
 
           <Card className="space-y-2" id="validation-membre">
             <CardTitle>Validation membre</CardTitle>
             <CardDescription>
-              Workflow backoffice officiel: transition `pending` vers `active` ou `rejected`,
-              avec motif et ajustement de cellule.
+              Workflow backoffice officiel: transition `pending` vers `active` ou `rejected`, avec
+              motif et ajustement de cellule.
             </CardDescription>
-            {currentRole === "admin" || currentRole === "ca" || currentRole === "cn" || currentRole === "pf" ? (
+            {currentRole === "admin" ||
+            currentRole === "ca" ||
+            currentRole === "cn" ||
+            currentRole === "pf" ? (
               member.status === "pending" ? (
                 <MemberValidationForm member={member} />
               ) : (
                 <CardDescription>
-                  Ce membre n&apos;est plus en attente. Décision enregistrée : {member.status ?? "unknown"}.
+                  Ce membre n&apos;est plus en attente. Decision enregistree :{" "}
+                  {member.status ?? "unknown"}.
                 </CardDescription>
               )
             ) : (
-              <CardDescription>
-                Ce rôle ne peut pas exécuter la validation du membre.
-              </CardDescription>
+              <CardDescription>Ce role ne peut pas executer la validation du membre.</CardDescription>
             )}
           </Card>
 
@@ -200,10 +263,10 @@ export default async function MemberDetailPage({
           </Card>
 
           <Card className="space-y-2" id="role-gouvernance">
-            <CardTitle>Rôle gouvernance</CardTitle>
+            <CardTitle>Role gouvernance</CardTitle>
             <CardDescription>
-              Admin peut nommer un autre admin et lui retirer ce rôle. CA peut attribuer
-              uniquement member/pf/cn. Le compte proprietaire technique reste verrouille en admin.
+              Admin peut nommer un autre admin et lui retirer ce role. CA peut attribuer uniquement
+              member/pf/cn. Le compte proprietaire technique reste verrouille en admin.
             </CardDescription>
             <MemberRoleForm
               actorRole={currentRole}

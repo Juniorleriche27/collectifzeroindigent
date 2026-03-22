@@ -1,36 +1,30 @@
 import { NextRequest } from "next/server";
 
+import { stringifyCsv, type CsvRow } from "@/lib/import-export/csv";
+import { buildXlsxBuffer, XLSX_MIME_TYPE } from "@/lib/import-export/xlsx";
 import { createClient } from "@/lib/supabase/server";
 
-type ExportMemberRow = {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  email: string | null;
-  phone: string | null;
-  status: string | null;
-  region_id: string | null;
-  prefecture_id: string | null;
-  commune_id: string | null;
-  join_mode: string | null;
-  org_name: string | null;
-  cellule_primary: string | null;
-  cellule_secondary: string | null;
-  photo_status: string | null;
-  photo_url: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-};
+const MEMBER_EXPORT_HEADERS = [
+  "id",
+  "prenom",
+  "nom",
+  "email",
+  "telephone",
+  "statut",
+  "region",
+  "prefecture",
+  "commune",
+  "mode_inscription",
+  "organisation",
+  "cellule_principale",
+  "cellule_secondaire",
+  "photo_statut",
+  "photo_url",
+  "cree_le",
+  "mis_a_jour_le",
+] as const;
 
-function escapeCsv(value: string | null | undefined): string {
-  const safeValue = value ?? "";
-  if (/[",\n;]/.test(safeValue)) {
-    return `"${safeValue.replaceAll('"', '""')}"`;
-  }
-  return safeValue;
-}
-
-function filenameFor(format: "csv" | "json"): string {
+function filenameFor(format: "csv" | "json" | "xlsx"): string {
   const stamp = new Date().toISOString().replaceAll(":", "-").slice(0, 19);
   return `czi-membres-${stamp}.${format}`;
 }
@@ -73,7 +67,7 @@ async function loadExportRows() {
   );
   const communesById = new Map((communesResult.data ?? []).map((item) => [String(item.id), item.name]));
 
-  const rows = (membersResult.data ?? []).map((member) => ({
+  const rows: CsvRow[] = (membersResult.data ?? []).map((member) => ({
     cellule_principale: member.cellule_primary ?? "",
     cellule_secondaire: member.cellule_secondary ?? "",
     commune: communesById.get(String(member.commune_id)) ?? "",
@@ -97,7 +91,9 @@ async function loadExportRows() {
 }
 
 export async function GET(request: NextRequest) {
-  const format = request.nextUrl.searchParams.get("format") === "json" ? "json" : "csv";
+  const requestedFormat = request.nextUrl.searchParams.get("format");
+  const format: "csv" | "json" | "xlsx" =
+    requestedFormat === "json" ? "json" : requestedFormat === "xlsx" ? "xlsx" : "csv";
 
   try {
     const result = await loadExportRows();
@@ -115,32 +111,23 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const headers = [
-      "id",
-      "prenom",
-      "nom",
-      "email",
-      "telephone",
-      "statut",
-      "region",
-      "prefecture",
-      "commune",
-      "mode_inscription",
-      "organisation",
-      "cellule_principale",
-      "cellule_secondaire",
-      "photo_statut",
-      "photo_url",
-      "cree_le",
-      "mis_a_jour_le",
-    ];
+    if (format === "xlsx") {
+      const buffer = buildXlsxBuffer({
+        headers: [...MEMBER_EXPORT_HEADERS],
+        rows: result.rows,
+        sheetName: "Membres",
+      });
 
-    const csvContent = [
-      headers.join(","),
-      ...result.rows.map((row) =>
-        headers.map((header) => escapeCsv(String(row[header as keyof typeof row] ?? ""))).join(","),
-      ),
-    ].join("\n");
+      return new Response(buffer, {
+        headers: {
+          "Cache-Control": "no-store",
+          "Content-Disposition": `attachment; filename="${filenameFor("xlsx")}"`,
+          "Content-Type": XLSX_MIME_TYPE,
+        },
+      });
+    }
+
+    const csvContent = stringifyCsv([...MEMBER_EXPORT_HEADERS], result.rows);
 
     return new Response(csvContent, {
       headers: {

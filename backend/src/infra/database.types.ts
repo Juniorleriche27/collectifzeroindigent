@@ -599,6 +599,7 @@ export type Database = {
           gender?: string | null;
           goal_3_6_months?: string | null;
           health_access?: string | null;
+          housing_status?: string | null;
           id?: string;
           income_range?: string | null;
           income_stability?: string | null;
@@ -612,6 +613,7 @@ export type Database = {
           locality?: string | null;
           mobility?: boolean | null;
           mobility_zones?: string | null;
+          occupation_status?: string | null;
           odd_priorities?: number[] | null;
           organisation_id?: string | null;
           org_name?: string | null;
@@ -671,6 +673,7 @@ export type Database = {
           gender: string | null;
           goal_3_6_months: string | null;
           health_access: string | null;
+          housing_status: string | null;
           id: string;
           income_range: string | null;
           income_stability: string | null;
@@ -684,6 +687,7 @@ export type Database = {
           locality: string | null;
           mobility: boolean | null;
           mobility_zones: string | null;
+          occupation_status: string | null;
           odd_priorities: number[] | null;
           organisation_id: string | null;
           org_name: string | null;
@@ -742,6 +746,7 @@ export type Database = {
           gender?: string | null;
           goal_3_6_months?: string | null;
           health_access?: string | null;
+          housing_status?: string | null;
           id?: string;
           income_range?: string | null;
           income_stability?: string | null;
@@ -755,6 +760,7 @@ export type Database = {
           locality?: string | null;
           mobility?: boolean | null;
           mobility_zones?: string | null;
+          occupation_status?: string | null;
           odd_priorities?: number[] | null;
           organisation_id?: string | null;
           org_name?: string | null;

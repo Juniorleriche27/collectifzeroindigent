@@ -44,6 +44,71 @@ export type MemberRecord = {
   updated_at?: string | null;
 };
 
+export type MemberSkillRecord = {
+  level?: string | null;
+  name?: string | null;
+};
+
+export type MemberOnboardingReviewRecord = MemberRecord & {
+  age_range: string | null;
+  association_name: string | null;
+  availability: string | null;
+  birth_date: string | null;
+  business_needs: string[] | null;
+  business_sector: string | null;
+  business_stage: string | null;
+  consent_ai_training_agg: boolean | null;
+  consent_analytics: boolean | null;
+  consent_terms: boolean | null;
+  contact_preference: string | null;
+  debt_level: string | null;
+  dependents_count: string | null;
+  disability_or_limitation: boolean | null;
+  education_level: string | null;
+  employment_duration_if_searching: string | null;
+  engagement_domains: string[] | null;
+  engagement_frequency: string | null;
+  engagement_recent_action: string | null;
+  enterprise_name: string | null;
+  food_security: string | null;
+  gender: string | null;
+  goal_3_6_months: string | null;
+  health_access: string | null;
+  housing_status: string | null;
+  income_range: string | null;
+  income_stability: string | null;
+  indigence_factors: string[] | null;
+  indigence_level: string | null;
+  indigence_score: number | null;
+  interests: string[] | null;
+  interests_tags: string[] | null;
+  locality: string | null;
+  mobility: boolean | null;
+  mobility_zones: string | null;
+  occupation_status: string | null;
+  odd_priorities: number[] | null;
+  org_name_declared: string | null;
+  org_role: string | null;
+  org_type: string | null;
+  partner_request: boolean | null;
+  photo_rejection_reason: string | null;
+  photo_status: string | null;
+  photo_url: string | null;
+  profession_title: string | null;
+  recent_shock: string | null;
+  savings_level: string | null;
+  skills: MemberSkillRecord[] | null;
+  skills_tags: string[] | null;
+  support_types: string[] | null;
+  urgent_needs: string[] | null;
+};
+
+export type MemberOnboardingAiAnalysis = {
+  analysis: string;
+  generated_at: string;
+  model: string;
+};
+
 export type OrganisationCardItem = {
   id: string;
   name: string;
@@ -408,12 +473,35 @@ export async function getMemberById(memberId: string) {
   return readMemberById(memberId);
 }
 
+const readMemberOnboardingReview = cache(async (memberId: string) =>
+  requestBackend<MemberOnboardingReviewRecord | null>(
+    `/members/${memberId}/onboarding-review`,
+    {
+      fallbackError: "Impossible de charger la fiche onboarding de ce membre.",
+    },
+  ),
+);
+
+export async function getMemberOnboardingReview(memberId: string) {
+  return readMemberOnboardingReview(memberId);
+}
+
 export async function updateMemberById(memberId: string, payload: Partial<MemberRecord>) {
   return requestBackend<MemberRecord | null>(`/members/${memberId}`, {
     body: JSON.stringify(payload),
     fallbackError: "Impossible de mettre à jour ce membre.",
     method: "PATCH",
   });
+}
+
+export async function generateMemberOnboardingAnalysis(memberId: string) {
+  return requestBackend<MemberOnboardingAiAnalysis>(
+    `/members/${memberId}/onboarding-analysis`,
+    {
+      fallbackError: "Impossible de generer l'analyse IA de cette fiche onboarding.",
+      method: "POST",
+    },
+  );
 }
 
 export async function updateCurrentMember(payload: Partial<MemberRecord>) {
