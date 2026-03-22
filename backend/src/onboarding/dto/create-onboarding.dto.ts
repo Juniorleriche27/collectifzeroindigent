@@ -139,7 +139,17 @@ export class CreateOnboardingDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  skills_tags?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   interests?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  interests_tags?: string[];
 
   @IsOptional()
   @IsArray()
@@ -189,6 +199,65 @@ export class CreateOnboardingDto {
   @IsString()
   @MaxLength(200)
   org_name?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  income_range?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  income_stability?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  dependents_count?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  housing_status?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  food_security?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  health_access?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  savings_level?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  debt_level?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  employment_duration_if_searching?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  urgent_needs?: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  recent_shock?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  disability_or_limitation?: boolean;
 
   @IsOptional()
   @IsString()

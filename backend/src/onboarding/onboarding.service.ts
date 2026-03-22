@@ -6,6 +6,10 @@ import {
 
 import { SupabaseDataService } from '../infra/supabase-data.service';
 import { CreateOnboardingDto } from './dto/create-onboarding.dto';
+import {
+  computeAgeRangeFromBirthDate,
+  computeIndigenceAssessment,
+} from './onboarding-indigence';
 
 type ResolvedOrganisation = {
   id: string;
@@ -28,12 +32,22 @@ type NormalizedOnboardingData = {
   businessSector: string | null;
   businessStage: string | null;
   contactPreference: 'whatsapp' | 'email' | 'call' | null;
+  debtLevel: string | null;
+  dependentsCount: string | null;
+  disabilityOrLimitation: boolean | null;
   educationLevel: string | null;
+  employmentDurationIfSearching: string | null;
   engagementDomains: string[] | null;
   engagementFrequency: string | null;
   engagementRecentAction: string | null;
+  foodSecurity: string | null;
   goalShortTerm: string | null;
+  healthAccess: string | null;
+  housingStatus: string | null;
+  incomeRange: string | null;
+  incomeStability: string | null;
   interests: string[] | null;
+  interestsTags: string[] | null;
   locality: string | null;
   mobilityZones: string | null;
   occupationStatus: string | null;
@@ -41,8 +55,12 @@ type NormalizedOnboardingData = {
   orgNameDeclared: string | null;
   orgRole: string | null;
   professionTitle: string | null;
+  recentShock: string | null;
+  savingsLevel: string | null;
   skills: Array<{ level: string; name: string }> | null;
+  skillsTags: string[] | null;
   supportTypes: string[] | null;
+  urgentNeeds: string[] | null;
 };
 
 @Injectable()
@@ -72,6 +90,22 @@ export class OnboardingService {
       payload.org_type,
     );
     const normalizedData = this.normalizeOnboardingData(payload);
+    const indigenceAssessment = computeIndigenceAssessment({
+      debtLevel: normalizedData.debtLevel,
+      dependentsCount: normalizedData.dependentsCount,
+      disabilityOrLimitation: normalizedData.disabilityOrLimitation,
+      employmentDurationIfSearching:
+        normalizedData.employmentDurationIfSearching,
+      foodSecurity: normalizedData.foodSecurity,
+      healthAccess: normalizedData.healthAccess,
+      housingStatus: normalizedData.housingStatus,
+      incomeRange: normalizedData.incomeRange,
+      incomeStability: normalizedData.incomeStability,
+      occupationStatus: normalizedData.occupationStatus,
+      recentShock: normalizedData.recentShock,
+      savingsLevel: normalizedData.savingsLevel,
+      urgentNeeds: normalizedData.urgentNeeds,
+    });
 
     this.ensureOnboardingRequirements({
       cellulePrimary,
@@ -132,16 +166,30 @@ export class OnboardingService {
         consent_terms: payload.consent_terms ?? false,
         contact_preference: normalizedData.contactPreference,
         education_level: normalizedData.educationLevel,
+        debt_level: normalizedData.debtLevel,
+        dependents_count: normalizedData.dependentsCount,
+        disability_or_limitation: normalizedData.disabilityOrLimitation,
         email: payload.email || null,
+        employment_duration_if_searching:
+          normalizedData.employmentDurationIfSearching,
         engagement_domains: normalizedData.engagementDomains,
         engagement_frequency: normalizedData.engagementFrequency,
         engagement_recent_action: normalizedData.engagementRecentAction,
         enterprise_name:
           payload.join_mode === 'enterprise' ? finalOrgName : null,
         first_name: payload.first_name,
+        food_security: normalizedData.foodSecurity,
         gender: this.normalizeString(payload.gender),
         goal_3_6_months: normalizedData.goalShortTerm,
+        health_access: normalizedData.healthAccess,
+        housing_status: normalizedData.housingStatus,
+        income_range: normalizedData.incomeRange,
+        income_stability: normalizedData.incomeStability,
+        indigence_factors: indigenceAssessment.indigenceFactors,
+        indigence_level: indigenceAssessment.indigenceLevel,
+        indigence_score: indigenceAssessment.indigenceScore,
         interests: normalizedData.interests,
+        interests_tags: normalizedData.interestsTags,
         join_mode: payload.join_mode,
         last_name: payload.last_name,
         locality: normalizedData.locality,
@@ -158,9 +206,13 @@ export class OnboardingService {
         prefecture_id: payload.prefecture_id,
         occupation_status: normalizedData.occupationStatus,
         profession_title: normalizedData.professionTitle,
+        recent_shock: normalizedData.recentShock,
         region_id: payload.region_id,
+        savings_level: normalizedData.savingsLevel,
         skills: normalizedData.skills,
+        skills_tags: normalizedData.skillsTags,
         support_types: normalizedData.supportTypes,
+        urgent_needs: normalizedData.urgentNeeds,
         user_id: user.id,
       })
       .select('id')
@@ -351,6 +403,14 @@ export class OnboardingService {
     return normalized.length > 0 ? normalized : null;
   }
 
+  private normalizeBoolean(value?: boolean | null): boolean | null {
+    if (typeof value !== 'boolean') {
+      return null;
+    }
+
+    return value;
+  }
+
   private normalizeStringArray(values?: string[] | null): string[] | null {
     if (!Array.isArray(values)) {
       return null;
@@ -407,21 +467,37 @@ export class OnboardingService {
     payload: CreateOnboardingDto,
   ): NormalizedOnboardingData {
     return {
-      ageRange: this.normalizeString(payload.age_range),
+      ageRange:
+        computeAgeRangeFromBirthDate(payload.birth_date) ??
+        this.normalizeString(payload.age_range),
       availability: this.normalizeString(payload.availability),
       birthDate: this.normalizeString(payload.birth_date),
       businessNeeds: this.normalizeStringArray(payload.business_needs),
       businessSector: this.normalizeString(payload.business_sector),
       businessStage: this.normalizeString(payload.business_stage),
       contactPreference: payload.contact_preference ?? null,
+      debtLevel: this.normalizeString(payload.debt_level),
+      dependentsCount: this.normalizeString(payload.dependents_count),
+      disabilityOrLimitation: this.normalizeBoolean(
+        payload.disability_or_limitation,
+      ),
       educationLevel: this.normalizeString(payload.education_level),
+      employmentDurationIfSearching: this.normalizeString(
+        payload.employment_duration_if_searching,
+      ),
       engagementDomains: this.normalizeStringArray(payload.engagement_domains),
       engagementFrequency: this.normalizeString(payload.engagement_frequency),
       engagementRecentAction: this.normalizeString(
         payload.engagement_recent_action,
       ),
+      foodSecurity: this.normalizeString(payload.food_security),
       goalShortTerm: this.normalizeString(payload.goal_3_6_months),
+      healthAccess: this.normalizeString(payload.health_access),
+      housingStatus: this.normalizeString(payload.housing_status),
+      incomeRange: this.normalizeString(payload.income_range),
+      incomeStability: this.normalizeString(payload.income_stability),
       interests: this.normalizeStringArray(payload.interests),
+      interestsTags: this.normalizeStringArray(payload.interests_tags),
       locality: this.normalizeString(payload.locality),
       mobilityZones: this.normalizeString(payload.mobility_zones),
       occupationStatus: this.normalizeString(payload.occupation_status),
@@ -429,8 +505,12 @@ export class OnboardingService {
       orgNameDeclared: this.normalizeString(payload.org_name_declared),
       orgRole: this.normalizeString(payload.org_role),
       professionTitle: this.normalizeString(payload.profession_title),
+      recentShock: this.normalizeString(payload.recent_shock),
+      savingsLevel: this.normalizeString(payload.savings_level),
       skills: this.normalizeSkills(payload.skills),
+      skillsTags: this.normalizeStringArray(payload.skills_tags),
       supportTypes: this.normalizeStringArray(payload.support_types),
+      urgentNeeds: this.normalizeStringArray(payload.urgent_needs),
     };
   }
 
@@ -482,6 +562,38 @@ export class OnboardingService {
     }
     if (normalizedData.oddPriorities.length > 3) {
       throw new BadRequestException('odd_priorities: maximum 3 ODD.');
+    }
+    if (!normalizedData.incomeRange) {
+      throw new BadRequestException('income_range est obligatoire.');
+    }
+    if (!normalizedData.incomeStability) {
+      throw new BadRequestException('income_stability est obligatoire.');
+    }
+    if (!normalizedData.dependentsCount) {
+      throw new BadRequestException('dependents_count est obligatoire.');
+    }
+    if (!normalizedData.housingStatus) {
+      throw new BadRequestException('housing_status est obligatoire.');
+    }
+    if (!normalizedData.foodSecurity) {
+      throw new BadRequestException('food_security est obligatoire.');
+    }
+    if (!normalizedData.healthAccess) {
+      throw new BadRequestException('health_access est obligatoire.');
+    }
+    if (!normalizedData.debtLevel) {
+      throw new BadRequestException('debt_level est obligatoire.');
+    }
+    if (!normalizedData.urgentNeeds?.length) {
+      throw new BadRequestException('urgent_needs est obligatoire.');
+    }
+    if (
+      normalizedData.occupationStatus === 'recherche' &&
+      !normalizedData.employmentDurationIfSearching
+    ) {
+      throw new BadRequestException(
+        'employment_duration_if_searching est obligatoire si occupation_status = recherche.',
+      );
     }
     if (!consentTerms) {
       throw new BadRequestException(

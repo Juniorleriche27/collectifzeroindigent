@@ -4,6 +4,25 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { completeOnboarding } from "@/lib/backend/api";
+import {
+  computeAgeRangeFromBirthDate,
+  debtLevelOptions,
+  dependentsCountOptions,
+  employmentDurationOptions,
+  foodSecurityOptions,
+  healthAccessOptions,
+  housingStatusOptions,
+  incomeRangeOptions,
+  incomeStabilityOptions,
+  interestsTagOptions,
+  normalizeBooleanChoice,
+  normalizeChoiceValue,
+  normalizeChoiceValues,
+  recentShockOptions,
+  savingsLevelOptions,
+  skillsTagOptions,
+  urgentNeedsOptions,
+} from "@/lib/onboarding/socioeconomic";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getLinkedMemberIdFromProfile } from "@/lib/supabase/member";
 import { createClient } from "@/lib/supabase/server";
@@ -94,7 +113,6 @@ export async function submitOnboarding(
   const email = formValue(formData, "email");
   const gender = formValue(formData, "gender");
   const birthDate = formValue(formData, "birth_date");
-  const ageRange = formValue(formData, "age_range");
   const educationLevel = formValue(formData, "education_level");
   const occupationStatus = formValue(formData, "occupation_status");
   const professionTitle = formValue(formData, "profession_title");
@@ -123,6 +141,11 @@ export async function submitOnboarding(
 
   const skillsText = formValue(formData, "skills_text");
   const interestsText = formValue(formData, "interests_text");
+  const skillsTags = normalizeChoiceValues(formValues(formData, "skills_tags"), skillsTagOptions);
+  const interestsTags = normalizeChoiceValues(
+    formValues(formData, "interests_tags"),
+    interestsTagOptions,
+  );
   const oddPrioritiesRaw = formValues(formData, "odd_priorities");
 
   const goalShortTerm = formValue(formData, "goal_3_6_months");
@@ -134,12 +157,52 @@ export async function submitOnboarding(
   const orgType = formValue(formData, "org_type");
   const orgName = formValue(formData, "org_name");
 
+  const incomeRange = normalizeChoiceValue(formValue(formData, "income_range"), incomeRangeOptions);
+  const incomeStability = normalizeChoiceValue(
+    formValue(formData, "income_stability"),
+    incomeStabilityOptions,
+  );
+  const dependentsCount = normalizeChoiceValue(
+    formValue(formData, "dependents_count"),
+    dependentsCountOptions,
+  );
+  const housingStatus = normalizeChoiceValue(
+    formValue(formData, "housing_status"),
+    housingStatusOptions,
+  );
+  const foodSecurity = normalizeChoiceValue(
+    formValue(formData, "food_security"),
+    foodSecurityOptions,
+  );
+  const healthAccess = normalizeChoiceValue(
+    formValue(formData, "health_access"),
+    healthAccessOptions,
+  );
+  const savingsLevel = normalizeChoiceValue(
+    formValue(formData, "savings_level"),
+    savingsLevelOptions,
+  );
+  const debtLevel = normalizeChoiceValue(formValue(formData, "debt_level"), debtLevelOptions);
+  const employmentDurationIfSearching = normalizeChoiceValue(
+    formValue(formData, "employment_duration_if_searching"),
+    employmentDurationOptions,
+  );
+  const urgentNeeds = normalizeChoiceValues(formValues(formData, "urgent_needs"), urgentNeedsOptions);
+  const recentShock = normalizeChoiceValue(formValue(formData, "recent_shock"), recentShockOptions);
+  const disabilityOrLimitation = normalizeBooleanChoice(
+    formValue(formData, "disability_or_limitation"),
+  );
+
   const consentTerms = formBoolean(formData, "consent_terms");
   const consentAnalytics = formBoolean(formData, "consent_analytics");
   const consentAiTrainingAgg = formBoolean(formData, "consent_ai_training_agg");
 
   if (!firstName || !lastName || !phone) {
     return { error: "Étape 1 incomplète : renseignez le prénom, le nom et le téléphone." };
+  }
+
+  if (!birthDate) {
+    return { error: "Étape 1 incomplète : la date de naissance est obligatoire." };
   }
 
   if (!regionId || !prefectureId || !communeId) {
@@ -168,10 +231,6 @@ export async function submitOnboarding(
 
   if (celluleSecondaryInput && !celluleValues.has(celluleSecondaryInput)) {
     return { error: "Cellule secondaire invalide." };
-  }
-
-  if (!birthDate && !ageRange) {
-    return { error: "Date de naissance ou tranche d'ge obligatoire." };
   }
 
   if (!educationLevel || !occupationStatus) {
@@ -211,7 +270,35 @@ export async function submitOnboarding(
   }
 
   if (supportTypes.length === 0) {
-    return { error: "Veuillez s?lectionner au moins un type de support." };
+    return { error: "Veuillez sélectionner au moins un type de support." };
+  }
+
+  if (!incomeRange) {
+    return { error: "Le revenu mensuel moyen est obligatoire." };
+  }
+  if (!incomeStability) {
+    return { error: "La stabilité du revenu est obligatoire." };
+  }
+  if (!dependentsCount) {
+    return { error: "Le nombre de personnes à charge est obligatoire." };
+  }
+  if (!housingStatus) {
+    return { error: "La situation de logement est obligatoire." };
+  }
+  if (!foodSecurity) {
+    return { error: "L'accès à la nourriture est obligatoire." };
+  }
+  if (!healthAccess) {
+    return { error: "L'accès aux soins est obligatoire." };
+  }
+  if (!debtLevel) {
+    return { error: "Le niveau d'endettement est obligatoire." };
+  }
+  if (urgentNeeds.length === 0) {
+    return { error: "Sélectionnez au moins un besoin urgent." };
+  }
+  if (occupationStatus === "recherche" && !employmentDurationIfSearching) {
+    return { error: "La durée de recherche d'emploi est obligatoire pour ce profil." };
   }
 
   if (!consentTerms) {
@@ -227,7 +314,7 @@ export async function submitOnboarding(
   if (partnerRequest && (!orgType || !orgTypes.has(orgType))) {
     return {
       error:
-        "Le type organisation (association/entreprise) est obligatoire pour la demande partenaire.",
+        "Le type d'organisation (association/entreprise) est obligatoire pour la demande partenaire.",
     };
   }
 
@@ -240,7 +327,8 @@ export async function submitOnboarding(
   if (cellulePrimary === "engaged") {
     if (engagementDomains.length === 0 || !engagementFrequency || !engagementRecentAction) {
       return {
-        error: "Pour le profil engagé, les domaines, la fréquence et l'action récente sont obligatoires.",
+        error:
+          "Pour le profil engagé, les domaines, la fréquence et l'action récente sont obligatoires.",
       };
     }
   }
@@ -248,7 +336,8 @@ export async function submitOnboarding(
   if (cellulePrimary === "entrepreneur") {
     if (!businessStage || !businessSector || businessNeeds.length === 0) {
       return {
-        error: "Pour le profil entrepreneur, le stade, le secteur et les besoins du projet sont obligatoires.",
+        error:
+          "Pour le profil entrepreneur, le stade, le secteur et les besoins du projet sont obligatoires.",
       };
     }
   }
@@ -256,10 +345,13 @@ export async function submitOnboarding(
   if (cellulePrimary === "org_leader") {
     if (!orgRole || !orgNameDeclared) {
       return {
-        error: "Pour le profil responsable d'organisation, le rôle et le nom déclaré sont obligatoires.",
+        error:
+          "Pour le profil responsable d'organisation, le rôle et le nom déclaré sont obligatoires.",
       };
     }
   }
+
+  const ageRange = computeAgeRangeFromBirthDate(birthDate);
 
   try {
     await completeOnboarding({
@@ -279,22 +371,32 @@ export async function submitOnboarding(
       consent_analytics: consentAnalytics,
       consent_terms: consentTerms,
       contact_preference: contactPreference as "whatsapp" | "email" | "call",
+      debt_level: debtLevel || undefined,
+      dependents_count: dependentsCount || undefined,
+      disability_or_limitation: disabilityOrLimitation ?? undefined,
       education_level: educationLevel,
       email: email || null,
+      employment_duration_if_searching: employmentDurationIfSearching || undefined,
       engagement_domains: engagementDomains.length > 0 ? engagementDomains : undefined,
       engagement_frequency: engagementFrequency || undefined,
       engagement_recent_action: engagementRecentAction || undefined,
       first_name: firstName,
+      food_security: foodSecurity || undefined,
       gender: gender || undefined,
       goal_3_6_months: goalShortTerm,
+      health_access: healthAccess || undefined,
+      housing_status: housingStatus || undefined,
+      income_range: incomeRange || undefined,
+      income_stability: incomeStability || undefined,
       interests,
+      interests_tags: interestsTags.length > 0 ? interestsTags : undefined,
       join_mode: joinMode,
       last_name: lastName,
       locality: locality || undefined,
       mobility,
       mobility_zones: mobilityZones || undefined,
-      odd_priorities: oddPriorities,
       occupation_status: occupationStatus,
+      odd_priorities: oddPriorities,
       org_name: orgName || undefined,
       org_name_declared: orgNameDeclared || undefined,
       org_role: orgRole || undefined,
@@ -304,9 +406,13 @@ export async function submitOnboarding(
       phone,
       prefecture_id: prefectureId,
       profession_title: professionTitle || undefined,
+      recent_shock: recentShock || undefined,
       region_id: regionId,
+      savings_level: savingsLevel || undefined,
       skills: skillsList.map((name) => ({ level: "intermediate", name })),
+      skills_tags: skillsTags.length > 0 ? skillsTags : undefined,
       support_types: supportTypes,
+      urgent_needs: urgentNeeds.length > 0 ? urgentNeeds : undefined,
     });
   } catch (error) {
     return {

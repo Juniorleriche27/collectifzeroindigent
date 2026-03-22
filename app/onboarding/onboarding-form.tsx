@@ -7,6 +7,21 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import {
+  debtLevelOptions,
+  dependentsCountOptions,
+  employmentDurationOptions,
+  foodSecurityOptions,
+  healthAccessOptions,
+  housingStatusOptions,
+  incomeRangeOptions,
+  incomeStabilityOptions,
+  interestsTagOptions,
+  recentShockOptions,
+  savingsLevelOptions,
+  skillsTagOptions,
+  urgentNeedsOptions,
+} from "@/lib/onboarding/socioeconomic";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { getProfileMemberIdByAuthUser } from "@/lib/supabase/profile";
@@ -53,8 +68,8 @@ const onboardingJoinModeValues = new Set(["personal", "association", "enterprise
 const onboardingCelluleValues = new Set(["engaged", "entrepreneur", "org_leader"]);
 const onboardingContactPreferenceValues = new Set(["whatsapp", "email", "call"]);
 const onboardingOrgTypes = new Set(["association", "enterprise"]);
-const totalSteps = 6;
-const onboardingDraftStorageKey = "czi.onboarding.draft.v1";
+const totalSteps = 7;
+const onboardingDraftStorageKey = "czi.onboarding.draft.v2";
 const onboardingDraftStepKey = "__wizard_step";
 const onboardingStepTitles = [
   "Identité et contact",
@@ -62,6 +77,7 @@ const onboardingStepTitles = [
   "Profil CZI",
   "Compétences et objectifs",
   "Besoins et partenariat",
+  "Situation socio-économique",
   "Consentements et validation",
 ] as const;
 const booleanFieldNames = [
@@ -92,6 +108,7 @@ export function OnboardingForm({
   const [prefectureId, setPrefectureId] = useState("");
   const [communeId, setCommuneId] = useState("");
   const [joinMode, setJoinMode] = useState("personal");
+  const [occupationStatus, setOccupationStatus] = useState("");
   const [cellulePrimary, setCellulePrimary] = useState<"engaged" | "entrepreneur" | "org_leader">(
     "engaged",
   );
@@ -216,6 +233,7 @@ export function OnboardingForm({
   const isEngaged = cellulePrimary === "engaged";
   const isEntrepreneur = cellulePrimary === "entrepreneur";
   const isOrgLeader = cellulePrimary === "org_leader";
+  const isSearchingJob = occupationStatus === "recherche";
 
   function toDraftPayload(form: HTMLFormElement): DraftPayload {
     const payload: DraftPayload = {};
@@ -304,6 +322,9 @@ export function OnboardingForm({
       if (typeof parsed.commune_id === "string") {
         setCommuneId(parsed.commune_id);
       }
+      if (typeof parsed.occupation_status === "string") {
+        setOccupationStatus(parsed.occupation_status);
+      }
       if (typeof parsed.email === "string") {
         setEmailValue(parsed.email);
       }
@@ -321,6 +342,7 @@ export function OnboardingForm({
           "commune_id",
           "join_mode",
           "cellule_primary",
+          "occupation_status",
           "partner_request",
           "mobility",
         ]);
@@ -395,7 +417,6 @@ export function OnboardingForm({
     const lastName = formValueForStep(formData, "last_name");
     const phone = formValueForStep(formData, "phone");
     const birthDate = formValueForStep(formData, "birth_date");
-    const ageRange = formValueForStep(formData, "age_range");
     const educationLevel = formValueForStep(formData, "education_level");
     const occupationStatus = formValueForStep(formData, "occupation_status");
 
@@ -418,13 +439,22 @@ export function OnboardingForm({
     const partnerRequested = formBooleanForStep(formData, "partner_request");
     const orgType = formValueForStep(formData, "org_type");
     const consentTerms = formBooleanForStep(formData, "consent_terms");
+    const incomeRange = formValueForStep(formData, "income_range");
+    const incomeStability = formValueForStep(formData, "income_stability");
+    const dependentsCount = formValueForStep(formData, "dependents_count");
+    const housingStatus = formValueForStep(formData, "housing_status");
+    const foodSecurity = formValueForStep(formData, "food_security");
+    const healthAccess = formValueForStep(formData, "health_access");
+    const debtLevel = formValueForStep(formData, "debt_level");
+    const urgentNeeds = formValuesForStep(formData, "urgent_needs");
+    const employmentDuration = formValueForStep(formData, "employment_duration_if_searching");
 
     if (step === 1) {
       if (!firstName || !lastName || !phone) {
         return "Étape 1 : renseignez prénom, nom et téléphone.";
       }
-      if (!birthDate && !ageRange) {
-        return "tape 1 : date de naissance ou tranche d'ge obligatoire.";
+      if (!birthDate) {
+        return "Étape 1 : la date de naissance est obligatoire.";
       }
       if (!educationLevel || !occupationStatus) {
         return "Étape 1 : niveau d'éducation et statut professionnel obligatoires.";
@@ -518,6 +548,31 @@ export function OnboardingForm({
         }
       }
       return null;
+    }
+
+    if (step === 6) {
+      if (
+        !incomeRange ||
+        !incomeStability ||
+        !dependentsCount ||
+        !housingStatus ||
+        !foodSecurity ||
+        !healthAccess ||
+        !debtLevel
+      ) {
+        return "Étape 6 : complétez tous les champs socio-économiques obligatoires.";
+      }
+      if (urgentNeeds.length === 0) {
+        return "Étape 6 : sélectionnez au moins un besoin urgent.";
+      }
+      if (occupationStatus === "recherche" && !employmentDuration) {
+        return "Étape 6 : précisez la durée de recherche d'emploi.";
+      }
+      return null;
+    }
+
+    if (step === 7 && !consentTerms) {
+      return "Étape 7 : vous devez accepter les conditions d'utilisation.";
     }
 
     if (step === 6 && !consentTerms) {
@@ -657,13 +712,13 @@ export function OnboardingForm({
             <label className="text-sm font-medium" htmlFor="birth-date">
               Date de naissance
             </label>
-            <Input id="birth-date" name="birth_date" type="date" />
+            <Input id="birth-date" name="birth_date" required type="date" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="age-range">
-              Tranche d&apos;ge (si pas de date)
+              Tranche d&apos;âge (calcul automatique)
             </label>
-            <Select id="age-range" name="age_range" defaultValue="">
+            <Select id="age-range" name="age_range" defaultValue="" disabled>
               <option value="">Sélectionner</option>
               <option value="15-19">15-19</option>
               <option value="20-24">20-24</option>
@@ -691,7 +746,13 @@ export function OnboardingForm({
             <label className="text-sm font-medium" htmlFor="occupation-status">
               Statut professionnel
             </label>
-            <Select id="occupation-status" name="occupation_status" defaultValue="" required>
+            <Select
+              id="occupation-status"
+              name="occupation_status"
+              onChange={(event) => setOccupationStatus(event.target.value)}
+              required
+              value={occupationStatus}
+            >
               <option value="" disabled>
                 Sélectionner
               </option>
@@ -1008,6 +1069,28 @@ export function OnboardingForm({
             />
           </div>
           <div className="space-y-2 md:col-span-2">
+            <p className="text-sm font-medium">Tags de compétences (optionnel)</p>
+            <div className="grid gap-2 md:grid-cols-3">
+              {skillsTagOptions.map((option) => (
+                <label key={option.value} className="inline-flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="skills_tags" value={option.value} />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <p className="text-sm font-medium">Tags d&apos;intérêt (optionnel)</p>
+            <div className="grid gap-2 md:grid-cols-3">
+              {interestsTagOptions.map((option) => (
+                <label key={option.value} className="inline-flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="interests_tags" value={option.value} />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2 md:col-span-2">
             <p className="text-sm font-medium">ODD prioritaires (max 3)</p>
             <div className="grid gap-2 md:grid-cols-3">
               {oddOptions.map((odd) => (
@@ -1094,6 +1177,189 @@ export function OnboardingForm({
       </section>
 
       <section className={cn("rounded-xl border border-border bg-surface p-4", currentStep === 6 ? "block" : "hidden")}>
+        <h3 className="text-base font-semibold">G. Situation socio-économique</h3>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="income-range">
+              Revenu mensuel moyen
+            </label>
+            <Select id="income-range" name="income_range" defaultValue="" required>
+              <option value="" disabled>
+                Sélectionner
+              </option>
+              {incomeRangeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="income-stability">
+              Stabilité du revenu
+            </label>
+            <Select id="income-stability" name="income_stability" defaultValue="" required>
+              <option value="" disabled>
+                Sélectionner
+              </option>
+              {incomeStabilityOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="dependents-count">
+              Nombre de personnes à charge
+            </label>
+            <Select id="dependents-count" name="dependents_count" defaultValue="" required>
+              <option value="" disabled>
+                Sélectionner
+              </option>
+              {dependentsCountOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="housing-status">
+              Situation de logement
+            </label>
+            <Select id="housing-status" name="housing_status" defaultValue="" required>
+              <option value="" disabled>
+                Sélectionner
+              </option>
+              {housingStatusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="food-security">
+              Accès régulier à la nourriture
+            </label>
+            <Select id="food-security" name="food_security" defaultValue="" required>
+              <option value="" disabled>
+                Sélectionner
+              </option>
+              {foodSecurityOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="health-access">
+              Accès aux soins de santé
+            </label>
+            <Select id="health-access" name="health_access" defaultValue="" required>
+              <option value="" disabled>
+                Sélectionner
+              </option>
+              {healthAccessOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="savings-level">
+              Niveau d&apos;épargne disponible (optionnel)
+            </label>
+            <Select id="savings-level" name="savings_level" defaultValue="">
+              <option value="">Sélectionner</option>
+              {savingsLevelOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="debt-level">
+              Niveau d&apos;endettement
+            </label>
+            <Select id="debt-level" name="debt_level" defaultValue="" required>
+              <option value="" disabled>
+                Sélectionner
+              </option>
+              {debtLevelOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="employment-duration">
+              Durée de recherche d&apos;emploi
+            </label>
+            <Select
+              id="employment-duration"
+              name="employment_duration_if_searching"
+              defaultValue=""
+              disabled={!isSearchingJob}
+              required={isSearchingJob}
+            >
+              <option value="">
+                {isSearchingJob ? "Sélectionner" : "Réservé au statut recherche"}
+              </option>
+              {employmentDurationOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <p className="text-sm font-medium">Besoins urgents</p>
+            <div className="grid gap-2 md:grid-cols-3">
+              {urgentNeedsOptions.map((option) => (
+                <label key={option.value} className="inline-flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="urgent_needs" value={option.value} />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="recent-shock">
+              Événement difficile récent (optionnel)
+            </label>
+            <Select id="recent-shock" name="recent_shock" defaultValue="">
+              <option value="">Sélectionner</option>
+              {recentShockOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="disability-or-limitation">
+              Handicap ou limitation impactant les activités (optionnel)
+            </label>
+            <Select id="disability-or-limitation" name="disability_or_limitation" defaultValue="">
+              <option value="">Sélectionner</option>
+              <option value="non">Non</option>
+              <option value="oui">Oui</option>
+            </Select>
+          </div>
+          <div className="rounded-md border border-border bg-muted-surface/50 p-3 text-sm text-muted-foreground md:col-span-2">
+            Ce bloc sert à calculer automatiquement un score d&apos;indigence et un niveau de
+            vulnérabilité.
+          </div>
+        </div>
+      </section>
+
+      <section className={cn("rounded-xl border border-border bg-surface p-4", currentStep === 7 ? "block" : "hidden")}>
         <h3 className="text-base font-semibold">F. Consentements et validation finale</h3>
         <div className="mt-4 grid gap-4">
           <div className="rounded-md border border-border p-3">
