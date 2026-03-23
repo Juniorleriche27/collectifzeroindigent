@@ -19,7 +19,9 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 import { ValidateMemberDto } from './dto/validate-member.dto';
 
 type ListMembersQuery = {
+  age_range?: string;
   commune_id?: string;
+  gender?: string;
   organisation_id?: string;
   page?: string;
   page_size?: string;
@@ -31,6 +33,20 @@ type ListMembersQuery = {
 };
 
 type MemberOnboardingRow = Database['public']['Tables']['member']['Row'];
+type MemberGender = 'male' | 'female' | 'other';
+type MemberAgeRange = '15-19' | '20-24' | '25-29' | '30-35' | '36+';
+
+type MemberStatsBucket = {
+  count: number;
+  key: string;
+  label: string;
+};
+
+type MemberListStats = {
+  by_age_range: MemberStatsBucket[];
+  by_gender: MemberStatsBucket[];
+  total: number;
+};
 
 @Injectable()
 export class MembersService {
@@ -44,6 +60,18 @@ export class MembersService {
     'rejected',
     'suspended',
   ]);
+  private readonly allowedGenderFilters = new Set<MemberGender>([
+    'male',
+    'female',
+    'other',
+  ]);
+  private readonly allowedAgeRangeFilters = new Set<MemberAgeRange>([
+    '15-19',
+    '20-24',
+    '25-29',
+    '30-35',
+    '36+',
+  ]);
   private readonly allowedOnboardingReviewRoles = new Set([
     'admin',
     'ca',
@@ -56,7 +84,7 @@ export class MembersService {
     'pf',
   ]);
   private readonly memberSelectFields =
-    'id, user_id, first_name, last_name, phone, email, status, region_id, prefecture_id, commune_id, join_mode, organisation_id, org_name, cellule_primary, cellule_secondary, validated_by, validated_at, validation_reason, created_at, updated_at';
+    'id, user_id, first_name, last_name, phone, email, gender, birth_date, age_range, status, region_id, prefecture_id, commune_id, join_mode, organisation_id, org_name, cellule_primary, cellule_secondary, validated_by, validated_at, validation_reason, created_at, updated_at';
 
   async list(accessToken: string, query: ListMembersQuery) {
     const client = this.supabaseDataService.forUser(accessToken);
@@ -70,53 +98,23 @@ export class MembersService {
       .select(this.memberSelectFields, { count: 'exact' })
       .range(rangeFrom, rangeTo);
 
-    const sort = query.sort ?? 'created_desc';
-    if (sort === 'name_asc') {
-      dbQuery = dbQuery
-        .order('last_name', { ascending: true })
-        .order('first_name', { ascending: true });
-    } else if (sort === 'name_desc') {
-      dbQuery = dbQuery
-        .order('last_name', { ascending: false })
-        .order('first_name', { ascending: false });
-    } else if (sort === 'created_asc') {
-      dbQuery = dbQuery.order('created_at', { ascending: true });
-    } else if (sort === 'status_asc') {
-      dbQuery = dbQuery
-        .order('status', { ascending: true })
-        .order('created_at', { ascending: false });
-    } else {
-      dbQuery = dbQuery.order('created_at', { ascending: false });
-    }
-
-    if (query.status && this.allowedStatusFilters.has(query.status)) {
-      dbQuery = dbQuery.eq('status', query.status);
-    }
-    if (query.region_id) dbQuery = dbQuery.eq('region_id', query.region_id);
-    if (query.prefecture_id)
-      dbQuery = dbQuery.eq('prefecture_id', query.prefecture_id);
-    if (query.commune_id) dbQuery = dbQuery.eq('commune_id', query.commune_id);
-    if (query.organisation_id)
-      dbQuery = dbQuery.eq('organisation_id', query.organisation_id);
-    if (query.q) {
-      const safeSearch = query.q.replaceAll(',', ' ').trim();
-      if (safeSearch) {
-        dbQuery = dbQuery.or(
-          `first_name.ilike.%${safeSearch}%,last_name.ilike.%${safeSearch}%,phone.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%`,
-        );
-      }
-    }
+    dbQuery = this.applyMemberSort(dbQuery, query.sort);
+    dbQuery = this.applyMemberFilters(dbQuery, query);
 
     const { data, error, count } = await dbQuery;
     if (error) {
       throw error;
     }
 
+    const totalCount = count ?? 0;
+    const stats = await this.computeMemberListStats(client, query, totalCount);
+
     return {
-      count: count ?? 0,
+      count: totalCount,
       page,
       pageSize,
       rows: data ?? [],
+      stats,
     };
   }
 
@@ -459,6 +457,158 @@ export class MembersService {
     }
 
     return data?.region_id ?? null;
+  }
+
+  private applyMemberSort<T>(dbQuery: T, sort: string | undefined): T {
+    let nextQuery = dbQuery as any;
+    const normalizedSort = sort ?? 'created_desc';
+
+    if (normalizedSort === 'name_asc') {
+      nextQuery = nextQuery
+        .order('last_name', { ascending: true })
+        .order('first_name', { ascending: true });
+    } else if (normalizedSort === 'name_desc') {
+      nextQuery = nextQuery
+        .order('last_name', { ascending: false })
+        .order('first_name', { ascending: false });
+    } else if (normalizedSort === 'created_asc') {
+      nextQuery = nextQuery.order('created_at', { ascending: true });
+    } else if (normalizedSort === 'status_asc') {
+      nextQuery = nextQuery
+        .order('status', { ascending: true })
+        .order('created_at', { ascending: false });
+    } else {
+      nextQuery = nextQuery.order('created_at', { ascending: false });
+    }
+
+    return nextQuery as T;
+  }
+
+  private applyMemberFilters<T>(dbQuery: T, query: ListMembersQuery): T {
+    let nextQuery = dbQuery as any;
+
+    if (query.status && this.allowedStatusFilters.has(query.status)) {
+      nextQuery = nextQuery.eq('status', query.status);
+    }
+    if (query.region_id) {
+      nextQuery = nextQuery.eq('region_id', query.region_id);
+    }
+    if (query.prefecture_id) {
+      nextQuery = nextQuery.eq('prefecture_id', query.prefecture_id);
+    }
+    if (query.commune_id) {
+      nextQuery = nextQuery.eq('commune_id', query.commune_id);
+    }
+    if (query.organisation_id) {
+      nextQuery = nextQuery.eq('organisation_id', query.organisation_id);
+    }
+    if (query.gender && this.allowedGenderFilters.has(query.gender as MemberGender)) {
+      nextQuery = nextQuery.eq('gender', query.gender);
+    }
+    if (
+      query.age_range &&
+      this.allowedAgeRangeFilters.has(query.age_range as MemberAgeRange)
+    ) {
+      nextQuery = nextQuery.eq('age_range', query.age_range);
+    }
+    if (query.q) {
+      const safeSearch = query.q.replaceAll(',', ' ').trim();
+      if (safeSearch) {
+        nextQuery = nextQuery.or(
+          `first_name.ilike.%${safeSearch}%,last_name.ilike.%${safeSearch}%,phone.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%`,
+        );
+      }
+    }
+
+    return nextQuery as T;
+  }
+
+  private async computeMemberListStats(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    query: ListMembersQuery,
+    totalCount: number,
+  ): Promise<MemberListStats> {
+    const genderBuckets: Array<{ key: MemberGender; label: string }> = [
+      { key: 'female', label: 'Femmes' },
+      { key: 'male', label: 'Hommes' },
+      { key: 'other', label: 'Autres' },
+    ];
+    const ageBuckets: Array<{ key: MemberAgeRange; label: string }> = [
+      { key: '15-19', label: '15-19 ans' },
+      { key: '20-24', label: '20-24 ans' },
+      { key: '25-29', label: '25-29 ans' },
+      { key: '30-35', label: '30-35 ans' },
+      { key: '36+', label: '36+ ans' },
+    ];
+
+    const [byGender, byAgeRange] = await Promise.all([
+      Promise.all(
+        genderBuckets.map(async (bucket) => ({
+          count: await this.countFilteredMembers(client, query, {
+            gender: bucket.key,
+          }),
+          key: bucket.key,
+          label: bucket.label,
+        })),
+      ),
+      Promise.all(
+        ageBuckets.map(async (bucket) => ({
+          count: await this.countFilteredMembers(client, query, {
+            age_range: bucket.key,
+          }),
+          key: bucket.key,
+          label: bucket.label,
+        })),
+      ),
+    ]);
+
+    const knownGenderCount = byGender.reduce(
+      (total, bucket) => total + bucket.count,
+      0,
+    );
+    const knownAgeCount = byAgeRange.reduce(
+      (total, bucket) => total + bucket.count,
+      0,
+    );
+
+    return {
+      by_age_range: [
+        ...byAgeRange,
+        {
+          count: Math.max(totalCount - knownAgeCount, 0),
+          key: 'unknown',
+          label: 'Non renseigne',
+        },
+      ],
+      by_gender: [
+        ...byGender,
+        {
+          count: Math.max(totalCount - knownGenderCount, 0),
+          key: 'unknown',
+          label: 'Non renseigne',
+        },
+      ],
+      total: totalCount,
+    };
+  }
+
+  private async countFilteredMembers(
+    client: ReturnType<SupabaseDataService['forUser']>,
+    query: ListMembersQuery,
+    extraFilters: Partial<Pick<ListMembersQuery, 'age_range' | 'gender'>>,
+  ): Promise<number> {
+    let dbQuery = client.from('member').select('id', { count: 'exact', head: true });
+    dbQuery = this.applyMemberFilters(dbQuery, {
+      ...query,
+      ...extraFilters,
+    });
+
+    const { count, error } = await dbQuery;
+    if (error) {
+      throw error;
+    }
+
+    return count ?? 0;
   }
 
   private async loadOnboardingMember(

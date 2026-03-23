@@ -18,7 +18,13 @@ import { UpdateMessageDto } from './dto/update-message.dto';
 
 type ConversationRow = {
   commune_id: string | null;
-  community_kind: 'czi' | 'engaged' | 'entrepreneur' | 'org_leader' | null;
+  community_kind:
+    | 'czi'
+    | 'engaged'
+    | 'entrepreneur'
+    | 'org_leader'
+    | 'region'
+    | null;
   conversation_type: 'community' | 'direct';
   created_at: string;
   created_by: string;
@@ -32,19 +38,16 @@ type ConversationRow = {
 };
 
 type CommunityKind = Exclude<ConversationRow['community_kind'], null>;
+type CellRootKind = 'czi' | 'engaged' | 'entrepreneur' | 'org_leader';
 
-const ROOT_COMMUNITY_ORDER: CommunityKind[] = [
+const CELL_ROOT_ORDER: CellRootKind[] = [
   'czi',
   'engaged',
   'entrepreneur',
   'org_leader',
 ];
 
-const SUBCOMMUNITY_ALLOWED_KINDS: CommunityKind[] = [
-  'engaged',
-  'entrepreneur',
-  'org_leader',
-];
+const REGIONAL_COMMUNITY_KIND: CommunityKind = 'region';
 
 type ParticipantRow = {
   can_post: boolean;
@@ -268,9 +271,11 @@ export class ConversationsService {
         'Selectionnez une communaute racine de cellule.',
       );
     }
+    const parentCommunityKind = parentConversation.community_kind;
     if (
-      !parentConversation.community_kind ||
-      !SUBCOMMUNITY_ALLOWED_KINDS.includes(parentConversation.community_kind)
+      parentCommunityKind !== 'engaged' &&
+      parentCommunityKind !== 'entrepreneur' &&
+      parentCommunityKind !== 'org_leader'
     ) {
       throw new ForbiddenException(
         'La creation de sous-communaute est autorisee uniquement dans les cellules.',
@@ -282,7 +287,7 @@ export class ConversationsService {
     const { error } = await client.from('conversation').insert({
       id: conversationId,
       commune_id: null,
-      community_kind: parentConversation.community_kind,
+      community_kind: parentCommunityKind,
       conversation_type: 'community',
       created_by: userId,
       parent_conversation_id: parentConversation.id,
@@ -804,17 +809,24 @@ export class ConversationsService {
     );
 
     const rootByKind = this.resolveRootCommunities(communityItems);
-    const allowedRootIds = new Set(
+    const allowedCellRootIds = new Set(
       Array.from(rootByKind.values()).map((row) => row.id),
+    );
+    const regionalRoots = this.resolveRegionalRootCommunities(communityItems);
+    const allowedRegionalRootIds = new Set(
+      regionalRoots.map((row) => row.id),
     );
 
     const normalizedCommunityItems = communityItems.filter((item) => {
-      if (allowedRootIds.has(item.id)) {
+      if (
+        allowedCellRootIds.has(item.id) ||
+        allowedRegionalRootIds.has(item.id)
+      ) {
         return true;
       }
       return Boolean(
         item.parent_conversation_id &&
-        allowedRootIds.has(item.parent_conversation_id),
+        allowedCellRootIds.has(item.parent_conversation_id),
       );
     });
 
@@ -825,16 +837,6 @@ export class ConversationsService {
     items: ConversationRow[],
     query: { conversation_type?: string; q?: string },
   ): ConversationRow[] {
-    const rootCommunityIds = new Set(
-      items
-        .filter(
-          (item) =>
-            item.conversation_type === 'community' &&
-            item.parent_conversation_id === null,
-        )
-        .map((item) => item.id),
-    );
-
     const normalizedSearch =
       query.q?.replaceAll(',', ' ').trim().toLowerCase() ?? '';
     const hasSearch = Boolean(normalizedSearch);
@@ -845,8 +847,23 @@ export class ConversationsService {
         : null;
 
     return items.filter((item) => {
-      if (rootCommunityIds.has(item.id)) {
-        return true;
+      const isRootCommunity =
+        item.conversation_type === 'community' &&
+        item.parent_conversation_id === null;
+
+      if (isRootCommunity) {
+        if (requestedType === 'direct') {
+          return false;
+        }
+        if (!hasSearch) {
+          return true;
+        }
+        if (item.community_kind !== REGIONAL_COMMUNITY_KIND) {
+          return true;
+        }
+
+        const title = item.title?.toLowerCase() ?? '';
+        return title.includes(normalizedSearch);
       }
 
       if (requestedType && item.conversation_type !== requestedType) {
@@ -864,10 +881,10 @@ export class ConversationsService {
 
   private resolveRootCommunities(
     communityItems: ConversationRow[],
-  ): Map<CommunityKind, ConversationRow> {
-    const rootByKind = new Map<CommunityKind, ConversationRow>();
+  ): Map<CellRootKind, ConversationRow> {
+    const rootByKind = new Map<CellRootKind, ConversationRow>();
 
-    for (const kind of ROOT_COMMUNITY_ORDER) {
+    for (const kind of CELL_ROOT_ORDER) {
       const candidates = communityItems
         .filter(
           (item) =>
@@ -884,6 +901,31 @@ export class ConversationsService {
     }
 
     return rootByKind;
+  }
+
+  private resolveRegionalRootCommunities(
+    communityItems: ConversationRow[],
+  ): ConversationRow[] {
+    const rootsByRegionId = new Map<string, ConversationRow>();
+    const candidates = communityItems
+      .filter(
+        (item) =>
+          item.parent_conversation_id === null &&
+          item.community_kind === REGIONAL_COMMUNITY_KIND &&
+          item.scope_type === 'region' &&
+          Boolean(item.region_id),
+      )
+      .sort((first, second) => first.created_at.localeCompare(second.created_at));
+
+    for (const candidate of candidates) {
+      const regionId = candidate.region_id?.trim();
+      if (!regionId || rootsByRegionId.has(regionId)) {
+        continue;
+      }
+      rootsByRegionId.set(regionId, candidate);
+    }
+
+    return Array.from(rootsByRegionId.values());
   }
 
   private normalizeParticipantIds(

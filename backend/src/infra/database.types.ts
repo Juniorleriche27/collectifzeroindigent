@@ -14,7 +14,8 @@ export type Database = {
         | 'czi'
         | 'engaged'
         | 'entrepreneur'
-        | 'org_leader';
+        | 'org_leader'
+        | 'region';
       conversation_type: 'community' | 'direct';
       email_campaign_status: 'draft' | 'queued' | 'sent' | 'failed';
       email_recipient_status: 'pending' | 'sent' | 'failed' | 'skipped';

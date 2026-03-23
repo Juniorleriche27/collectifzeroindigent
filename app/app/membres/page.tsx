@@ -6,6 +6,7 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { MemberContactLink } from "@/components/app/member-contact-link";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import type { MemberListStats } from "@/lib/backend/api";
 import { getCurrentMember, getLocations, listMembers, listOrganisations } from "@/lib/backend/api";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -41,6 +42,26 @@ function normalizePageSize(value: number): number {
   return 10;
 }
 
+function emptyMemberStats(): MemberListStats {
+  return {
+    by_age_range: [
+      { count: 0, key: "15-19", label: "15-19 ans" },
+      { count: 0, key: "20-24", label: "20-24 ans" },
+      { count: 0, key: "25-29", label: "25-29 ans" },
+      { count: 0, key: "30-35", label: "30-35 ans" },
+      { count: 0, key: "36+", label: "36+ ans" },
+      { count: 0, key: "unknown", label: "Non renseigne" },
+    ],
+    by_gender: [
+      { count: 0, key: "female", label: "Femmes" },
+      { count: 0, key: "male", label: "Hommes" },
+      { count: 0, key: "other", label: "Autres" },
+      { count: 0, key: "unknown", label: "Non renseigne" },
+    ],
+    total: 0,
+  };
+}
+
 function roleVisibilityHint(role: string): string {
   if (role === "pf") {
     return "PF : région personnelle appliquée par défaut. Utilisez le filtre région pour élargir la vue.";
@@ -66,6 +87,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   const params = await searchParams;
   const query = paramValue(params.q).trim();
   const status = paramValue(params.status);
+  const gender = paramValue(params.gender);
+  const ageRange = paramValue(params.age_range);
   const requestedRegionId = paramValue(params.region_id);
   const hasExplicitRegionFilter = Object.prototype.hasOwnProperty.call(params, "region_id");
   const prefectureId = paramValue(params.prefecture_id);
@@ -82,6 +105,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   let prefectures = [] as Awaited<ReturnType<typeof getLocations>>["prefectures"];
   let communes = [] as Awaited<ReturnType<typeof getLocations>>["communes"];
   let organisations = [] as Awaited<ReturnType<typeof listOrganisations>>["items"];
+  let stats = emptyMemberStats();
   let currentRole = "member";
   let effectiveRegionId = requestedRegionId;
 
@@ -104,7 +128,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
         getLocations(),
         listOrganisations(),
         listMembers({
+          age_range: ageRange || undefined,
           commune_id: communeId || undefined,
+          gender: gender || undefined,
           organisation_id: organisationId || undefined,
           page,
           page_size: pageSize,
@@ -124,6 +150,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
       organisations = organisationData.items;
       members = memberData.rows;
       totalCount = memberData.count;
+      stats = memberData.stats;
     } catch (error) {
       console.error("Unable to load member list", error);
       loadError = "Impossible de charger la liste des membres.";
@@ -145,6 +172,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   const organisationsById = new Map(
     organisations.map((organisation) => [String(organisation.id), organisation.name]),
   );
+  const genderStatsByKey = new Map(stats.by_gender.map((bucket) => [bucket.key, bucket.count]));
+  const ageStatsByKey = new Map(stats.by_age_range.map((bucket) => [bucket.key, bucket.count]));
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
   const hasPreviousPage = safePage > 1;
@@ -157,6 +186,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
     const urlParams = new URLSearchParams();
     if (query) urlParams.set("q", query);
     if (status) urlParams.set("status", status);
+    if (gender) urlParams.set("gender", gender);
+    if (ageRange) urlParams.set("age_range", ageRange);
     if (effectiveRegionId || hasExplicitRegionFilter) {
       urlParams.set("region_id", effectiveRegionId);
     }
@@ -193,7 +224,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
 
       <Card className="space-y-4">
         <CardTitle className="text-base">Recherche</CardTitle>
-        <form className="grid gap-3 md:grid-cols-7" method="get">
+        <form className="grid gap-3 md:grid-cols-9" method="get">
           <Input defaultValue={query} name="q" placeholder="Nom, email, téléphone..." />
           <Select defaultValue={status} name="status">
             <option value="">Tous statuts</option>
@@ -201,6 +232,20 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             <option value="pending">En attente</option>
             <option value="rejected">Rejeté</option>
             <option value="suspended">Suspendu</option>
+          </Select>
+          <Select defaultValue={gender} name="gender">
+            <option value="">Tous genres</option>
+            <option value="female">Femmes</option>
+            <option value="male">Hommes</option>
+            <option value="other">Autres</option>
+          </Select>
+          <Select defaultValue={ageRange} name="age_range">
+            <option value="">Tous âges</option>
+            <option value="15-19">15-19</option>
+            <option value="20-24">20-24</option>
+            <option value="25-29">25-29</option>
+            <option value="30-35">30-35</option>
+            <option value="36+">36+</option>
           </Select>
           <Select defaultValue={effectiveRegionId} name="region_id">
             <option value="">Toutes les régions</option>
@@ -246,12 +291,76 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             <option value="20">20 / page</option>
             <option value="50">50 / page</option>
           </Select>
-          <div className="md:col-span-7 flex items-center gap-3">
+          <div className="md:col-span-9 flex items-center gap-3">
             <Button type="submit">Appliquer les filtres</Button>
             <p className="text-sm text-muted">{totalCount} résultat(s)</p>
           </div>
         </form>
       </Card>
+
+      <section className="grid gap-4 xl:grid-cols-2">
+        <Card className="space-y-4">
+          <div>
+            <CardTitle className="text-base">Répartition par genre</CardTitle>
+            <CardDescription className="mt-1">
+              Les compteurs suivent les filtres actifs de la liste membres.
+            </CardDescription>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>Femmes</CardDescription>
+              <CardTitle className="text-3xl">{genderStatsByKey.get("female") ?? 0}</CardTitle>
+            </Card>
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>Hommes</CardDescription>
+              <CardTitle className="text-3xl">{genderStatsByKey.get("male") ?? 0}</CardTitle>
+            </Card>
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>Autres</CardDescription>
+              <CardTitle className="text-3xl">{genderStatsByKey.get("other") ?? 0}</CardTitle>
+            </Card>
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>Non renseigné</CardDescription>
+              <CardTitle className="text-3xl">{genderStatsByKey.get("unknown") ?? 0}</CardTitle>
+            </Card>
+          </div>
+        </Card>
+
+        <Card className="space-y-4">
+          <div>
+            <CardTitle className="text-base">Répartition par tranche d&apos;âge</CardTitle>
+            <CardDescription className="mt-1">
+              Le détail reprend les tranches calculées dans la fiche onboarding.
+            </CardDescription>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>15-19 ans</CardDescription>
+              <CardTitle className="text-3xl">{ageStatsByKey.get("15-19") ?? 0}</CardTitle>
+            </Card>
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>20-24 ans</CardDescription>
+              <CardTitle className="text-3xl">{ageStatsByKey.get("20-24") ?? 0}</CardTitle>
+            </Card>
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>25-29 ans</CardDescription>
+              <CardTitle className="text-3xl">{ageStatsByKey.get("25-29") ?? 0}</CardTitle>
+            </Card>
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>30-35 ans</CardDescription>
+              <CardTitle className="text-3xl">{ageStatsByKey.get("30-35") ?? 0}</CardTitle>
+            </Card>
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>36+ ans</CardDescription>
+              <CardTitle className="text-3xl">{ageStatsByKey.get("36+") ?? 0}</CardTitle>
+            </Card>
+            <Card className="space-y-1 bg-muted-surface/40">
+              <CardDescription>Non renseigné</CardDescription>
+              <CardTitle className="text-3xl">{ageStatsByKey.get("unknown") ?? 0}</CardTitle>
+            </Card>
+          </div>
+        </Card>
+      </section>
 
       <Card className="overflow-x-auto p-0">
         <table className="w-full min-w-[980px] text-left">

@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import type { CommunityKind, ConversationItem, ConversationMessage, MemberRecord } from "@/lib/backend/api";
+import type { ConversationItem, ConversationMessage, MemberRecord } from "@/lib/backend/api";
 
 import {
   createConversationAction,
@@ -31,6 +31,8 @@ import {
   toggleConversationMessageLikeAction,
 } from "./actions";
 import type { ConversationActionState } from "./actions";
+
+type CellRootKind = "czi" | "engaged" | "entrepreneur" | "org_leader";
 
 type CommunauteClientProps = {
   currentMemberId: string | null;
@@ -43,10 +45,10 @@ type CommunauteClientProps = {
   selectedConversationId: string | null;
 };
 
-const ROOT_ORDER: CommunityKind[] = ["czi", "engaged", "entrepreneur", "org_leader"];
+const CELL_ROOT_ORDER: CellRootKind[] = ["czi", "engaged", "entrepreneur", "org_leader"];
 const REFRESH_THROTTLE_MS = 1200;
 const REFRESH_FALLBACK_INTERVAL_MS = 5000;
-const ROOT_LABEL: Record<CommunityKind, string> = {
+const ROOT_LABEL: Record<CellRootKind, string> = {
   czi: "Communauté CZI",
   engaged: "Cellule des jeunes engagés",
   entrepreneur: "Cellule des jeunes entrepreneurs",
@@ -55,6 +57,9 @@ const ROOT_LABEL: Record<CommunityKind, string> = {
 
 function isRoot(item: ConversationItem) {
   return item.conversation_type === "community" && item.parent_conversation_id === null;
+}
+function isRegionalRoot(item: ConversationItem) {
+  return isRoot(item) && item.community_kind === "region";
 }
 function memberName(member: MemberRecord | ConversationMessage["sender"] | null) {
   if (!member) return "Membre";
@@ -105,8 +110,8 @@ export function CommunauteClient({
   const msgById = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
 
   const rootByKind = useMemo(() => {
-    const map = new Map<CommunityKind, ConversationItem | null>();
-    ROOT_ORDER.forEach((kind) => {
+    const map = new Map<CellRootKind, ConversationItem | null>();
+    CELL_ROOT_ORDER.forEach((kind) => {
       map.set(kind, items.find((i) => isRoot(i) && i.community_kind === kind) ?? null);
     });
     return map;
@@ -124,9 +129,18 @@ export function CommunauteClient({
   }, [items]);
 
   const directList = useMemo(() => items.filter((i) => i.conversation_type === "direct"), [items]);
+  const regionalRoots = useMemo(
+    () =>
+      items
+        .filter(isRegionalRoot)
+        .sort((first, second) =>
+          (first.title?.trim() || "").localeCompare(second.title?.trim() || "", "fr"),
+        ),
+    [items],
+  );
   const cellRootOptions = useMemo(
     () =>
-      ROOT_ORDER.filter((kind) => kind !== "czi")
+      CELL_ROOT_ORDER.filter((kind) => kind !== "czi")
         .map((kind) => rootByKind.get(kind))
         .filter((item): item is ConversationItem => Boolean(item)),
     [rootByKind],
@@ -353,7 +367,7 @@ export function CommunauteClient({
           <Card className="space-y-4 bg-gradient-to-b from-surface to-surface/80">
             <CardTitle className="text-base">Communautés</CardTitle>
             <div className="space-y-4">
-              {ROOT_ORDER.map((kind) => {
+              {CELL_ROOT_ORDER.map((kind) => {
                 const root = rootByKind.get(kind); const children = root ? childrenByRoot.get(root.id) ?? [] : [];
                 return (
                   <div className="rounded-xl border border-border/80 bg-background/70 p-3" key={kind}>
@@ -365,6 +379,23 @@ export function CommunauteClient({
                   </div>
                 );
               })}
+              <div className="rounded-xl border border-border/80 bg-background/70 p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Groupes régionaux</p>
+                  <Badge variant="warning">région</Badge>
+                </div>
+                {regionalRoots.length === 0 ? (
+                  <p className="mt-2 text-xs text-muted">Aucun groupe régional disponible pour le moment.</p>
+                ) : (
+                  <div className="mt-2 space-y-2">
+                    {regionalRoots.map((item) => (
+                      <Link className={cn("block rounded-md border px-3 py-2 text-sm", item.id === selectedConversationId ? "border-primary/30 bg-primary/10" : "border-border bg-muted-surface/50")} href={link(item.id)} key={item.id}>
+                        {item.title?.trim() || "Groupe régional"}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="rounded-xl border border-border bg-background/70 p-3">
               <p className="text-sm font-semibold">Discussions privées</p>
@@ -436,7 +467,7 @@ export function CommunauteClient({
             <div className="flex items-center justify-between"><CardTitle>Nouvelle discussion</CardTitle><Button size="sm" type="button" variant="ghost" onClick={() => setOpen(false)}>Fermer</Button></div>
             <form action={createAction} className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-conversation-type">Type</label><Select value={createType} id="create-conversation-type" name="conversation_type" onChange={(e) => setCreateType(e.target.value === "direct" ? "direct" : "community")}><option value="community">Sous-communauté de cellule</option><option value="direct">Message privé</option></Select></div>
-              {createType === "community" ? (<><div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-community-parent">Communauté de cellule</label><Select id="create-community-parent" name="parent_conversation_id" required disabled={cellRootOptions.length === 0}><option value="">Sélectionner une communauté</option>{cellRootOptions.map((root) => <option key={root.id} value={root.id}>{root.title?.trim() || (root.community_kind ? ROOT_LABEL[root.community_kind] : "Communauté cellule")}</option>)}</Select></div><div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-community-title">Titre de la sous-communauté</label><Input id="create-community-title" name="title" placeholder="Ex: Discussion locale cellule" required /></div></>) : (<><div className="space-y-2 md:col-span-2"><label className="text-sm font-medium" htmlFor="create-direct-member">Membre cible</label><Select id="create-direct-member" name="participant_member_id" required><option value="">Sélectionner un membre</option>{members.filter((m) => m.id !== currentMemberId).map((m) => <option key={m.id} value={m.id}>{memberName(m)}</option>)}</Select></div><div className="space-y-2 md:col-span-2"><label className="text-sm font-medium" htmlFor="create-direct-title">Sujet (optionnel)</label><Input id="create-direct-title" name="title" placeholder="Sujet de discussion" /></div></>)}
+              {createType === "community" ? (<><div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-community-parent">Communauté de cellule</label><Select id="create-community-parent" name="parent_conversation_id" required disabled={cellRootOptions.length === 0}><option value="">Sélectionner une communauté</option>{cellRootOptions.map((root) => <option key={root.id} value={root.id}>{root.title?.trim() || (root.community_kind && root.community_kind !== "region" ? ROOT_LABEL[root.community_kind] : "Communauté cellule")}</option>)}</Select></div><div className="space-y-2"><label className="text-sm font-medium" htmlFor="create-community-title">Titre de la sous-communauté</label><Input id="create-community-title" name="title" placeholder="Ex: Discussion locale cellule" required /></div></>) : (<><div className="space-y-2 md:col-span-2"><label className="text-sm font-medium" htmlFor="create-direct-member">Membre cible</label><Select id="create-direct-member" name="participant_member_id" required><option value="">Sélectionner un membre</option>{members.filter((m) => m.id !== currentMemberId).map((m) => <option key={m.id} value={m.id}>{memberName(m)}</option>)}</Select></div><div className="space-y-2 md:col-span-2"><label className="text-sm font-medium" htmlFor="create-direct-title">Sujet (optionnel)</label><Input id="create-direct-title" name="title" placeholder="Sujet de discussion" /></div></>)}
               {createState.error ? <p className="text-sm text-red-600 md:col-span-2">{createState.error}</p> : null}
               {createState.success ? <p className="text-sm text-emerald-700 md:col-span-2">{createState.success}</p> : null}
               <div className="md:col-span-2"><Button disabled={createPending || (createType === "community" && cellRootOptions.length === 0)} type="submit">{createPending ? "Création..." : "Créer la discussion"}</Button></div>

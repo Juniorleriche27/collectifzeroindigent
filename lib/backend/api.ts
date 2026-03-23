@@ -22,6 +22,9 @@ export type CommuneOption = {
 };
 
 export type MemberRecord = {
+  age_range?: string | null;
+  birth_date?: string | null;
+  gender?: string | null;
   id: string;
   user_id: string;
   first_name: string | null;
@@ -109,6 +112,18 @@ export type MemberOnboardingAiAnalysis = {
   model: string;
 };
 
+export type MemberStatsBucket = {
+  count: number;
+  key: string;
+  label: string;
+};
+
+export type MemberListStats = {
+  by_age_range: MemberStatsBucket[];
+  by_gender: MemberStatsBucket[];
+  total: number;
+};
+
 export type OrganisationCardItem = {
   id: string;
   name: string;
@@ -148,7 +163,7 @@ export type AnnouncementItem = {
 };
 
 export type ConversationType = "community" | "direct";
-export type CommunityKind = "czi" | "engaged" | "entrepreneur" | "org_leader";
+export type CommunityKind = "czi" | "engaged" | "entrepreneur" | "org_leader" | "region";
 
 export type ConversationParticipant = {
   can_post: boolean;
@@ -421,7 +436,9 @@ export async function getDashboardOverview() {
 }
 
 type ListMembersFilters = {
+  age_range?: string;
   commune_id?: string;
+  gender?: string;
   organisation_id?: string;
   page?: number;
   page_size?: number;
@@ -442,6 +459,8 @@ const readMembers = cache(async (serializedFilters: string) => {
   if (filters?.prefecture_id) query.set("prefecture_id", filters.prefecture_id);
   if (filters?.commune_id) query.set("commune_id", filters.commune_id);
   if (filters?.organisation_id) query.set("organisation_id", filters.organisation_id);
+  if (filters?.gender) query.set("gender", filters.gender);
+  if (filters?.age_range) query.set("age_range", filters.age_range);
   if (filters?.sort) query.set("sort", filters.sort);
   if (filters?.page) query.set("page", String(filters.page));
   if (filters?.page_size) query.set("page_size", String(filters.page_size));
@@ -454,6 +473,7 @@ const readMembers = cache(async (serializedFilters: string) => {
     page: number;
     pageSize: number;
     rows: MemberRecord[];
+    stats: MemberListStats;
   }>(path, {
     fallbackError: "Impossible de charger la liste des membres.",
   });
