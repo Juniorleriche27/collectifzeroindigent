@@ -62,6 +62,19 @@ function emptyMemberStats(): MemberListStats {
   };
 }
 
+function normalizeMemberStats(stats: MemberListStats | undefined): MemberListStats {
+  const fallback = emptyMemberStats();
+  if (!stats) {
+    return fallback;
+  }
+
+  return {
+    by_age_range: Array.isArray(stats.by_age_range) ? stats.by_age_range : fallback.by_age_range,
+    by_gender: Array.isArray(stats.by_gender) ? stats.by_gender : fallback.by_gender,
+    total: typeof stats.total === "number" ? stats.total : fallback.total,
+  };
+}
+
 function roleVisibilityHint(role: string): string {
   if (role === "pf") {
     return "PF : région personnelle appliquée par défaut. Utilisez le filtre région pour élargir la vue.";
@@ -150,7 +163,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
       organisations = organisationData.items;
       members = memberData.rows;
       totalCount = memberData.count;
-      stats = memberData.stats;
+      stats = normalizeMemberStats(memberData.stats);
     } catch (error) {
       console.error("Unable to load member list", error);
       loadError = "Impossible de charger la liste des membres.";
