@@ -27,7 +27,7 @@ export function PublicFooter() {
         </Link>
 
         {/* Links */}
-        <ul className="flex list-none gap-8">
+        <ul className="flex list-none flex-wrap gap-x-6 gap-y-2 sm:gap-x-8">
           {[
             { href: "/#accueil", label: "Accueil" },
             { href: "/#apropos", label: "À propos" },

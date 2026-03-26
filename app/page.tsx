@@ -68,13 +68,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
       ═══════════════════════════════════════════════════ */}
       <section
         id="accueil"
-        className="relative grid overflow-hidden"
-        style={{
-          minHeight: "100vh",
-          paddingTop: 72,
-          background: "#0D2550",
-          gridTemplateColumns: "1fr 1fr",
-        }}
+        className="hero-section relative overflow-hidden"
+        style={{ background: "#0D2550" }}
       >
         {/* SVG geometric background */}
         <svg
@@ -96,17 +91,11 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         </svg>
 
         {/* Hero left */}
-        <div
-          className="relative z-10 flex flex-col justify-center"
-          style={{ padding: "5rem 4rem 8rem 4.5rem" }}
-        >
+        <div className="hero-left relative z-10 flex flex-col justify-center">
           {/* Eyebrow */}
           <div
-            className="hero-eyebrow mb-8 inline-flex w-fit items-center gap-[0.7rem] rounded-full border px-4 py-[0.38rem]"
-            style={{
-              background: "rgba(232,168,32,.14)",
-              borderColor: "rgba(232,168,32,.35)",
-            }}
+            className="hero-eyebrow mb-7 inline-flex w-fit items-center gap-[0.7rem] rounded-full border px-4 py-[0.38rem]"
+            style={{ background: "rgba(232,168,32,.14)", borderColor: "rgba(232,168,32,.35)" }}
           >
             <span
               className="grid h-[26px] w-[26px] place-items-center rounded-full text-[0.58rem] font-extrabold leading-none tracking-[0.02em] text-[#0D2550]"
@@ -124,26 +113,25 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
 
           {/* Title */}
           <h1
-            className="hero-title mb-6 text-white"
+            className="hero-title mb-5 text-white"
             style={{
               fontFamily: ff.serif,
-              fontSize: "clamp(2.8rem, 4.8vw, 5rem)",
+              fontSize: "clamp(2.4rem, 4.8vw, 5rem)",
               fontWeight: 700,
               lineHeight: 1.06,
             }}
           >
-            Jeunes<br />entrepreneurs,<br />
-            promoteurs<br />
-            des{" "}
+            Jeunes entrepreneurs,<br />
+            promoteurs des{" "}
             <em style={{ fontStyle: "italic", color: "#E8A820" }}>ODD.</em>
           </h1>
 
           {/* Subtitle */}
           <p
-            className="hero-sub mb-[2.8rem] max-w-[430px]"
+            className="hero-sub mb-8 max-w-[430px]"
             style={{
               fontFamily: ff.body,
-              fontSize: "1.05rem",
+              fontSize: "clamp(0.95rem, 1.2vw, 1.05rem)",
               lineHeight: 1.76,
               color: "rgba(255,255,255,.58)",
             }}
@@ -154,17 +142,17 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           </p>
 
           {/* CTA buttons */}
-          <div className="hero-actions mb-14 flex flex-wrap gap-4">
+          <div className="hero-actions mb-12 flex flex-wrap gap-3">
             <Link
               href="/signup"
-              className="inline-flex items-center gap-1 rounded-[6px] px-[1.4rem] py-[0.6rem] text-[0.74rem] font-bold uppercase tracking-[0.07em] no-underline transition-all duration-200"
+              className="inline-flex items-center justify-center gap-1 rounded-[8px] px-[1.5rem] py-[0.75rem] text-[0.78rem] font-bold uppercase tracking-[0.07em] no-underline transition-all duration-200 hover:brightness-110"
               style={{ background: "#E8A820", color: "#0D2550", fontFamily: ff.display }}
             >
               Rejoindre le collectif ↗
             </Link>
             <Link
               href="/#apropos"
-              className="inline-flex items-center gap-1 rounded-[6px] border px-[1.4rem] py-[0.6rem] text-[0.74rem] font-bold uppercase tracking-[0.07em] no-underline transition-all duration-200 hover:border-[#E8A820] hover:text-[#E8A820]"
+              className="inline-flex items-center justify-center gap-1 rounded-[8px] border px-[1.5rem] py-[0.75rem] text-[0.78rem] font-bold uppercase tracking-[0.07em] no-underline transition-all duration-200 hover:border-[#E8A820] hover:text-[#E8A820]"
               style={{
                 borderColor: "rgba(255,255,255,.35)",
                 color: "rgba(255,255,255,.85)",
@@ -176,7 +164,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           </div>
 
           {/* Stats bar */}
-          <div className="hero-stats flex">
+          <div className="hero-stats flex flex-wrap gap-y-4">
             {[
               { n: "ODD 1", l: "Vision prioritaire" },
               { n: "2020", l: "Année de création" },
@@ -193,7 +181,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                 <span
                   style={{
                     fontFamily: ff.display,
-                    fontSize: "1.7rem",
+                    fontSize: "1.6rem",
                     fontWeight: 800,
                     color: "#E8A820",
                     lineHeight: 1,
@@ -209,8 +197,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           </div>
         </div>
 
-        {/* Hero right — logo showcase */}
-        <div className="relative z-10 hidden items-center justify-center lg:flex" style={{ padding: "4rem" }}>
+        {/* Hero right — logo showcase (desktop only) */}
+        <div className="hero-right relative z-10 hidden items-center justify-center lg:flex" style={{ padding: "4rem" }}>
           <div className="logo-showcase relative" style={{ width: 300, height: 300 }}>
             <div className="logo-ring" />
             <div className="logo-ring-2" />
@@ -272,7 +260,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         {/* Bottom fade */}
         <div
           className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1]"
-          style={{ height: 100, background: "linear-gradient(transparent, #0D2550)" }}
+          style={{ height: 80, background: "linear-gradient(transparent, #0D2550)" }}
         />
       </section>
 
@@ -281,12 +269,9 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
       ═══════════════════════════════════════════════════ */}
       <section id="apropos" className="grid lg:grid-cols-2">
         {/* Left — off-white */}
-        <div
-          className="flex flex-col justify-center"
-          style={{ padding: "6rem 5rem", background: "#F7F9FC" }}
-        >
+        <div className="about-left flex flex-col justify-center" style={{ background: "#F7F9FC" }}>
           <span
-            className="stag mb-[0.9rem] inline-flex items-center gap-[0.6rem] text-[0.68rem] font-bold uppercase tracking-[0.15em] text-[#1A3F7A]"
+            className="mb-[0.9rem] inline-flex items-center gap-[0.6rem] text-[0.68rem] font-bold uppercase tracking-[0.15em] text-[#1A3F7A]"
             style={{ fontFamily: ff.display }}
           >
             À propos du CZI
@@ -295,7 +280,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             className="mb-[1.4rem]"
             style={{
               fontFamily: ff.serif,
-              fontSize: "clamp(1.9rem, 2.8vw, 2.7rem)",
+              fontSize: "clamp(1.8rem, 2.8vw, 2.7rem)",
               fontWeight: 700,
               lineHeight: 1.2,
               color: "#0D1829",
@@ -305,7 +290,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           </h2>
           <p
             className="mb-[2rem] max-w-[480px]"
-            style={{ fontFamily: ff.body, fontSize: "1.02rem", lineHeight: 1.76, color: "#546180" }}
+            style={{ fontFamily: ff.body, fontSize: "1rem", lineHeight: 1.76, color: "#546180" }}
           >
             Le Collectif Zéro Indigent est un réseau de jeunes, d&apos;associations et
             d&apos;entrepreneurs mobilisés pour accélérer l&apos;atteinte des ODD, avec un
@@ -313,7 +298,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           </p>
 
           {/* Chips */}
-          <div className="mb-10 flex flex-wrap gap-[0.45rem]">
+          <div className="mb-8 flex flex-wrap gap-[0.45rem]">
             {["Citoyenneté", "Santé", "Inclusion", "Emploi", "Climat", "Paix"].map((c) => (
               <span
                 key={c}
@@ -327,11 +312,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
 
           {/* Pillars 2×2 */}
           <div
-            className="overflow-hidden rounded-xl"
+            className="pillars-grid overflow-hidden rounded-xl"
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "1px",
               background: "rgba(26,63,122,.12)",
               border: "1px solid rgba(26,63,122,.12)",
             }}
@@ -360,8 +342,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
 
         {/* Right — dark blue panel */}
         <div
-          className="relative flex flex-col justify-end overflow-hidden"
-          style={{ background: "#0D2550", minHeight: 540, padding: "3.5rem" }}
+          className="about-right relative flex flex-col justify-end overflow-hidden"
+          style={{ background: "#0D2550" }}
         >
           {/* SVG deco */}
           <svg
@@ -382,9 +364,9 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -60%)",
-              width: 140,
-              height: 140,
-              borderRadius: 24,
+              width: 120,
+              height: 120,
+              borderRadius: 20,
               border: "2px solid rgba(232,168,32,.5)",
               boxShadow: "0 12px 60px rgba(0,0,0,.5), 0 0 40px rgba(26,63,122,.5)",
               zIndex: 2,
@@ -393,8 +375,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             <Image
               alt="CZI"
               src="/brand/czi-logo.jpeg"
-              width={140}
-              height={140}
+              width={120}
+              height={120}
               className="h-full w-full object-cover"
             />
           </div>
@@ -406,13 +388,14 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
               background: "rgba(13,37,80,.8)",
               backdropFilter: "blur(14px)",
               border: "1px solid rgba(232,168,32,.3)",
-              padding: "2.2rem 2.4rem",
+              padding: "1.8rem 2rem",
+              margin: "2.5rem",
             }}
           >
             <span
               style={{
                 fontFamily: ff.serif,
-                fontSize: "4.5rem",
+                fontSize: "3.5rem",
                 lineHeight: 0.6,
                 color: "#E8A820",
                 opacity: 0.6,
@@ -425,7 +408,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             <p
               style={{
                 fontFamily: ff.serif,
-                fontSize: "1.28rem",
+                fontSize: "clamp(1rem, 1.4vw, 1.28rem)",
                 fontStyle: "italic",
                 fontWeight: 700,
                 color: "#fff",
@@ -449,8 +432,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
       {/* ═══════════════════════════════════════════════════
           AXES STRATÉGIQUES
       ═══════════════════════════════════════════════════ */}
-      <section id="axes" style={{ padding: "7rem 4.5rem", background: "#0D1829" }}>
-        <div className="mb-16 flex flex-wrap items-end justify-between gap-8">
+      <section id="axes" className="section-axes" style={{ background: "#0D1829" }}>
+        <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
           <div>
             <span
               className="mb-[0.9rem] inline-flex items-center gap-[0.6rem] text-[0.68rem] font-bold uppercase tracking-[0.15em]"
@@ -462,7 +445,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             <h2
               style={{
                 fontFamily: ff.serif,
-                fontSize: "clamp(1.9rem, 2.8vw, 2.7rem)",
+                fontSize: "clamp(1.8rem, 2.8vw, 2.7rem)",
                 fontWeight: 700,
                 color: "#fff",
                 lineHeight: 1.2,
@@ -473,7 +456,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             </h2>
           </div>
           <p
-            className="max-w-[300px] text-right text-[0.93rem] leading-[1.65]"
+            className="max-w-[280px] text-[0.9rem] leading-[1.65] lg:text-right"
             style={{ color: "rgba(255,255,255,.35)", fontFamily: ff.body }}
           >
             Chaque axe est un levier d&apos;action concret pour transformer
@@ -483,11 +466,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
 
         {/* Grid */}
         <div
-          className="overflow-hidden rounded-[14px]"
+          className="axes-grid overflow-hidden rounded-[14px]"
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "1px",
             background: "rgba(255,255,255,.05)",
             border: "1px solid rgba(255,255,255,.06)",
           }}
@@ -497,19 +477,19 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             <div
               key={a.n}
               className="axe-card group relative overflow-hidden"
-              style={{ background: "#171b28", padding: "2.4rem 2rem" }}
+              style={{ background: "#171b28", padding: "2rem 1.8rem" }}
             >
               <p
-                className="mb-5 text-[0.6rem] font-bold uppercase tracking-[0.18em]"
+                className="mb-4 text-[0.6rem] font-bold uppercase tracking-[0.18em]"
                 style={{ color: "rgba(255,255,255,.2)", fontFamily: ff.display }}
               >
                 {a.n}
               </p>
-              <span className="mb-4 block text-[2rem]">{a.ico}</span>
+              <span className="mb-3 block text-[2rem]">{a.ico}</span>
               <h3
                 style={{
                   fontFamily: ff.serif,
-                  fontSize: "1rem",
+                  fontSize: "0.95rem",
                   fontWeight: 700,
                   lineHeight: 1.35,
                   color: "#fff",
@@ -520,35 +500,29 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             </div>
           ))}
 
-          {/* Featured axe — spans rows 1–2, column 4 */}
+          {/* Featured axe */}
           <div
-            className="flex flex-col justify-end"
+            className="featured-axe flex flex-col justify-end"
             style={{
-              gridColumn: 4,
-              gridRow: "1 / 3",
               background: "#1A3F7A",
-              padding: "3rem 2.5rem",
+              padding: "2.5rem 2rem",
               borderTop: "3px solid #E8A820",
             }}
           >
             <div
-              className="mb-8 overflow-hidden rounded-[12px]"
-              style={{
-                width: 56,
-                height: 56,
-                border: "2px solid rgba(232,168,32,.45)",
-              }}
+              className="mb-6 overflow-hidden rounded-[10px]"
+              style={{ width: 48, height: 48, border: "2px solid rgba(232,168,32,.45)" }}
             >
               <Image
                 alt="CZI"
                 src="/brand/czi-logo.jpeg"
-                width={56}
-                height={56}
+                width={48}
+                height={48}
                 className="h-full w-full object-cover"
               />
             </div>
             <p
-              className="mb-5 text-[0.6rem] font-bold uppercase tracking-[0.18em]"
+              className="mb-4 text-[0.6rem] font-bold uppercase tracking-[0.18em]"
               style={{ color: "rgba(255,255,255,.4)", fontFamily: ff.display }}
             >
               CZI · 7 axes
@@ -556,7 +530,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             <h3
               style={{
                 fontFamily: ff.serif,
-                fontSize: "1.4rem",
+                fontSize: "1.3rem",
                 fontWeight: 700,
                 lineHeight: 1.3,
                 color: "#F5C84A",
@@ -565,7 +539,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
               Ensemble pour un Togo résilient et inclusif
             </h3>
             <p
-              className="mt-3 text-[0.88rem] leading-[1.6]"
+              className="mt-3 text-[0.86rem] leading-[1.6]"
               style={{ color: "rgba(255,255,255,.55)", fontFamily: ff.body }}
             >
               Une approche intégrée couvrant l&apos;emploi, la santé, l&apos;inclusion,
@@ -578,19 +552,19 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             <div
               key={a.n}
               className="axe-card group relative overflow-hidden"
-              style={{ background: "#171b28", padding: "2.4rem 2rem" }}
+              style={{ background: "#171b28", padding: "2rem 1.8rem" }}
             >
               <p
-                className="mb-5 text-[0.6rem] font-bold uppercase tracking-[0.18em]"
+                className="mb-4 text-[0.6rem] font-bold uppercase tracking-[0.18em]"
                 style={{ color: "rgba(255,255,255,.2)", fontFamily: ff.display }}
               >
                 {a.n}
               </p>
-              <span className="mb-4 block text-[2rem]">{a.ico}</span>
+              <span className="mb-3 block text-[2rem]">{a.ico}</span>
               <h3
                 style={{
                   fontFamily: ff.serif,
-                  fontSize: "1rem",
+                  fontSize: "0.95rem",
                   fontWeight: 700,
                   lineHeight: 1.35,
                   color: "#fff",
@@ -606,11 +580,11 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
       {/* ═══════════════════════════════════════════════════
           GALERIE
       ═══════════════════════════════════════════════════ */}
-      <section id="galerie" style={{ padding: "7rem 4.5rem", background: "#F2F5FB" }}>
-        <div className="mb-12 flex flex-wrap items-end justify-between gap-4">
+      <section id="galerie" className="section-galerie" style={{ background: "#F2F5FB" }}>
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <span
-              className="stag mb-[0.9rem] inline-flex items-center gap-[0.6rem] text-[0.68rem] font-bold uppercase tracking-[0.15em] text-[#1A3F7A]"
+              className="mb-[0.9rem] inline-flex items-center gap-[0.6rem] text-[0.68rem] font-bold uppercase tracking-[0.15em] text-[#1A3F7A]"
               style={{ fontFamily: ff.display }}
             >
               <span className="inline-block h-[2px] w-[22px] bg-[#1A3F7A]" />
@@ -619,7 +593,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             <h2
               style={{
                 fontFamily: ff.serif,
-                fontSize: "clamp(1.9rem, 2.8vw, 2.7rem)",
+                fontSize: "clamp(1.8rem, 2.8vw, 2.7rem)",
                 fontWeight: 700,
                 lineHeight: 1.2,
                 color: "#0D1829",
@@ -631,37 +605,25 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           </div>
         </div>
 
-        {/* Editorial asymmetric grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, 1fr)",
-            gridTemplateRows: "230px 175px",
-            gap: 8,
-          }}
-        >
+        {/* Editorial grid */}
+        <div className="gallery-grid">
           {gallery.map((item, i) => (
             <div
               key={item.src}
-              className="gal-item group relative overflow-hidden rounded-[10px]"
-              style={{
-                gridColumn: i === 0 ? "span 5" : i === 1 ? "span 4" : i === 2 ? "span 3" : i === 3 ? "span 3" : "span 4",
-                gridRow: i === 0 ? "span 2" : undefined,
-              }}
+              className={`gal-item gal-${i} group relative overflow-hidden rounded-[10px]`}
             >
               <Image
                 alt={item.alt}
                 src={item.src}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-                sizes="(max-width: 768px) 50vw, 25vw"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               />
-              {/* Overlay */}
               <div
-                className="gal-ov absolute inset-0 flex flex-col justify-end opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                className="absolute inset-0 flex flex-col justify-end opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                 style={{
                   background: "linear-gradient(to top, rgba(13,37,80,.85) 0%, transparent 55%)",
-                  padding: "1.2rem 1.4rem",
+                  padding: "1rem 1.2rem",
                 }}
               >
                 <span
@@ -671,7 +633,6 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                   {item.alt}
                 </span>
               </div>
-              {/* Emoji watermark */}
               <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[4.5rem] opacity-[0.1]">
                 {item.em}
               </span>
@@ -684,27 +645,23 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           CTA
       ═══════════════════════════════════════════════════ */}
       <section
-        className="relative overflow-hidden"
-        style={{ background: "#0D2550", padding: "8rem 4.5rem" }}
+        className="section-cta relative overflow-hidden"
+        style={{ background: "#0D2550" }}
       >
         {/* Watermark logo */}
-        <div
-          className="pointer-events-none absolute right-[-2rem] top-1/2 z-0 -translate-y-1/2"
-        >
+        <div className="pointer-events-none absolute right-[-2rem] top-1/2 z-0 -translate-y-1/2">
           <Image
             alt=""
             src="/brand/czi-logo.jpeg"
-            width={400}
-            height={400}
+            width={360}
+            height={360}
             className="object-contain"
             style={{ opacity: 0.04, filter: "grayscale(1) brightness(5)" }}
             aria-hidden
           />
         </div>
 
-        <div
-          className="relative z-[2] grid items-center gap-24 lg:grid-cols-2"
-        >
+        <div className="relative z-[2] grid items-center gap-12 lg:grid-cols-2 lg:gap-24">
           <div>
             <span
               className="mb-[0.9rem] inline-flex items-center gap-[0.6rem] text-[0.68rem] font-bold uppercase tracking-[0.15em]"
@@ -716,7 +673,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             <h2
               style={{
                 fontFamily: ff.serif,
-                fontSize: "clamp(2.5rem, 4vw, 4.5rem)",
+                fontSize: "clamp(2.2rem, 4vw, 4.5rem)",
                 fontWeight: 700,
                 lineHeight: 1.1,
                 color: "#fff",
@@ -730,24 +687,24 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
 
           <div>
             <p
-              className="mb-8 text-[1rem] leading-[1.75]"
+              className="mb-7 text-[0.97rem] leading-[1.75]"
               style={{ color: "rgba(255,255,255,.55)", fontFamily: ff.body }}
             >
               Des milliers de jeunes, associations et entrepreneurs se mobilisent
               déjà à travers le collectif. Chaque action compte pour construire
               un avenir plus juste et inclusif pour nos communautés.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3">
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-1 rounded-[6px] px-[1.4rem] py-[0.6rem] text-[0.74rem] font-bold uppercase tracking-[0.07em] no-underline transition-all duration-200 hover:bg-[#F5C84A]"
+                className="inline-flex items-center justify-center gap-1 rounded-[8px] px-[1.5rem] py-[0.8rem] text-[0.78rem] font-bold uppercase tracking-[0.07em] no-underline transition-all duration-200 hover:brightness-110"
                 style={{ background: "#E8A820", color: "#0D2550", fontFamily: ff.display }}
               >
                 Créer un compte ↗
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1 rounded-[6px] border px-[1.4rem] py-[0.6rem] text-[0.74rem] font-bold uppercase tracking-[0.07em] no-underline transition-all duration-200 hover:border-[#E8A820] hover:text-[#E8A820]"
+                className="inline-flex items-center justify-center gap-1 rounded-[8px] border px-[1.5rem] py-[0.8rem] text-[0.78rem] font-bold uppercase tracking-[0.07em] no-underline transition-all duration-200 hover:border-[#E8A820] hover:text-[#E8A820]"
                 style={{
                   borderColor: "rgba(255,255,255,.35)",
                   color: "rgba(255,255,255,.85)",
@@ -777,10 +734,18 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
 
       <PublicFooter />
 
-      {/* CSS animations for hero */}
       <style>{`
+        /* ─── Hero ──────────────────────────────────── */
+        .hero-section {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          min-height: 100vh;
+          padding-top: 72px;
+        }
+        .hero-left { padding: 5rem 4rem 8rem 4.5rem; }
+
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(28px); }
+          from { opacity: 0; transform: translateY(24px); }
           to   { opacity: 1; transform: translateY(0); }
         }
         .hero-eyebrow { animation: fadeUp .5s ease both .1s; }
@@ -789,19 +754,14 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         .hero-actions { animation: fadeUp .6s ease both .55s; }
         .hero-stats   { animation: fadeUp .6s ease both .7s; }
 
-        .stag::before { content:''; width:22px; height:2px; background:currentColor; display:block; }
-
         /* Logo showcase rings */
         .logo-ring, .logo-ring-2 {
-          position: absolute;
-          border-radius: 50%;
-          inset: -28px;
-          border: 1px solid rgba(232,168,32,.2);
+          position: absolute; border-radius: 50%;
+          inset: -28px; border: 1px solid rgba(232,168,32,.2);
           animation: rotateRing 22s linear infinite;
         }
         .logo-ring-2 {
-          inset: -56px;
-          border: 1px dashed rgba(75,127,212,.2);
+          inset: -56px; border: 1px dashed rgba(75,127,212,.2);
           animation: rotateRing 40s linear infinite reverse;
         }
         .logo-ring::before, .logo-ring::after {
@@ -819,7 +779,20 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         .ob-left   { position:absolute; left:-130px; top:50%; transform:translateY(-50%); }
         .orbit { position:absolute; display:flex; flex-direction:column; align-items:center; gap:.3rem; }
 
-        /* Axe card hover */
+        /* ─── About ─────────────────────────────────── */
+        .about-left { padding: 5rem 4.5rem; }
+        .about-right { min-height: 520px; }
+        .pillars-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
+
+        /* ─── Axes ──────────────────────────────────── */
+        .section-axes { padding: 6rem 4.5rem; }
+        .axes-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1px;
+        }
+        .featured-axe { grid-column: 4; grid-row: 1 / 3; }
+
         .axe-card::before {
           content:''; position:absolute; top:0; left:0; right:0; height:3px;
           background:transparent; transition:background .25s;
@@ -827,10 +800,77 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         .axe-card:hover { background: #1e2337 !important; }
         .axe-card:hover::before { background: #E8A820; }
 
-        /* Responsive */
-        @media (max-width: 1100px) {
-          section[id="accueil"] { grid-template-columns: 1fr !important; }
-          .hero-right { display: none !important; }
+        /* ─── Gallery ───────────────────────────────── */
+        .section-galerie { padding: 6rem 4.5rem; }
+        .gallery-grid {
+          display: grid;
+          grid-template-columns: repeat(12, 1fr);
+          grid-template-rows: 220px 170px;
+          gap: 8px;
+        }
+        .gal-0 { grid-column: span 5; grid-row: span 2; }
+        .gal-1 { grid-column: span 4; }
+        .gal-2 { grid-column: span 3; }
+        .gal-3 { grid-column: span 3; }
+        .gal-4 { grid-column: span 4; }
+
+        /* ─── CTA ───────────────────────────────────── */
+        .section-cta { padding: 7rem 4.5rem; }
+
+        /* ─── TABLET (768px – 1023px) ───────────────── */
+        @media (max-width: 1023px) {
+          .hero-section { grid-template-columns: 1fr !important; }
+          .hero-right   { display: none !important; }
+          .hero-left    { padding: 6rem 3rem 5rem !important; }
+
+          .about-left   { padding: 4rem 3rem !important; }
+          .about-right  { min-height: 380px !important; }
+
+          .section-axes { padding: 4.5rem 2.5rem !important; }
+          .axes-grid    { grid-template-columns: 1fr 1fr 1fr !important; }
+          .featured-axe { grid-column: auto !important; grid-row: auto !important; }
+
+          .section-galerie { padding: 4.5rem 2.5rem !important; }
+          .gallery-grid {
+            grid-template-columns: repeat(6, 1fr) !important;
+            grid-template-rows: 200px 160px !important;
+            gap: 6px !important;
+          }
+          .gal-0 { grid-column: span 4 !important; grid-row: span 1 !important; }
+          .gal-1 { grid-column: span 2 !important; }
+          .gal-2 { grid-column: span 2 !important; }
+          .gal-3 { grid-column: span 2 !important; }
+          .gal-4 { grid-column: span 2 !important; }
+
+          .section-cta { padding: 5rem 2.5rem !important; }
+        }
+
+        /* ─── MOBILE (≤ 639px) ──────────────────────── */
+        @media (max-width: 639px) {
+          .hero-left { padding: 5rem 1.25rem 3.5rem !important; }
+
+          .about-left  { padding: 3rem 1.25rem !important; }
+          .about-right { min-height: 300px !important; }
+
+          .pillars-grid { grid-template-columns: 1fr !important; }
+
+          .section-axes { padding: 3.5rem 1.25rem !important; }
+          .axes-grid    { grid-template-columns: 1fr 1fr !important; }
+          .featured-axe { grid-column: span 2 !important; grid-row: auto !important; }
+
+          .section-galerie { padding: 3.5rem 1.25rem !important; }
+          .gallery-grid {
+            grid-template-columns: 1fr 1fr !important;
+            grid-template-rows: repeat(3, 160px) !important;
+            gap: 6px !important;
+          }
+          .gal-0 { grid-column: span 2 !important; grid-row: span 1 !important; }
+          .gal-1 { grid-column: span 1 !important; }
+          .gal-2 { grid-column: span 1 !important; }
+          .gal-3 { grid-column: span 1 !important; }
+          .gal-4 { grid-column: span 2 !important; }
+
+          .section-cta { padding: 4rem 1.25rem !important; }
         }
       `}</style>
     </div>

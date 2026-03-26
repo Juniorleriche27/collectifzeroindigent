@@ -160,7 +160,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
       {/* ── Panneau droit — formulaire ───────────── */}
       <div
-        className="flex flex-1 flex-col items-center justify-center px-4 py-12"
+        className="flex flex-1 flex-col items-center justify-center px-5 py-10 sm:px-8"
         style={{ background: "#F7F9FC" }}
       >
         {/* Logo mobile uniquement */}
@@ -168,19 +168,25 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <Image
             alt="Logo CZI"
             src="/brand/czi-logo.jpeg"
-            width={36}
-            height={36}
-            className="rounded-[8px] object-cover"
+            width={38}
+            height={38}
+            className="rounded-[9px] object-cover"
+            style={{ border: "2px solid rgba(13,37,80,.1)" }}
           />
-          <span
-            className="text-[0.88rem] font-extrabold tracking-[0.02em] text-[#0D2550]"
-            style={{ fontFamily: ff.display }}
-          >
-            CZI
+          <span className="flex flex-col leading-[1.25]">
+            <span
+              className="text-[0.88rem] font-extrabold tracking-[0.02em] text-[#0D2550]"
+              style={{ fontFamily: ff.display }}
+            >
+              CZI
+            </span>
+            <span className="text-[0.62rem] tracking-[0.05em] text-[#546180]">
+              Collectif Zéro Indigent
+            </span>
           </span>
         </Link>
 
-        <div className="w-full max-w-md">{children}</div>
+        <div className="w-full max-w-[420px]">{children}</div>
       </div>
     </div>
   );
