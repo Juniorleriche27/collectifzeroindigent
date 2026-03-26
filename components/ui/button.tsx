@@ -2,41 +2,46 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
-type ButtonSize = "default" | "sm" | "lg";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success" | "outline";
+type ButtonSize = "xs" | "sm" | "default" | "lg";
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary/30",
+    "gradient-primary text-white shadow-sm hover:opacity-90 hover:shadow-md active:scale-[0.98] focus-visible:ring-primary/40",
   secondary:
-    "bg-surface text-foreground ring-1 ring-border hover:bg-muted-surface focus-visible:ring-primary/30",
+    "bg-surface-elevated text-foreground ring-1 ring-border shadow-xs hover:bg-muted-surface hover:ring-primary/30 active:scale-[0.98] focus-visible:ring-primary/30",
   ghost:
-    "bg-transparent text-foreground hover:bg-muted-surface focus-visible:ring-primary/30",
-  danger: "bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-300",
+    "bg-transparent text-foreground hover:bg-muted-surface active:scale-[0.98] focus-visible:ring-primary/30",
+  danger:
+    "bg-danger text-white shadow-sm hover:opacity-90 hover:shadow-md active:scale-[0.98] focus-visible:ring-danger/40",
+  success:
+    "gradient-success text-white shadow-sm hover:opacity-90 hover:shadow-md active:scale-[0.98] focus-visible:ring-emerald-400/40",
+  outline:
+    "border border-primary text-primary bg-transparent hover:bg-primary-subtle active:scale-[0.98] focus-visible:ring-primary/30",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  default: "h-10 px-4 py-2",
-  sm: "h-9 rounded-md px-3 text-sm",
-  lg: "h-11 rounded-lg px-6 text-base",
+  xs:      "h-7  rounded-lg px-2.5 text-xs",
+  sm:      "h-9  rounded-xl px-3.5 text-sm",
+  default: "h-10 rounded-xl px-4",
+  lg:      "h-11 rounded-xl px-6 text-base",
 };
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    { className, variant = "primary", size = "default", type = "button", ...props },
-    ref,
-  ) => (
+  ({ className, variant = "primary", size = "default", type = "button", ...props }, ref) => (
     <button
       ref={ref}
       type={type}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 text-sm font-semibold",
+        "transition-all duration-150",
+        "focus-visible:outline-none focus-visible:ring-4",
+        "disabled:pointer-events-none disabled:opacity-50",
         variantClasses[variant],
         sizeClasses[size],
         className,

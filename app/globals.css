@@ -1,41 +1,175 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════ */
 :root {
-  --background: #e8eff5;
-  --foreground: #102334;
-  --surface: #f7fbff;
-  --muted-surface: #e0eaf3;
-  --muted: #556778;
-  --border: #c5d4e2;
-  --primary: #0c6f95;
+  --background:       #edf2f7;
+  --foreground:       #0d1f2d;
+  --surface:          #f8fbff;
+  --surface-elevated: #ffffff;
+  --muted-surface:    #dce8f3;
+  --muted:            #4e6478;
+  --border:           #c2d4e5;
+  --border-subtle:    #daeaf6;
+
+  --primary:            #0a6d9a;
+  --primary-hover:      #085e86;
   --primary-foreground: #ffffff;
+  --primary-subtle:     rgba(10, 109, 154, 0.10);
+
+  --success:            #0f8a5f;
+  --success-subtle:     rgba(15, 138, 95, 0.10);
+  --warning:            #c07a00;
+  --warning-subtle:     rgba(192, 122, 0, 0.10);
+  --danger:             #c42b2b;
+  --danger-subtle:      rgba(196, 43, 43, 0.10);
+
+  --shadow-xs:   0 1px 4px rgba(13,31,45,0.06);
+  --shadow-sm:   0 2px 8px rgba(13,31,45,0.07);
+  --shadow-soft: 0 6px 24px rgba(13,31,45,0.08);
+  --shadow-md:   0 12px 40px rgba(13,31,45,0.10);
+  --shadow-lg:   0 24px 64px rgba(13,31,45,0.13);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-muted-surface: var(--muted-surface);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-primary: var(--primary);
+  --color-background:       var(--background);
+  --color-foreground:       var(--foreground);
+  --color-surface:          var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-muted-surface:    var(--muted-surface);
+  --color-muted:            var(--muted);
+  --color-border:           var(--border);
+  --color-border-subtle:    var(--border-subtle);
+  --color-primary:          var(--primary);
+  --color-primary-hover:    var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle:   var(--primary-subtle);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --shadow-soft: 0 6px 30px rgba(17, 35, 52, 0.08);
+  --shadow-xs:   var(--shadow-xs);
+  --shadow-sm:   var(--shadow-sm);
+  --shadow-soft: var(--shadow-soft);
+  --shadow-md:   var(--shadow-md);
+  --shadow-lg:   var(--shadow-lg);
 }
+
+/* ═══════════════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 12% -8%, rgba(12, 111, 149, 0.18), transparent 42%),
-    radial-gradient(circle at 88% 112%, rgba(46, 142, 99, 0.14), transparent 38%),
+    radial-gradient(ellipse at 0% 0%,   rgba(10,109,154,0.13) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(15,138,95,0.09)  0%, transparent 45%),
+    radial-gradient(ellipse at 60% 0%,   rgba(192,122,0,0.05)  0%, transparent 40%),
     var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), "Segoe UI", sans-serif;
+  font-family: var(--font-sans), "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+a { color: inherit; text-decoration: none; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* Selection */
+::selection { background: rgba(10,109,154,0.18); color: var(--foreground); }
+
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════ */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in-fast {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(10,109,154,0.35); }
+  70%  { box-shadow: 0 0 0 8px rgba(10,109,154,0); }
+  100% { box-shadow: 0 0 0 0 rgba(10,109,154,0); }
+}
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+.animate-fade-in      { animation: fade-in      0.35s ease both; }
+.animate-fade-in-fast { animation: fade-in-fast 0.2s  ease both; }
+.animate-slide-up     { animation: slide-up     0.4s  ease both; }
+.animate-scale-in     { animation: scale-in     0.3s  ease both; }
+.animate-pulse-ring   { animation: pulse-ring   2s    ease-in-out infinite; }
+.animate-float        { animation: landing-float 7s   ease-in-out infinite; }
+
+/* Staggered children */
+.stagger > * { animation: fade-in 0.4s ease both; }
+.stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger > *:nth-child(2) { animation-delay: 0.10s; }
+.stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger > *:nth-child(4) { animation-delay: 0.20s; }
+.stagger > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger > *:nth-child(6) { animation-delay: 0.30s; }
+
+/* ═══════════════════════════════════════════════════
+   UTILITY CLASSES
+═══════════════════════════════════════════════════ */
+.glass {
+  background: rgba(248,251,255,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.glass-dark {
+  background: rgba(13,31,45,0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, #0a6d9a 0%, #0a8ea8 100%);
+}
+.gradient-success {
+  background: linear-gradient(135deg, #0f8a5f 0%, #19a87a 100%);
+}
+.gradient-warning {
+  background: linear-gradient(135deg, #c07a00 0%, #e09500 100%);
+}
+.gradient-danger {
+  background: linear-gradient(135deg, #c42b2b 0%, #e03c3c 100%);
+}
+.gradient-purple {
+  background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+}
+.gradient-indigo {
+  background: linear-gradient(135deg, #3730a3 0%, #6366f1 100%);
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Glow on primary elements */
+.glow-primary {
+  box-shadow: 0 0 0 3px rgba(10,109,154,0.20);
 }
