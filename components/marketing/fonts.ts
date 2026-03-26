@@ -1,14 +1,25 @@
-import { Bricolage_Grotesque, Plus_Jakarta_Sans } from "next/font/google";
+import { Syne, Fraunces, DM_Sans } from "next/font/google";
 
-export const marketingDisplayFont = Bricolage_Grotesque({
+/** Display / UI labels — Syne */
+export const marketingDisplayFont = Syne({
   subsets: ["latin"],
   variable: "--font-marketing-display",
-  weight: ["500", "700", "800"],
+  weight: ["400", "600", "700", "800"],
 });
 
-export const marketingBodyFont = Plus_Jakarta_Sans({
+/** Serif editorial titles — Fraunces */
+export const marketingSerifFont = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-marketing-serif",
+  weight: ["300", "700"],
+  style: ["normal", "italic"],
+  axes: ["SOFT"],
+});
+
+/** Body copy — DM Sans */
+export const marketingBodyFont = DM_Sans({
   subsets: ["latin"],
   variable: "--font-marketing-body",
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500"],
+  style: ["normal", "italic"],
 });
-

@@ -1,26 +1,55 @@
+import Image from "next/image";
 import Link from "next/link";
+
+import { marketingDisplayFont } from "@/components/marketing/fonts";
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-[#d2e2ee] bg-white/90">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-[#486578] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-        <p>
-          © {new Date().getFullYear()} Collectif Zéro Indigent (CZI). Jeunes entrepreneurs, promoteurs des ODD.
+    <footer
+      className={`${marketingDisplayFont.variable} border-t border-white/[0.06] bg-[#0D1829]`}
+    >
+      <div className="mx-auto flex w-full max-w-[1320px] flex-col items-start justify-between gap-4 px-6 py-[2.4rem] sm:flex-row sm:items-center lg:px-14">
+        {/* Logo + name */}
+        <Link href="/" className="flex items-center gap-3 no-underline">
+          <Image
+            alt="CZI"
+            className="rounded-[7px] object-cover"
+            height={32}
+            src="/brand/czi-logo.jpeg"
+            width={32}
+          />
+          <span
+            className="text-[0.8rem] font-bold tracking-[0.03em] text-white/50"
+            style={{ fontFamily: "var(--font-marketing-display), sans-serif" }}
+          >
+            Collectif Zéro Indigent
+          </span>
+        </Link>
+
+        {/* Links */}
+        <ul className="flex list-none gap-8">
+          {[
+            { href: "/#accueil", label: "Accueil" },
+            { href: "/#apropos", label: "À propos" },
+            { href: "/login", label: "Connexion" },
+            { href: "/signup", label: "Inscription" },
+          ].map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-white/[0.27] no-underline transition-colors duration-200 hover:text-[#F5C84A]"
+                style={{ fontFamily: "var(--font-marketing-display), sans-serif" }}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        {/* Copyright */}
+        <p className="text-[0.74rem] text-white/20">
+          © {new Date().getFullYear()} CZI · Jeunes entrepreneurs, promoteurs des ODD.
         </p>
-        <div className="flex items-center gap-4 font-semibold text-[#1b435e]">
-          <Link className="transition-colors hover:text-[#0f7e8f]" href="/#accueil">
-            Accueil
-          </Link>
-          <Link className="transition-colors hover:text-[#0f7e8f]" href="/a-propos">
-            À propos
-          </Link>
-          <Link className="transition-colors hover:text-[#0f7e8f]" href="/login">
-            Connexion
-          </Link>
-          <Link className="transition-colors hover:text-[#0f7e8f]" href="/signup">
-            Inscription
-          </Link>
-        </div>
       </div>
     </footer>
   );
