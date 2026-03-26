@@ -87,36 +87,38 @@ export function DonsClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Dons</p>
-          <h2 className="mt-1 text-3xl font-semibold tracking-tight">Faire un don</h2>
-          <CardDescription className="mt-2">
-            Soutenez les actions CZI. Le montant est en CFA (XOF).
-          </CardDescription>
+      {/* Header banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-rose-500 to-primary px-6 py-5 text-white shadow-md">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Mon espace</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight">Faire un don</h2>
+            <p className="mt-1 text-sm text-white/75">
+              Soutenez les actions CZI. Montant en CFA (XOF).
+            </p>
+          </div>
+          {role ? (
+            <span className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold">
+              Rôle : {role}
+            </span>
+          ) : null}
         </div>
+        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
+        <HeartHandshake className="pointer-events-none absolute right-6 bottom-4 text-white/15" size={72} />
       </div>
 
-      {role ? (
-        <Card>
-          <CardDescription>
-            Rôle actif: <span className="font-semibold text-foreground">{role}</span>
-          </CardDescription>
-        </Card>
-      ) : null}
-
       {loadError ? (
-        <Card>
-          <CardDescription className="text-red-600">{loadError}</CardDescription>
+        <Card className="border-red-200 bg-red-50">
+          <CardDescription className="text-red-700">{loadError}</CardDescription>
         </Card>
       ) : null}
       {paymentError ? (
-        <Card>
-          <CardDescription className="text-red-600">{paymentError}</CardDescription>
+        <Card className="border-red-200 bg-red-50">
+          <CardDescription className="text-red-700">{paymentError}</CardDescription>
         </Card>
       ) : null}
       {paymentInfo ? (
-        <Card>
+        <Card className="border-emerald-200 bg-emerald-50">
           <CardDescription className="text-emerald-700">{paymentInfo}</CardDescription>
         </Card>
       ) : null}
@@ -148,53 +150,36 @@ export function DonsClient({
       ) : null}
 
       {createState.error ? (
-        <Card>
-          <CardDescription className="text-red-600">{createState.error}</CardDescription>
-        </Card>
+        <Card className="border-red-200 bg-red-50"><CardDescription className="text-red-700">{createState.error}</CardDescription></Card>
       ) : null}
       {createState.success ? (
-        <Card>
-          <CardDescription className="text-emerald-700">{createState.success}</CardDescription>
-        </Card>
+        <Card className="border-emerald-200 bg-emerald-50"><CardDescription className="text-emerald-700">{createState.success}</CardDescription></Card>
       ) : null}
       {updateState.error ? (
-        <Card>
-          <CardDescription className="text-red-600">{updateState.error}</CardDescription>
-        </Card>
+        <Card className="border-red-200 bg-red-50"><CardDescription className="text-red-700">{updateState.error}</CardDescription></Card>
       ) : null}
       {updateState.success ? (
-        <Card>
-          <CardDescription className="text-emerald-700">{updateState.success}</CardDescription>
-        </Card>
+        <Card className="border-emerald-200 bg-emerald-50"><CardDescription className="text-emerald-700">{updateState.success}</CardDescription></Card>
       ) : null}
       {checkoutState.error ? (
-        <Card>
-          <CardDescription className="text-red-600">{checkoutState.error}</CardDescription>
-        </Card>
+        <Card className="border-red-200 bg-red-50"><CardDescription className="text-red-700">{checkoutState.error}</CardDescription></Card>
       ) : null}
       {checkoutState.success ? (
-        <Card>
-          <CardDescription className="text-emerald-700">{checkoutState.success}</CardDescription>
-        </Card>
+        <Card className="border-emerald-200 bg-emerald-50"><CardDescription className="text-emerald-700">{checkoutState.success}</CardDescription></Card>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardDescription>Total dons</CardDescription>
-          <CardTitle className="mt-2 text-2xl">{summary.count}</CardTitle>
-        </Card>
-        <Card>
-          <CardDescription>Montant cumulé</CardDescription>
-          <CardTitle className="mt-2 text-2xl">{formatAmount(summary.total_amount_cfa)} F</CardTitle>
-        </Card>
-        <Card>
-          <CardDescription>Montant payé</CardDescription>
-          <CardTitle className="mt-2 text-2xl">{formatAmount(summary.paid_amount_cfa)} F</CardTitle>
-        </Card>
-        <Card>
-          <CardDescription>Dons en attente</CardDescription>
-          <CardTitle className="mt-2 text-2xl">{summary.pending_count}</CardTitle>
-        </Card>
+        {[
+          { label: "Total dons", value: String(summary.count), color: "text-foreground" },
+          { label: "Montant cumulé", value: `${formatAmount(summary.total_amount_cfa)} F`, color: "text-primary" },
+          { label: "Montant payé", value: `${formatAmount(summary.paid_amount_cfa)} F`, color: "text-emerald-600" },
+          { label: "En attente", value: String(summary.pending_count), color: "text-amber-600" },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
+            <p className={`mt-1.5 text-2xl font-bold ${color}`}>{value}</p>
+          </div>
+        ))}
       </div>
 
       <Card className="space-y-4">
@@ -256,43 +241,30 @@ export function DonsClient({
       </Card>
 
       {items.length === 0 ? (
-        <Card className="flex min-h-[220px] flex-col items-center justify-center text-center">
-          <div className="rounded-full bg-muted-surface p-4 text-muted">
-            <HeartHandshake size={30} />
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted-surface/30 py-16 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50">
+            <HeartHandshake className="text-rose-500" size={32} />
           </div>
-          <CardTitle className="mt-4">Aucun don</CardTitle>
-          <CardDescription className="mt-2">
-            Lancez le premier don depuis le formulaire ci-dessus.
-          </CardDescription>
-        </Card>
+          <h3 className="mt-4 text-base font-semibold">Aucun don enregistré</h3>
+          <p className="mt-1 text-sm text-muted">Lancez le premier don depuis le formulaire ci-dessus.</p>
+        </div>
       ) : (
-        <Card className="overflow-x-auto p-0">
+        <Card className="overflow-hidden p-0">
+          <div className="overflow-x-auto">
           <table className="w-full min-w-[1020px] text-left">
-            <thead className="bg-muted-surface">
-              <tr>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                  Montant
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                  Statut
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                  Paiement
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                  Message
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                  Actions
-                </th>
+            <thead>
+              <tr className="border-b border-border bg-muted-surface/60">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Date</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Montant</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Statut</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Paiement</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Message</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Actions</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr className="border-t border-border" key={item.id}>
+                <tr className="border-t border-border transition-colors hover:bg-muted-surface/40" key={item.id}>
                   <td className="px-4 py-3 text-sm text-muted">
                     {new Date(item.created_at).toLocaleString("fr-FR")}
                   </td>
@@ -368,6 +340,7 @@ export function DonsClient({
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
       )}
     </div>
