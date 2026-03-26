@@ -7,11 +7,10 @@ export const marketingDisplayFont = Syne({
   weight: ["400", "600", "700", "800"],
 });
 
-/** Serif editorial titles — Fraunces */
+/** Serif editorial titles — Fraunces (variable font) */
 export const marketingSerifFont = Fraunces({
   subsets: ["latin"],
   variable: "--font-marketing-serif",
-  weight: ["300", "700"],
   style: ["normal", "italic"],
   axes: ["SOFT"],
 });
