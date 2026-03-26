@@ -58,7 +58,7 @@ export async function listReports(): Promise<ReportsOverview> {
       ...r,
       project_title: project?.title ?? null,
       project: undefined,
-    } as ActivityReportRecord;
+    } as unknown as ActivityReportRecord;
   });
 
   return { canManage, items, role };
