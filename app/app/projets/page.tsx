@@ -1,0 +1,258 @@
+import Link from "next/link";
+import { CalendarDays, FolderOpen, MapPin, Plus } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { listProjects, type ProjectRecord } from "@/lib/supabase/projects";
+
+import { createProjectAction } from "./actions";
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+function paramValue(v: string | string[] | undefined): string {
+  return Array.isArray(v) ? (v[0] ?? "") : (v ?? "");
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  active: "En cours",
+  cancelled: "Annulé",
+  completed: "Terminé",
+  upcoming: "À venir",
+};
+
+const STATUS_VARIANTS: Record<string, "default" | "success" | "warning" | "danger"> = {
+  active: "success",
+  cancelled: "danger",
+  completed: "default",
+  upcoming: "warning",
+};
+
+function formatDateRange(start: string | null, end: string | null): string {
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  if (start && end) return `${fmt(start)} → ${fmt(end)}`;
+  if (start) return `Début : ${fmt(start)}`;
+  if (end) return `Fin : ${fmt(end)}`;
+  return "Dates non précisées";
+}
+
+function ProjectCard({ project }: { project: ProjectRecord }) {
+  return (
+    <Link href={`/app/projets/${project.id}`}>
+      <Card className="group h-full space-y-3 transition-shadow hover:shadow-md">
+        {project.cover_image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            alt={project.title}
+            className="h-40 w-full rounded-lg object-cover"
+            src={project.cover_image_url}
+          />
+        ) : (
+          <div className="flex h-40 items-center justify-center rounded-lg bg-muted-surface">
+            <FolderOpen className="text-muted" size={36} />
+          </div>
+        )}
+
+        <div className="flex items-start gap-2">
+          <div className="flex-1">
+            <CardTitle className="text-base leading-snug group-hover:text-primary">
+              {project.title}
+            </CardTitle>
+            {project.short_description ? (
+              <CardDescription className="mt-1 line-clamp-2">{project.short_description}</CardDescription>
+            ) : null}
+          </div>
+          <Badge variant={STATUS_VARIANTS[project.status] ?? "default"}>
+            {STATUS_LABELS[project.status] ?? project.status}
+          </Badge>
+        </div>
+
+        <div className="flex flex-wrap gap-3 text-xs text-muted">
+          <span className="flex items-center gap-1">
+            <CalendarDays size={13} />
+            {formatDateRange(project.start_date, project.end_date)}
+          </span>
+          {project.location ? (
+            <span className="flex items-center gap-1">
+              <MapPin size={13} />
+              {project.location}
+            </span>
+          ) : null}
+        </div>
+
+        {!project.is_published ? (
+          <Badge variant="warning">Brouillon</Badge>
+        ) : null}
+      </Card>
+    </Link>
+  );
+}
+
+export default async function ProjetsPage({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
+  const errorMessage = paramValue(params.error).trim();
+  const noticeMessage = paramValue(params.notice).trim();
+  const showForm = paramValue(params.new) === "1";
+
+  let loadError: string | null = null;
+  let overview: Awaited<ReturnType<typeof listProjects>> | null = null;
+
+  try {
+    overview = await listProjects();
+  } catch (err) {
+    console.error("Unable to load projects", err);
+    loadError = err instanceof Error ? err.message : "Impossible de charger les projets.";
+  }
+
+  const canManage = overview?.canManage ?? false;
+  const items = overview?.items ?? [];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Projets</p>
+          <h2 className="mt-1 text-3xl font-semibold tracking-tight">Projets CZI</h2>
+          <CardDescription className="mt-2">
+            Découvrez les projets en cours et à venir du Collectif Zéro Indigent.
+          </CardDescription>
+        </div>
+        {canManage ? (
+          <Link href="/app/projets?new=1">
+            <Button className="gap-2">
+              <Plus size={16} />
+              Nouveau projet
+            </Button>
+          </Link>
+        ) : null}
+      </div>
+
+      {loadError ? (
+        <Card>
+          <CardDescription className="text-red-600">{loadError}</CardDescription>
+        </Card>
+      ) : null}
+      {errorMessage ? (
+        <Card>
+          <CardDescription className="text-red-600">{errorMessage}</CardDescription>
+        </Card>
+      ) : null}
+      {noticeMessage ? (
+        <Card>
+          <CardDescription className="text-emerald-700">{noticeMessage}</CardDescription>
+        </Card>
+      ) : null}
+
+      {/* Create form */}
+      {canManage && showForm ? (
+        <Card className="space-y-4">
+          <CardTitle>Créer un projet</CardTitle>
+          <form action={createProjectAction} className="grid gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="title">
+                  Titre <span className="text-red-500">*</span>
+                </label>
+                <Input id="title" name="title" placeholder="Nom du projet" required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="status">
+                  Statut
+                </label>
+                <Select defaultValue="upcoming" id="status" name="status">
+                  <option value="upcoming">À venir</option>
+                  <option value="active">En cours</option>
+                  <option value="completed">Terminé</option>
+                  <option value="cancelled">Annulé</option>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="short_description">
+                Description courte
+              </label>
+              <Input id="short_description" name="short_description" placeholder="Résumé en une ligne" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="description">
+                Description complète
+              </label>
+              <textarea
+                className="min-h-[100px] w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-4 focus:ring-primary/20"
+                id="description"
+                name="description"
+                placeholder="Détails, objectifs, bénéficiaires…"
+              />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="start_date">
+                  Date de début
+                </label>
+                <Input id="start_date" name="start_date" type="date" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="end_date">
+                  Date de fin
+                </label>
+                <Input id="end_date" name="end_date" type="date" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="location">
+                  Localisation
+                </label>
+                <Input id="location" name="location" placeholder="Ville, région…" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="cover_image_url">
+                URL de l&apos;image de couverture
+              </label>
+              <Input id="cover_image_url" name="cover_image_url" placeholder="https://…" type="url" />
+            </div>
+
+            <label className="inline-flex items-center gap-2 text-sm font-medium">
+              <input name="is_published" type="checkbox" />
+              Publier immédiatement (visible aux membres)
+            </label>
+
+            <div className="flex gap-3">
+              <Button type="submit">Créer le projet</Button>
+              <Link href="/app/projets">
+                <Button type="button" variant="secondary">
+                  Annuler
+                </Button>
+              </Link>
+            </div>
+          </form>
+        </Card>
+      ) : null}
+
+      {/* Projects grid */}
+      {items.length === 0 && !loadError ? (
+        <Card className="text-center">
+          <FolderOpen className="mx-auto text-muted" size={40} />
+          <CardTitle className="mt-3">Aucun projet pour le moment</CardTitle>
+          <CardDescription className="mt-1">
+            {canManage
+              ? "Créez le premier projet CZI en cliquant sur « Nouveau projet »."
+              : "Les projets seront affichés ici dès leur publication."}
+          </CardDescription>
+        </Card>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -23,6 +23,8 @@ import {
   MapPin,
   Settings,
   UsersRound,
+  FolderOpen,
+  FileText,
 } from "lucide-react";
 
 import { CziBrand } from "@/components/branding/czi-brand";
@@ -39,6 +41,8 @@ const navItems: NavItem[] = [
   { href: "/app/dashboard", icon: LayoutGrid, label: "Tableau de bord" },
   { href: "/app/membres", icon: UsersRound, label: "Membres" },
   { href: "/app/profils", icon: CircleUserRound, label: "Profils" },
+  { href: "/app/projets", icon: FolderOpen, label: "Projets" },
+  { href: "/app/rapports", icon: FileText, label: "Rapports d'activité" },
   { href: "/app/partenariat", icon: Handshake, label: "Partenariat" },
   { href: "/app/a-propos", icon: CircleAlert, label: "À propos" },
   { href: "/app/communiques", icon: Megaphone, label: "Communiqués" },

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { getCurrentMemberCardOverview } from "@/lib/supabase/member-card";
 
+import { MemberCardDownload } from "./member-card-download";
 import { MemberPhotoField } from "./member-photo-field";
 import { saveMemberCardRequestAction } from "./actions";
 
@@ -412,6 +413,30 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                       : "Complétez au minimum le nom complet et un contact avant l'établissement de la carte."}
                   </p>
                 </div>
+                {/* Card download — available once photo is uploaded/approved */}
+                {(member.photo_status === "uploaded" || member.photo_status === "approved") && hasBaseCardInformation ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                      Carte prête à générer
+                    </p>
+                    <p className="mt-2 mb-3 text-sm text-foreground/80">
+                      Votre photo et vos informations sont disponibles. Téléchargez votre carte
+                      de membre CZI au format PDF — disponible à tout moment.
+                    </p>
+                    <MemberCardDownload member={member} request={request} />
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border bg-muted-surface/40 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                      Carte numérique
+                    </p>
+                    <p className="mt-2 text-sm text-foreground/80">
+                      La génération de votre carte PDF sera disponible dès que votre photo sera
+                      ajoutée et que vos informations (nom + contact) seront complètes.
+                    </p>
+                  </div>
+                )}
+
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/70">
                     Paiement
