@@ -124,29 +124,34 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Carte membre</p>
-          <h2 className="mt-1 text-3xl font-semibold tracking-tight">Carte de membre CZI</h2>
-          <CardDescription className="mt-2">
-            Demande, photo et mode de remise de votre carte de membre à 2900 F.
-          </CardDescription>
+      {/* Header banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-[#7c3aed] px-6 py-5 text-white shadow-md">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Mon espace</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight">Carte de membre CZI</h2>
+            <p className="mt-1 text-sm text-white/75">
+              Demande, photo et mode de remise — 2 900 F.
+            </p>
+          </div>
+          <Badge variant="warning">Paiement bientôt disponible</Badge>
         </div>
-        <Badge variant="warning">Paiement bientôt disponible</Badge>
+        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
+        <CreditCard className="pointer-events-none absolute right-6 bottom-4 text-white/15" size={72} />
       </div>
 
       {loadError ? (
-        <Card>
-          <CardDescription className="text-red-600">{loadError}</CardDescription>
+        <Card className="border-red-200 bg-red-50">
+          <CardDescription className="text-red-700">{loadError}</CardDescription>
         </Card>
       ) : null}
       {errorMessage ? (
-        <Card>
-          <CardDescription className="text-red-600">{errorMessage}</CardDescription>
+        <Card className="border-red-200 bg-red-50">
+          <CardDescription className="text-red-700">{errorMessage}</CardDescription>
         </Card>
       ) : null}
       {noticeMessage ? (
-        <Card>
+        <Card className="border-emerald-200 bg-emerald-50">
           <CardDescription className="text-emerald-700">{noticeMessage}</CardDescription>
         </Card>
       ) : null}
@@ -171,59 +176,58 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
       {member ? (
         <>
           <section className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <CardDescription>Photo</CardDescription>
-                  <CardTitle className="mt-2 text-2xl">{formatStatusLabel(member.photo_status)}</CardTitle>
+            {[
+              {
+                label: "Photo",
+                value: formatStatusLabel(member.photo_status),
+                hint: member.photo_preview_url ? "Photo enregistrée." : "Aucune photo enregistrée.",
+                icon: <FileImage size={20} />,
+                color: "text-primary bg-primary/10",
+              },
+              {
+                label: "Paiement",
+                value: formatStatusLabel(request?.payment_status ?? "unpaid"),
+                hint: `Montant fixe : ${request?.price_cfa ?? 2900} F`,
+                icon: <CreditCard size={20} />,
+                color: "text-amber-600 bg-amber-50",
+              },
+              {
+                label: "Statut carte",
+                value: formatStatusLabel(request?.card_status ?? "draft"),
+                hint: cardLabel,
+                icon: <ShieldCheck size={20} />,
+                color: "text-emerald-600 bg-emerald-50",
+              },
+              {
+                label: "Remise",
+                value: formatDeliveryModeLabel(request?.delivery_mode),
+                hint: request?.delivery_contact || member.phone || member.email || "Contact à définir",
+                icon: <Truck size={20} />,
+                color: "text-indigo-600 bg-indigo-50",
+              },
+            ].map(({ label, value, hint, icon, color }) => (
+              <Card key={label} className="space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <CardDescription>{label}</CardDescription>
+                    <CardTitle className="mt-1.5 text-xl">{value}</CardTitle>
+                  </div>
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${color}`}>
+                    {icon}
+                  </div>
                 </div>
-                <FileImage className="text-primary" size={22} />
+                <p className="text-xs text-muted">{hint}</p>
+              </Card>
+            ))}
+            {member.photo_preview_url ? (
+              <div className="overflow-hidden rounded-xl border border-border md:col-span-4 xl:col-span-1">
+                <img
+                  alt={`Photo de ${memberDisplayName}`}
+                  className="h-40 w-full object-cover"
+                  src={member.photo_preview_url}
+                />
               </div>
-              <p className="mt-3 text-sm text-muted">
-                {member.photo_preview_url ? "Photo enregistrée." : "Aucune photo enregistrée."}
-              </p>
-              {member.photo_preview_url ? (
-                <div className="mt-4 overflow-hidden rounded-xl border border-border">
-                  <img
-                    alt={`Photo de ${memberDisplayName}`}
-                    className="h-40 w-full object-cover"
-                    src={member.photo_preview_url}
-                  />
-                </div>
-              ) : null}
-            </Card>
-            <Card>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <CardDescription>Paiement</CardDescription>
-                  <CardTitle className="mt-2 text-2xl">{formatStatusLabel(request?.payment_status ?? "unpaid")}</CardTitle>
-                </div>
-                <CreditCard className="text-primary" size={22} />
-              </div>
-              <p className="mt-3 text-sm text-muted">Montant fixe: {request?.price_cfa ?? 2900} F</p>
-            </Card>
-            <Card>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <CardDescription>Statut carte</CardDescription>
-                  <CardTitle className="mt-2 text-2xl">{formatStatusLabel(request?.card_status ?? "draft")}</CardTitle>
-                </div>
-                <ShieldCheck className="text-primary" size={22} />
-              </div>
-              <p className="mt-3 text-sm text-muted">{cardLabel}</p>
-            </Card>
-            <Card>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <CardDescription>Remise</CardDescription>
-                  <CardTitle className="mt-2 text-2xl">{formatDeliveryModeLabel(request?.delivery_mode)}</CardTitle>
-                </div>
-                <Truck className="text-primary" size={22} />
-              </div>
-              <p className="mt-3 text-sm text-muted">
-                {request?.delivery_contact || member.phone || member.email || "Contact à définir"}
-              </p>
-            </Card>
+            ) : null}
           </section>
 
           {member.photo_rejection_reason ? (

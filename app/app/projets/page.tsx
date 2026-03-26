@@ -42,51 +42,49 @@ function formatDateRange(start: string | null, end: string | null): string {
 function ProjectCard({ project }: { project: ProjectRecord }) {
   return (
     <Link href={`/app/projets/${project.id}`}>
-      <Card className="group h-full space-y-3 transition-shadow hover:shadow-md">
+      <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface-elevated shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md">
         {project.cover_image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             alt={project.title}
-            className="h-40 w-full rounded-lg object-cover"
+            className="h-44 w-full object-cover"
             src={project.cover_image_url}
           />
         ) : (
-          <div className="flex h-40 items-center justify-center rounded-lg bg-muted-surface">
-            <FolderOpen className="text-muted" size={36} />
+          <div className="flex h-44 items-center justify-center bg-gradient-to-br from-primary/10 to-indigo-500/10">
+            <FolderOpen className="text-primary/40" size={40} />
           </div>
         )}
 
-        <div className="flex items-start gap-2">
-          <div className="flex-1">
-            <CardTitle className="text-base leading-snug group-hover:text-primary">
+        <div className="flex flex-1 flex-col gap-3 p-4">
+          <div className="flex items-start gap-2">
+            <h3 className="flex-1 text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
               {project.title}
-            </CardTitle>
-            {project.short_description ? (
-              <CardDescription className="mt-1 line-clamp-2">{project.short_description}</CardDescription>
-            ) : null}
+            </h3>
+            <Badge variant={STATUS_VARIANTS[project.status] ?? "default"}>
+              {STATUS_LABELS[project.status] ?? project.status}
+            </Badge>
           </div>
-          <Badge variant={STATUS_VARIANTS[project.status] ?? "default"}>
-            {STATUS_LABELS[project.status] ?? project.status}
-          </Badge>
-        </div>
 
-        <div className="flex flex-wrap gap-3 text-xs text-muted">
-          <span className="flex items-center gap-1">
-            <CalendarDays size={13} />
-            {formatDateRange(project.start_date, project.end_date)}
-          </span>
-          {project.location ? (
-            <span className="flex items-center gap-1">
-              <MapPin size={13} />
-              {project.location}
-            </span>
+          {project.short_description ? (
+            <p className="line-clamp-2 text-xs text-muted">{project.short_description}</p>
           ) : null}
-        </div>
 
-        {!project.is_published ? (
-          <Badge variant="warning">Brouillon</Badge>
-        ) : null}
-      </Card>
+          <div className="mt-auto flex flex-wrap gap-3 text-xs text-muted">
+            <span className="flex items-center gap-1">
+              <CalendarDays size={12} />
+              {formatDateRange(project.start_date, project.end_date)}
+            </span>
+            {project.location ? (
+              <span className="flex items-center gap-1">
+                <MapPin size={12} />
+                {project.location}
+              </span>
+            ) : null}
+            {!project.is_published ? <Badge variant="warning">Brouillon</Badge> : null}
+          </div>
+        </div>
+      </div>
     </Link>
   );
 }
@@ -112,36 +110,46 @@ export default async function ProjetsPage({ searchParams }: { searchParams: Sear
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Projets</p>
-          <h2 className="mt-1 text-3xl font-semibold tracking-tight">Projets CZI</h2>
-          <CardDescription className="mt-2">
-            Découvrez les projets en cours et à venir du Collectif Zéro Indigent.
-          </CardDescription>
+      {/* Header banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-primary px-6 py-5 text-white shadow-md">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Contenus</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight">Projets CZI</h2>
+            <p className="mt-1 text-sm text-white/75">
+              Projets en cours, à venir et réalisés du Collectif Zéro Indigent.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold">
+              {items.length} projet{items.length !== 1 ? "s" : ""}
+            </span>
+            {canManage ? (
+              <Link href="/app/projets?new=1">
+                <Button variant="secondary" size="sm" className="gap-1.5">
+                  <Plus size={14} />
+                  Nouveau projet
+                </Button>
+              </Link>
+            ) : null}
+          </div>
         </div>
-        {canManage ? (
-          <Link href="/app/projets?new=1">
-            <Button className="gap-2">
-              <Plus size={16} />
-              Nouveau projet
-            </Button>
-          </Link>
-        ) : null}
+        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
+        <FolderOpen className="pointer-events-none absolute right-6 bottom-4 text-white/15" size={72} />
       </div>
 
       {loadError ? (
-        <Card>
-          <CardDescription className="text-red-600">{loadError}</CardDescription>
+        <Card className="border-red-200 bg-red-50">
+          <CardDescription className="text-red-700">{loadError}</CardDescription>
         </Card>
       ) : null}
       {errorMessage ? (
-        <Card>
-          <CardDescription className="text-red-600">{errorMessage}</CardDescription>
+        <Card className="border-red-200 bg-red-50">
+          <CardDescription className="text-red-700">{errorMessage}</CardDescription>
         </Card>
       ) : null}
       {noticeMessage ? (
-        <Card>
+        <Card className="border-emerald-200 bg-emerald-50">
           <CardDescription className="text-emerald-700">{noticeMessage}</CardDescription>
         </Card>
       ) : null}
@@ -237,15 +245,22 @@ export default async function ProjetsPage({ searchParams }: { searchParams: Sear
 
       {/* Projects grid */}
       {items.length === 0 && !loadError ? (
-        <Card className="text-center">
-          <FolderOpen className="mx-auto text-muted" size={40} />
-          <CardTitle className="mt-3">Aucun projet pour le moment</CardTitle>
-          <CardDescription className="mt-1">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted-surface/30 py-16 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+            <FolderOpen className="text-primary" size={32} />
+          </div>
+          <h3 className="mt-4 text-base font-semibold">Aucun projet pour le moment</h3>
+          <p className="mt-1 max-w-sm text-sm text-muted">
             {canManage
               ? "Créez le premier projet CZI en cliquant sur « Nouveau projet »."
               : "Les projets seront affichés ici dès leur publication."}
-          </CardDescription>
-        </Card>
+          </p>
+          {canManage ? (
+            <Link href="/app/projets?new=1" className="mt-5">
+              <Button className="gap-2"><Plus size={15} />Nouveau projet</Button>
+            </Link>
+          ) : null}
+        </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((project) => (

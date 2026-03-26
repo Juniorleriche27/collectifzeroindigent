@@ -38,56 +38,54 @@ async function ReportRow({ report, canManage }: { report: ActivityReportRecord; 
   }
 
   return (
-    <Card className="flex items-start gap-4 md:flex-row md:items-center">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-        <FileText className="text-primary" size={20} />
+    <div className="flex items-center gap-4 rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs transition-all duration-150 hover:border-primary/20 hover:shadow-sm md:flex-row">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+        <FileText size={22} />
       </div>
 
-      <div className="flex-1 space-y-1">
+      <div className="flex-1 space-y-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="font-semibold leading-snug">{report.title}</p>
+          <p className="font-semibold leading-snug text-foreground">{report.title}</p>
           {!report.is_published ? <Badge variant="warning">Brouillon</Badge> : null}
-          {report.is_public ? <Badge variant="default">Public</Badge> : null}
+          {report.is_public ? <Badge variant="primary">Public</Badge> : null}
         </div>
         {report.description ? (
           <p className="line-clamp-2 text-sm text-muted">{report.description}</p>
         ) : null}
         <div className="flex flex-wrap gap-3 text-xs text-muted">
           {report.project_title ? (
-            <span className="flex items-center gap-1">
-              <Link2 size={12} />
+            <span className="flex items-center gap-1.5">
+              <Link2 size={11} />
               {report.project_title}
             </span>
           ) : null}
-          <span className="flex items-center gap-1">
-            <CalendarDays size={12} />
+          <span className="flex items-center gap-1.5">
+            <CalendarDays size={11} />
             {fmt(report.published_at ?? report.created_at)}
           </span>
-          {report.file_name ? <span>{report.file_name}</span> : null}
-          {report.file_size_bytes ? (
-            <span>{formatBytes(report.file_size_bytes)}</span>
+          {report.file_name ? (
+            <span className="rounded bg-muted-surface px-1.5 py-0.5 font-mono">{report.file_name}</span>
           ) : null}
+          {report.file_size_bytes ? <span>{formatBytes(report.file_size_bytes)}</span> : null}
         </div>
       </div>
 
       <div className="flex shrink-0 flex-wrap gap-2">
         {downloadUrl ? (
           <a download href={downloadUrl} rel="noopener noreferrer" target="_blank">
-            <Button className="gap-1.5" size="sm" variant="secondary">
-              <Download size={14} />
+            <Button className="gap-1.5" size="sm" variant="primary">
+              <Download size={13} />
               Télécharger
             </Button>
           </a>
         ) : null}
         {canManage ? (
           <Link href={`/app/rapports/${report.id}/edit`}>
-            <Button size="sm" variant="ghost">
-              Modifier
-            </Button>
+            <Button size="sm" variant="ghost">Modifier</Button>
           </Link>
         ) : null}
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -122,36 +120,46 @@ export default async function RapportsPage({ searchParams }: { searchParams: Sea
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Rapports</p>
-          <h2 className="mt-1 text-3xl font-semibold tracking-tight">Rapports d&apos;activité</h2>
-          <CardDescription className="mt-2">
-            Téléchargez les rapports d&apos;activité du Collectif Zéro Indigent.
-          </CardDescription>
+      {/* Header banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 to-[#0a8ea8] px-6 py-5 text-white shadow-md">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Contenus</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight">Rapports d&apos;activité</h2>
+            <p className="mt-1 text-sm text-white/75">
+              Téléchargez les rapports du Collectif Zéro Indigent.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold">
+              {publishedItems.length} publié{publishedItems.length !== 1 ? "s" : ""}
+            </span>
+            {canManage ? (
+              <Link href="/app/rapports?new=1">
+                <Button variant="secondary" size="sm" className="gap-1.5">
+                  <Plus size={14} />
+                  Nouveau rapport
+                </Button>
+              </Link>
+            ) : null}
+          </div>
         </div>
-        {canManage ? (
-          <Link href="/app/rapports?new=1">
-            <Button className="gap-2">
-              <Plus size={16} />
-              Nouveau rapport
-            </Button>
-          </Link>
-        ) : null}
+        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
+        <FileText className="pointer-events-none absolute right-6 bottom-4 text-white/15" size={72} />
       </div>
 
       {loadError ? (
-        <Card>
-          <CardDescription className="text-red-600">{loadError}</CardDescription>
+        <Card className="border-red-200 bg-red-50">
+          <CardDescription className="text-red-700">{loadError}</CardDescription>
         </Card>
       ) : null}
       {errorMessage ? (
-        <Card>
-          <CardDescription className="text-red-600">{errorMessage}</CardDescription>
+        <Card className="border-red-200 bg-red-50">
+          <CardDescription className="text-red-700">{errorMessage}</CardDescription>
         </Card>
       ) : null}
       {noticeMessage ? (
-        <Card>
+        <Card className="border-emerald-200 bg-emerald-50">
           <CardDescription className="text-emerald-700">{noticeMessage}</CardDescription>
         </Card>
       ) : null}
@@ -232,7 +240,7 @@ export default async function RapportsPage({ searchParams }: { searchParams: Sea
       {/* Published reports */}
       {publishedItems.length > 0 ? (
         <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Rapports publiés</h3>
+          <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-muted">Rapports publiés</h3>
           <div className="space-y-3">
             {publishedItems.map((report) => (
               <ReportRow canManage={canManage} key={report.id} report={report} />
@@ -240,21 +248,28 @@ export default async function RapportsPage({ searchParams }: { searchParams: Sea
           </div>
         </section>
       ) : !loadError ? (
-        <Card className="text-center">
-          <FileText className="mx-auto text-muted" size={40} />
-          <CardTitle className="mt-3">Aucun rapport disponible</CardTitle>
-          <CardDescription className="mt-1">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted-surface/30 py-16 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
+            <FileText className="text-emerald-600" size={32} />
+          </div>
+          <h3 className="mt-4 text-base font-semibold">Aucun rapport disponible</h3>
+          <p className="mt-1 max-w-sm text-sm text-muted">
             {canManage
               ? "Publiez le premier rapport d'activité en cliquant sur « Nouveau rapport »."
               : "Les rapports d'activité seront disponibles ici après leur publication."}
-          </CardDescription>
-        </Card>
+          </p>
+          {canManage ? (
+            <Link href="/app/rapports?new=1" className="mt-5">
+              <Button className="gap-2"><Plus size={15} />Nouveau rapport</Button>
+            </Link>
+          ) : null}
+        </div>
       ) : null}
 
       {/* Drafts (managers only) */}
       {canManage && draftItems.length > 0 ? (
         <section className="space-y-3">
-          <h3 className="text-lg font-semibold text-muted">Brouillons</h3>
+          <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-muted">Brouillons</h3>
           <div className="space-y-3">
             {draftItems.map((report) => (
               <ReportRow canManage={canManage} key={report.id} report={report} />

@@ -219,24 +219,52 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Membres</p>
-          <h2 className="mt-1 text-3xl font-semibold tracking-tight">Liste & filtres</h2>
-          <CardDescription className="mt-2">{roleVisibilityHint(currentRole)}</CardDescription>
-          <CardDescription className="mt-1">
-            Rôle actif détecté: <span className="font-semibold text-foreground">{roleLabel(currentRole)}</span>
-          </CardDescription>
+      {/* Page header banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-[#0a8ea8] px-6 py-5 text-white shadow-md">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Gestion</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight">Membres CZI</h2>
+            <p className="mt-1 text-sm text-white/75">{roleVisibilityHint(currentRole)}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold">
+              Rôle : {roleLabel(currentRole)}
+            </span>
+            {currentRole !== "member" ? (
+              <Link href="/app/membres">
+                <Button variant="secondary" size="sm">Réinitialiser</Button>
+              </Link>
+            ) : null}
+          </div>
         </div>
-        {currentRole !== "member" ? (
-          <Link href="/app/membres">
-            <Button variant="secondary">Réinitialiser</Button>
-          </Link>
-        ) : null}
+        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
       </div>
 
+      {/* Stats overview */}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Total</p>
+          <p className="mt-1.5 text-3xl font-bold text-foreground">{totalCount}</p>
+        </div>
+        <div className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
+          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">Actifs</p>
+          <p className="mt-1.5 text-3xl font-bold text-emerald-600">
+            {stats.by_gender.reduce((s, b) => s + b.count, 0) > 0 ? stats.total : "—"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
+          <p className="text-xs font-semibold uppercase tracking-wide text-violet-600">Femmes</p>
+          <p className="mt-1.5 text-3xl font-bold text-violet-600">{genderStatsByKey.get("female") ?? 0}</p>
+        </div>
+        <div className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Hommes</p>
+          <p className="mt-1.5 text-3xl font-bold text-blue-600">{genderStatsByKey.get("male") ?? 0}</p>
+        </div>
+      </section>
+
       <Card className="space-y-4">
-        <CardTitle className="text-base">Recherche</CardTitle>
+        <CardTitle className="text-base">Recherche & filtres</CardTitle>
         <form className="grid gap-3 md:grid-cols-9" method="get">
           <Input defaultValue={query} name="q" placeholder="Nom, email, téléphone..." />
           <Select defaultValue={status} name="status">
@@ -315,228 +343,147 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
         <Card className="space-y-4">
           <div>
             <CardTitle className="text-base">Répartition par genre</CardTitle>
-            <CardDescription className="mt-1">
-              Les compteurs suivent les filtres actifs de la liste membres.
-            </CardDescription>
+            <CardDescription className="mt-1">Compteurs selon les filtres actifs.</CardDescription>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>Femmes</CardDescription>
-              <CardTitle className="text-3xl">{genderStatsByKey.get("female") ?? 0}</CardTitle>
-            </Card>
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>Hommes</CardDescription>
-              <CardTitle className="text-3xl">{genderStatsByKey.get("male") ?? 0}</CardTitle>
-            </Card>
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>Autres</CardDescription>
-              <CardTitle className="text-3xl">{genderStatsByKey.get("other") ?? 0}</CardTitle>
-            </Card>
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>Non renseigné</CardDescription>
-              <CardTitle className="text-3xl">{genderStatsByKey.get("unknown") ?? 0}</CardTitle>
-            </Card>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: "Femmes", key: "female", color: "text-violet-600" },
+              { label: "Hommes", key: "male", color: "text-blue-600" },
+              { label: "Autres", key: "other", color: "text-indigo-600" },
+              { label: "N/R", key: "unknown", color: "text-muted" },
+            ].map(({ label, key, color }) => (
+              <div key={key} className="rounded-xl border border-border bg-muted-surface/40 px-4 py-3 text-center">
+                <p className={`text-2xl font-bold ${color}`}>{genderStatsByKey.get(key) ?? 0}</p>
+                <p className="mt-0.5 text-xs text-muted">{label}</p>
+              </div>
+            ))}
           </div>
         </Card>
 
         <Card className="space-y-4">
           <div>
             <CardTitle className="text-base">Répartition par tranche d&apos;âge</CardTitle>
-            <CardDescription className="mt-1">
-              Le détail reprend les tranches calculées dans la fiche onboarding.
-            </CardDescription>
+            <CardDescription className="mt-1">Tranches calculées lors de l&apos;onboarding.</CardDescription>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>15-19 ans</CardDescription>
-              <CardTitle className="text-3xl">{ageStatsByKey.get("15-19") ?? 0}</CardTitle>
-            </Card>
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>20-24 ans</CardDescription>
-              <CardTitle className="text-3xl">{ageStatsByKey.get("20-24") ?? 0}</CardTitle>
-            </Card>
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>25-29 ans</CardDescription>
-              <CardTitle className="text-3xl">{ageStatsByKey.get("25-29") ?? 0}</CardTitle>
-            </Card>
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>30-35 ans</CardDescription>
-              <CardTitle className="text-3xl">{ageStatsByKey.get("30-35") ?? 0}</CardTitle>
-            </Card>
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>36+ ans</CardDescription>
-              <CardTitle className="text-3xl">{ageStatsByKey.get("36+") ?? 0}</CardTitle>
-            </Card>
-            <Card className="space-y-1 bg-muted-surface/40">
-              <CardDescription>Non renseigné</CardDescription>
-              <CardTitle className="text-3xl">{ageStatsByKey.get("unknown") ?? 0}</CardTitle>
-            </Card>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "15-19", key: "15-19" },
+              { label: "20-24", key: "20-24" },
+              { label: "25-29", key: "25-29" },
+              { label: "30-35", key: "30-35" },
+              { label: "36+", key: "36+" },
+              { label: "N/R", key: "unknown" },
+            ].map(({ label, key }) => (
+              <div key={key} className="rounded-xl border border-border bg-muted-surface/40 px-4 py-3 text-center">
+                <p className="text-2xl font-bold text-foreground">{ageStatsByKey.get(key) ?? 0}</p>
+                <p className="mt-0.5 text-xs text-muted">{label}</p>
+              </div>
+            ))}
           </div>
         </Card>
       </section>
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[980px] text-left">
-          <thead className="bg-muted-surface">
-            <tr>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                ID
-              </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                Nom
-              </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                Contact
-              </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                Localisation
-              </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                Organisation
-              </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                Statut
-              </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {!isSupabaseConfigured ? (
-              <tr className="border-t border-border">
-                <td className="px-4 py-6 text-sm text-muted" colSpan={7}>
-                  Configurez Supabase pour charger les données membres.
-                </td>
+      <Card className="overflow-hidden p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px] text-left">
+            <thead>
+              <tr className="border-b border-border bg-muted-surface/60">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">ID</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Nom</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Contact</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Localisation</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Organisation</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Statut</th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-muted">Actions</th>
               </tr>
-            ) : loadError ? (
-              <tr className="border-t border-border">
-                <td className="px-4 py-6 text-sm text-red-600" colSpan={7}>
-                  {loadError}
-                </td>
-              </tr>
-            ) : members.length === 0 ? (
-              <tr className="border-t border-border">
-                <td className="px-4 py-6 text-sm text-muted" colSpan={7}>
-                  Aucun membre ne correspond aux filtres.
-                </td>
-              </tr>
-            ) : (
-              members.map((member) => (
-                <tr key={member.id} className="border-t border-border">
-                  <td className="px-4 py-3 text-sm font-medium">{member.id}</td>
-                  <td className="px-4 py-3 text-sm">
-                    {[member.first_name, member.last_name].filter(Boolean).join(" ") || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted">
-                    {member.phone ? (
-                      <MemberContactLink
-                        channel="phone"
-                        className="hover:text-foreground hover:underline"
-                        memberId={member.id}
-                        source="members_list"
-                        href={`tel:${member.phone.replace(/\s+/g, "")}`}
-                      >
-                        {member.phone}
-                      </MemberContactLink>
-                    ) : (
-                      "-"
-                    )}
-                    <br />
-                    {member.email ? (
-                      <MemberContactLink
-                        channel="email"
-                        className="hover:text-foreground hover:underline"
-                        memberId={member.id}
-                        source="members_list"
-                        href={`mailto:${member.email}`}
-                      >
-                        {member.email}
-                      </MemberContactLink>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted">
-                    {(regionsById.get(String(member.region_id)) ?? "-") +
-                      " / " +
-                      (prefecturesById.get(String(member.prefecture_id)) ?? "-") +
-                      " / " +
-                      (communesById.get(String(member.commune_id)) ?? "-")}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted">
-                    {organisationsById.get(String(member.organisation_id)) ?? member.org_name ?? "-"}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <Badge variant={statusVariant(member.status)}>
-                      {member.status ?? "unknown"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex items-center gap-3">
-                      <Link className="font-semibold text-primary" href={`/app/membres/${member.id}`}>
-                        Ouvrir fiche
-                      </Link>
-                      {canValidateMember && member.status === "pending" ? (
-                        <Link
-                          className="text-sm font-semibold text-amber-700 hover:text-amber-800"
-                          href={`/app/membres/${member.id}#validation-membre`}
-                        >
-                          Valider
-                        </Link>
-                      ) : null}
-                      {canManageRoles ? (
-                        <Link
-                          className="text-sm font-medium text-muted hover:text-foreground"
-                          href={`/app/membres/${member.id}#role-gouvernance`}
-                        >
-                          Gérer rôle
-                        </Link>
-                      ) : null}
-                      {member.email ? (
-                        <MemberContactLink
-                          channel="email"
-                          className="text-sm font-medium text-muted hover:text-foreground"
-                          memberId={member.id}
-                          source="members_list"
-                          href={`mailto:${member.email}`}
-                        >
-                          Contacter
-                        </MemberContactLink>
-                      ) : member.phone ? (
-                        <MemberContactLink
-                          channel="phone"
-                          className="text-sm font-medium text-muted hover:text-foreground"
-                          memberId={member.id}
-                          source="members_list"
-                          href={`tel:${member.phone.replace(/\s+/g, "")}`}
-                        >
-                          Appeler
-                        </MemberContactLink>
-                      ) : null}
-                    </div>
+            </thead>
+            <tbody>
+              {!isSupabaseConfigured ? (
+                <tr>
+                  <td className="px-4 py-8 text-sm text-muted" colSpan={7}>
+                    Configurez Supabase pour charger les données membres.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : loadError ? (
+                <tr>
+                  <td className="px-4 py-8 text-sm text-red-600" colSpan={7}>{loadError}</td>
+                </tr>
+              ) : members.length === 0 ? (
+                <tr>
+                  <td className="px-4 py-8 text-center text-sm text-muted" colSpan={7}>
+                    Aucun membre ne correspond aux filtres.
+                  </td>
+                </tr>
+              ) : (
+                members.map((member) => (
+                  <tr key={member.id} className="border-t border-border transition-colors hover:bg-muted-surface/40">
+                    <td className="px-4 py-3 text-xs font-mono text-muted">{member.id}</td>
+                    <td className="px-4 py-3 text-sm font-medium">
+                      {[member.first_name, member.last_name].filter(Boolean).join(" ") || "-"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted">
+                      {member.phone ? (
+                        <MemberContactLink channel="phone" className="hover:text-foreground hover:underline" memberId={member.id} source="members_list" href={`tel:${member.phone.replace(/\s+/g, "")}`}>
+                          {member.phone}
+                        </MemberContactLink>
+                      ) : "-"}
+                      <br />
+                      {member.email ? (
+                        <MemberContactLink channel="email" className="hover:text-foreground hover:underline" memberId={member.id} source="members_list" href={`mailto:${member.email}`}>
+                          {member.email}
+                        </MemberContactLink>
+                      ) : "-"}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted">
+                      {[
+                        regionsById.get(String(member.region_id)),
+                        prefecturesById.get(String(member.prefecture_id)),
+                        communesById.get(String(member.commune_id)),
+                      ].filter(Boolean).join(" / ") || "-"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted">
+                      {organisationsById.get(String(member.organisation_id)) ?? member.org_name ?? "-"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge variant={statusVariant(member.status)}>{member.status ?? "unknown"}</Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Link href={`/app/membres/${member.id}`}>
+                          <Button size="xs" variant="primary">Ouvrir</Button>
+                        </Link>
+                        {canValidateMember && member.status === "pending" ? (
+                          <Link href={`/app/membres/${member.id}#validation-membre`}>
+                            <Button size="xs" variant="outline">Valider</Button>
+                          </Link>
+                        ) : null}
+                        {member.email ? (
+                          <MemberContactLink channel="email" className="text-xs font-medium text-muted hover:text-foreground" memberId={member.id} source="members_list" href={`mailto:${member.email}`}>
+                            Email
+                          </MemberContactLink>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
-      <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
+      <div className="flex items-center justify-between rounded-xl border border-border bg-surface-elevated px-5 py-3 shadow-xs">
         <p className="text-sm text-muted">
-          Page {safePage} / {totalPages} | {startItem}-{endItem} sur {totalCount}
+          Page <span className="font-semibold text-foreground">{safePage}</span> / {totalPages}
+          <span className="mx-2 text-border">·</span>
+          {startItem}–{endItem} sur <span className="font-semibold text-foreground">{totalCount}</span>
         </p>
         <div className="flex gap-2">
           <Link href={buildPageHref(Math.max(1, safePage - 1))}>
-            <Button disabled={!hasPreviousPage} variant="secondary">
-              Précédent
-            </Button>
+            <Button disabled={!hasPreviousPage} size="sm" variant="secondary">← Précédent</Button>
           </Link>
           <Link href={buildPageHref(Math.min(totalPages, safePage + 1))}>
-            <Button disabled={!hasNextPage} variant="secondary">
-              Suivant
-            </Button>
+            <Button disabled={!hasNextPage} size="sm" variant="secondary">Suivant →</Button>
           </Link>
         </div>
       </div>
