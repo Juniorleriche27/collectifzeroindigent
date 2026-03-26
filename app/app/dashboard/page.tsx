@@ -222,8 +222,36 @@ export default async function DashboardPage() {
         </Card>
       ) : null}
 
-      {/* KPI stat cards row */}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* KPI stat cards row — horizontal scroll on mobile, grid on sm+ */}
+      <section className="kpi-row">
+        <style>{`
+          .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+          }
+          @media (max-width: 639px) {
+            .kpi-row {
+              display: flex !important;
+              overflow-x: auto !important;
+              gap: 10px !important;
+              padding-bottom: 4px !important;
+              -webkit-overflow-scrolling: touch !important;
+              scroll-snap-type: x mandatory !important;
+              margin: 0 -1rem !important;
+              padding-left: 1rem !important;
+              padding-right: 1rem !important;
+            }
+            .kpi-row > div {
+              min-width: 130px !important;
+              flex-shrink: 0 !important;
+              scroll-snap-align: start !important;
+            }
+          }
+          @media (min-width: 640px) and (max-width: 1279px) {
+            .kpi-row { grid-template-columns: repeat(2, 1fr) !important; }
+          }
+        `}</style>
         {kpis.map((kpi, i) => {
           const c = kpiColors[i] ?? kpiColors[0];
           return (
@@ -256,21 +284,21 @@ export default async function DashboardPage() {
             <h3 className="text-sm font-bold text-[#12202E]">Accès rapides</h3>
             <span className="text-xs text-[#7A8CA0]">{quickLinks.length} modules</span>
           </div>
-          <div className="p-5 grid gap-3 sm:grid-cols-2">
+          <div className="p-5 grid grid-cols-2 gap-3">
             {quickLinks.map((link, i) => {
               const Icon = link.icon;
               const lc = quickLinkColors[i] ?? quickLinkColors[0];
               return (
                 <Link key={link.href} href={link.href}>
-                  <div className="group flex items-center gap-3 rounded-[10px] border border-[#E2E8F0] bg-[#F0F3F8]/60 px-4 py-3 transition-all duration-150 hover:-translate-y-0.5 hover:border-[#E2E8F0] hover:bg-white hover:shadow-sm">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]" style={{ background: lc.bg }}>
-                      <Icon size={17} style={{ color: lc.color }} />
+                  <div className="group flex items-center gap-3 rounded-[10px] border border-[#E2E8F0] bg-[#F0F3F8]/60 px-3 py-3 transition-all duration-150 hover:-translate-y-0.5 hover:bg-white hover:shadow-sm">
+                    <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[9px]" style={{ background: lc.bg }}>
+                      <Icon size={16} style={{ color: lc.color }} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#12202E]">{link.label}</p>
-                      <p className="text-xs text-[#7A8CA0]">{link.desc}</p>
+                      <p className="text-sm font-semibold leading-tight text-[#12202E]">{link.label}</p>
+                      <p className="hidden text-xs text-[#7A8CA0] sm:block">{link.desc}</p>
                     </div>
-                    <ArrowRight className="shrink-0 text-[#7A8CA0] transition-transform group-hover:translate-x-0.5" size={14} style={{ color: lc.color }} />
+                    <ArrowRight className="shrink-0 transition-transform group-hover:translate-x-0.5" size={13} style={{ color: lc.color }} />
                   </div>
                 </Link>
               );

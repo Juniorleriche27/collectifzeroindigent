@@ -433,7 +433,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           AXES STRATÉGIQUES
       ═══════════════════════════════════════════════════ */}
       <section id="axes" className="section-axes" style={{ background: "#0D1829" }}>
-        <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
+        <div className="axes-head mb-12 flex flex-wrap items-end justify-between gap-6">
           <div>
             <span
               className="mb-[0.9rem] inline-flex items-center gap-[0.6rem] text-[0.68rem] font-bold uppercase tracking-[0.15em]"
@@ -732,6 +732,9 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         </div>
       </section>
 
+      {/* Bottom nav spacer — mobile only */}
+      <div className="h-[72px] lg:hidden" aria-hidden />
+
       <PublicFooter />
 
       <style>{`
@@ -849,28 +852,73 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         @media (max-width: 639px) {
           .hero-left { padding: 5rem 1.25rem 3.5rem !important; }
 
+          /* Hero stats — compact grid at bottom */
+          .hero-stats > div { padding: 0 1.1rem !important; }
+
           .about-left  { padding: 3rem 1.25rem !important; }
           .about-right { min-height: 300px !important; }
 
           .pillars-grid { grid-template-columns: 1fr !important; }
 
-          .section-axes { padding: 3.5rem 1.25rem !important; }
-          .axes-grid    { grid-template-columns: 1fr 1fr !important; }
-          .featured-axe { grid-column: span 2 !important; grid-row: auto !important; }
+          /* ── Axes: horizontal scroll ── */
+          .section-axes {
+            padding: 3.5rem 0 !important;
+          }
+          .axes-head {
+            padding: 0 1.25rem !important;
+            margin-bottom: 1.5rem !important;
+          }
+          .axes-grid {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            gap: 9px !important;
+            padding: 0 1.25rem 10px !important;
+            scroll-snap-type: x mandatory !important;
+            -webkit-overflow-scrolling: touch !important;
+          }
+          .axes-grid::-webkit-scrollbar { display: none !important; }
+          .axe-card {
+            min-width: 150px !important;
+            width: 150px !important;
+            flex-shrink: 0 !important;
+            scroll-snap-align: start !important;
+            border-radius: 13px !important;
+            border: 1px solid rgba(255,255,255,.07) !important;
+          }
+          .featured-axe {
+            min-width: 150px !important;
+            width: 150px !important;
+            flex-shrink: 0 !important;
+            scroll-snap-align: start !important;
+            border-radius: 13px !important;
+            grid-column: auto !important;
+            grid-row: auto !important;
+            order: -1 !important;
+          }
 
+          /* ── Gallery: 2-col, first item spans 2 cols ── */
           .section-galerie { padding: 3.5rem 1.25rem !important; }
           .gallery-grid {
             grid-template-columns: 1fr 1fr !important;
-            grid-template-rows: repeat(3, 160px) !important;
-            gap: 6px !important;
+            grid-template-rows: 150px 115px !important;
+            gap: 7px !important;
           }
           .gal-0 { grid-column: span 2 !important; grid-row: span 1 !important; }
           .gal-1 { grid-column: span 1 !important; }
           .gal-2 { grid-column: span 1 !important; }
-          .gal-3 { grid-column: span 1 !important; }
-          .gal-4 { grid-column: span 2 !important; }
+          .gal-3 { display: none !important; }
+          .gal-4 { display: none !important; }
 
           .section-cta { padding: 4rem 1.25rem !important; }
+
+          /* CTA buttons: stacked */
+          .section-cta .flex.flex-wrap { flex-direction: column !important; }
+          .section-cta .flex.flex-wrap a { width: 100% !important; }
         }
       `}</style>
     </div>

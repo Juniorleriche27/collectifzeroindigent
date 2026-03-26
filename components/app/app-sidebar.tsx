@@ -7,7 +7,6 @@ import type { LucideIcon } from "lucide-react";
 import {
   ChevronLeft,
   ChevronRight,
-  Menu,
   Handshake,
   HandCoins,
   Mail,
@@ -155,9 +154,13 @@ export function AppSidebar() {
     });
   }
 
-  const mobilePrimaryItems = ["/app/dashboard", "/app/membres", "/app/communaute", "/app/communiques", "/app/support"]
+  const mobilePrimaryItems = ["/app/dashboard", "/app/membres", "/app/carte-membre", "/app/communaute", "/app/support"]
     .map((href) => allItems.find((i) => i.href === href))
     .filter((i): i is NavItem => Boolean(i));
+
+  const mobileBadges: Record<string, number> = {
+    "/app/membres": 3,
+  };
 
   return (
     <>
@@ -228,16 +231,6 @@ export function AppSidebar() {
 
       {/* ── Mobile ───────────────────────────────── */}
       <div className="lg:hidden">
-        {/* Hamburger trigger */}
-        <button
-          aria-label="Ouvrir le menu"
-          onClick={() => setMobileOpen(true)}
-          type="button"
-          className="fixed bottom-[72px] left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-white shadow-lg transition-transform active:scale-95"
-        >
-          <Menu size={18} />
-        </button>
-
         {/* Overlay + drawer */}
         <div className={cn("fixed inset-0 z-50 transition", mobileOpen ? "pointer-events-auto" : "pointer-events-none")}>
           <button
@@ -289,27 +282,55 @@ export function AppSidebar() {
         </div>
 
         {/* Bottom tab bar */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface-elevated/95 backdrop-blur-lg">
-          <div className="grid grid-cols-5">
-            {mobilePrimaryItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(pathname, item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={item.label}
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-semibold transition-colors",
-                    active ? "text-primary" : "text-muted",
-                  )}
+        <nav
+          className="fixed inset-x-0 bottom-0 z-40 flex bg-white"
+          style={{
+            borderTop: "1px solid #E2E9F4",
+            boxShadow: "0 -4px 20px rgba(13,37,80,.07)",
+            paddingBottom: "max(8px, env(safe-area-inset-bottom))",
+          }}
+        >
+          {mobilePrimaryItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(pathname, item.href);
+            const badge = mobileBadges[item.href];
+            const shortLabel = item.label.length > 8
+              ? item.label.split(" ")[0]
+              : item.label;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={item.label}
+                className="relative flex flex-1 flex-col items-center gap-[3px] py-2 no-underline transition-colors"
+                style={{ color: active ? "#1A8A9B" : "#637590" }}
+              >
+                {active && (
+                  <span
+                    className="absolute left-1/2 top-0 -translate-x-1/2 rounded-b-[3px]"
+                    style={{ width: 20, height: 3, background: "#1A8A9B" }}
+                  />
+                )}
+                <span className="relative">
+                  <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+                  {badge ? (
+                    <span
+                      className="absolute -right-[10px] -top-[4px] flex h-4 w-4 items-center justify-center rounded-full border-2 border-white text-[0.52rem] font-extrabold text-white"
+                      style={{ background: "#E53935", fontFamily: "'Syne', sans-serif" }}
+                    >
+                      {badge}
+                    </span>
+                  ) : null}
+                </span>
+                <span
+                  className="truncate text-[0.56rem] font-bold uppercase tracking-[0.04em]"
+                  style={{ fontFamily: "'Syne', sans-serif" }}
                 >
-                  <Icon size={18} />
-                  <span className="truncate px-1">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
+                  {shortLabel}
+                </span>
+              </Link>
+            );
+          })}
         </nav>
       </div>
     </>
