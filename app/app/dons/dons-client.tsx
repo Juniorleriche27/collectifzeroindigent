@@ -88,14 +88,23 @@ export function DonsClient({
   return (
     <div className="space-y-6">
       {/* Header banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-rose-500 to-primary px-6 py-5 text-white shadow-md">
+      <div
+        className="relative overflow-hidden rounded-2xl px-8 py-7 text-white shadow-md"
+        style={{ background: "linear-gradient(120deg, #0F5F6B 0%, #1A8A9B 60%, #25B4C8 100%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 0, transparent 24px)",
+          }}
+        />
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Mon espace</p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight">Faire un don</h2>
-            <p className="mt-1 text-sm text-white/75">
-              Soutenez les actions CZI. Montant en CFA (XOF).
-            </p>
+            <p className="text-[.65rem] font-bold uppercase tracking-[.14em] text-white/60 mb-[6px]">Mon espace</p>
+            <h1 className="text-[1.6rem] font-bold leading-[1.15] text-white mb-[6px]" style={{ fontFamily: "'Syne', sans-serif" }}>
+              Faire un don
+            </h1>
+            <p className="text-[.85rem] text-white/65">Soutenez les actions CZI. Montant en CFA (XOF).</p>
           </div>
           {role ? (
             <span className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold">
@@ -103,8 +112,6 @@ export function DonsClient({
             </span>
           ) : null}
         </div>
-        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
-        <HeartHandshake className="pointer-events-none absolute right-6 bottom-4 text-white/15" size={72} />
       </div>
 
       {loadError ? (
@@ -170,14 +177,21 @@ export function DonsClient({
 
       <div className="grid gap-4 md:grid-cols-4">
         {[
-          { label: "Total dons", value: String(summary.count), color: "text-foreground" },
-          { label: "Montant cumulé", value: `${formatAmount(summary.total_amount_cfa)} F`, color: "text-primary" },
-          { label: "Montant payé", value: `${formatAmount(summary.paid_amount_cfa)} F`, color: "text-emerald-600" },
-          { label: "En attente", value: String(summary.pending_count), color: "text-amber-600" },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
-            <p className={`mt-1.5 text-2xl font-bold ${color}`}>{value}</p>
+          { label: "Total dons",     value: String(summary.count),                            bar: "#1E88E5", text: "#1E88E5", bg: "rgba(30,136,229,.1)" },
+          { label: "Montant cumulé", value: `${formatAmount(summary.total_amount_cfa)} F`,    bar: "#1A8A9B", text: "#1A8A9B", bg: "rgba(26,138,155,.1)" },
+          { label: "Montant payé",   value: `${formatAmount(summary.paid_amount_cfa)} F`,     bar: "#43A047", text: "#43A047", bg: "rgba(67,160,71,.1)" },
+          { label: "En attente",     value: String(summary.pending_count),                    bar: "#F9A825", text: "#F9A825", bg: "rgba(249,168,37,.1)" },
+        ].map(({ label, value, bar, text }) => (
+          <div
+            key={label}
+            className="relative overflow-hidden rounded-[14px] border border-[#E2E8F0] bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            style={{ boxShadow: "0 1px 4px rgba(18,32,46,.06)" }}
+          >
+            <div style={{ height: 3, background: bar, borderRadius: "14px 14px 0 0" }} />
+            <div className="p-5">
+              <p className="text-[.65rem] font-bold uppercase tracking-[.12em] text-[#7A8CA0] mb-3">{label}</p>
+              <p className="text-[2rem] font-bold leading-none" style={{ color: text }}>{value}</p>
+            </div>
           </div>
         ))}
       </div>

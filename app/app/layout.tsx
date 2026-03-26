@@ -40,17 +40,17 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
 
         <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
           {/* ── Header ── */}
-          <header className="glass shrink-0 border-b border-border px-4 sm:px-6">
+          <header className="shrink-0 border-b border-[#E2E8F0] bg-white px-4 sm:px-6" style={{ boxShadow: "0 2px 8px rgba(18,32,46,.05)" }}>
             <div className="flex h-16 items-center justify-between gap-4">
               {/* Search */}
               <div className="relative flex-1 max-w-xs sm:max-w-sm">
                 <Search
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7A8CA0]"
                   size={15}
                 />
                 <input
                   placeholder="Rechercher…"
-                  className="h-9 w-full rounded-xl border border-border bg-background/60 pl-9 pr-3 text-sm text-foreground placeholder:text-muted outline-none transition-all focus:border-primary focus:bg-surface-elevated focus:ring-4 focus:ring-primary/15"
+                  className="h-9 w-full rounded-xl border border-[#E2E8F0] bg-[#F0F3F8] pl-9 pr-3 text-sm text-[#12202E] placeholder:text-[#7A8CA0] outline-none transition-all focus:border-[#1A8A9B] focus:ring-4 focus:ring-[#1A8A9B]/15"
                 />
               </div>
 
@@ -60,23 +60,23 @@ export default async function MemberAppLayout({ children }: { children: ReactNod
                 <button
                   type="button"
                   aria-label="Notifications"
-                  className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background/60 text-muted transition-colors hover:bg-muted-surface hover:text-foreground"
+                  className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F0F3F8] text-[#7A8CA0] transition-colors hover:bg-[#E0F4F7] hover:text-[#12202E]"
                 >
                   <Bell size={16} />
                   {/* Unread dot */}
-                  <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
+                  <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#E53935]" />
                 </button>
 
                 {/* User info */}
                 <div className="flex items-center gap-2.5">
                   <div className="hidden text-right sm:block">
-                    <p className="text-xs font-semibold text-foreground leading-none">Admin CZI</p>
-                    <p className="mt-0.5 text-[11px] text-muted leading-none truncate max-w-[140px]">
+                    <p className="text-xs font-semibold text-[#12202E] leading-none" style={{ fontFamily: "'Syne', sans-serif" }}>Admin CZI</p>
+                    <p className="mt-0.5 text-[11px] text-[#7A8CA0] leading-none truncate max-w-[140px]">
                       {userEmail ?? "admin@czi.org"}
                     </p>
                   </div>
                   {/* Avatar */}
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-xs font-bold text-white shadow-sm">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#1A8A9B] to-[#0F5F6B] text-xs font-bold text-white shadow-sm">
                     {userInitials}
                   </div>
                 </div>

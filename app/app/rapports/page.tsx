@@ -121,12 +121,23 @@ export default async function RapportsPage({ searchParams }: { searchParams: Sea
   return (
     <div className="space-y-6">
       {/* Header banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 to-[#0a8ea8] px-6 py-5 text-white shadow-md">
+      <div
+        className="relative overflow-hidden rounded-2xl px-8 py-7 text-white shadow-md"
+        style={{ background: "linear-gradient(120deg, #0F5F6B 0%, #1A8A9B 60%, #25B4C8 100%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 0, transparent 24px)",
+          }}
+        />
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Contenus</p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight">Rapports d&apos;activité</h2>
-            <p className="mt-1 text-sm text-white/75">
+            <p className="text-[.65rem] font-bold uppercase tracking-[.14em] text-white/60 mb-[6px]">Contenus</p>
+            <h1 className="text-[1.6rem] font-bold leading-[1.15] text-white mb-[6px]" style={{ fontFamily: "'Syne', sans-serif" }}>
+              Rapports d&apos;activité
+            </h1>
+            <p className="text-[.85rem] text-white/65">
               Téléchargez les rapports du Collectif Zéro Indigent.
             </p>
           </div>
@@ -144,8 +155,6 @@ export default async function RapportsPage({ searchParams }: { searchParams: Sea
             ) : null}
           </div>
         </div>
-        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
-        <FileText className="pointer-events-none absolute right-6 bottom-4 text-white/15" size={72} />
       </div>
 
       {loadError ? (

@@ -125,19 +125,26 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
   return (
     <div className="space-y-6">
       {/* Header banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-[#7c3aed] px-6 py-5 text-white shadow-md">
+      <div
+        className="relative overflow-hidden rounded-2xl px-8 py-7 text-white shadow-md"
+        style={{ background: "linear-gradient(120deg, #0F5F6B 0%, #1A8A9B 60%, #25B4C8 100%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 0, transparent 24px)",
+          }}
+        />
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Mon espace</p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight">Carte de membre CZI</h2>
-            <p className="mt-1 text-sm text-white/75">
-              Demande, photo et mode de remise — 2 900 F.
-            </p>
+            <p className="text-[.65rem] font-bold uppercase tracking-[.14em] text-white/60 mb-[6px]">Mon espace</p>
+            <h1 className="text-[1.6rem] font-bold leading-[1.15] text-white mb-[6px]" style={{ fontFamily: "'Syne', sans-serif" }}>
+              Carte de membre CZI
+            </h1>
+            <p className="text-[.85rem] text-white/65">Demande, photo et mode de remise — 2 900 F.</p>
           </div>
           <Badge variant="warning">Paiement bientôt disponible</Badge>
         </div>
-        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
-        <CreditCard className="pointer-events-none absolute right-6 bottom-4 text-white/15" size={72} />
       </div>
 
       {loadError ? (
@@ -181,43 +188,60 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                 label: "Photo",
                 value: formatStatusLabel(member.photo_status),
                 hint: member.photo_preview_url ? "Photo enregistrée." : "Aucune photo enregistrée.",
-                icon: <FileImage size={20} />,
-                color: "text-primary bg-primary/10",
+                icon: <FileImage size={18} />,
+                bar: "#1A8A9B",
+                iconBg: "rgba(26,138,155,.1)",
+                iconColor: "#1A8A9B",
+                textColor: "#1A8A9B",
               },
               {
                 label: "Paiement",
                 value: formatStatusLabel(request?.payment_status ?? "unpaid"),
                 hint: `Montant fixe : ${request?.price_cfa ?? 2900} F`,
-                icon: <CreditCard size={20} />,
-                color: "text-amber-600 bg-amber-50",
+                icon: <CreditCard size={18} />,
+                bar: "#F9A825",
+                iconBg: "rgba(249,168,37,.1)",
+                iconColor: "#F9A825",
+                textColor: "#F9A825",
               },
               {
                 label: "Statut carte",
                 value: formatStatusLabel(request?.card_status ?? "draft"),
                 hint: cardLabel,
-                icon: <ShieldCheck size={20} />,
-                color: "text-emerald-600 bg-emerald-50",
+                icon: <ShieldCheck size={18} />,
+                bar: "#43A047",
+                iconBg: "rgba(67,160,71,.1)",
+                iconColor: "#43A047",
+                textColor: "#43A047",
               },
               {
                 label: "Remise",
                 value: formatDeliveryModeLabel(request?.delivery_mode),
                 hint: request?.delivery_contact || member.phone || member.email || "Contact à définir",
-                icon: <Truck size={20} />,
-                color: "text-indigo-600 bg-indigo-50",
+                icon: <Truck size={18} />,
+                bar: "#1E88E5",
+                iconBg: "rgba(30,136,229,.1)",
+                iconColor: "#1E88E5",
+                textColor: "#1E88E5",
               },
-            ].map(({ label, value, hint, icon, color }) => (
-              <Card key={label} className="space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <CardDescription>{label}</CardDescription>
-                    <CardTitle className="mt-1.5 text-xl">{value}</CardTitle>
+            ].map(({ label, value, hint, icon, bar, iconBg, iconColor, textColor }) => (
+              <div
+                key={label}
+                className="relative overflow-hidden rounded-[14px] border border-[#E2E8F0] bg-white"
+                style={{ boxShadow: "0 1px 4px rgba(18,32,46,.06)" }}
+              >
+                <div style={{ height: 3, background: bar, borderRadius: "14px 14px 0 0" }} />
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <p className="text-[.65rem] font-bold uppercase tracking-[.12em] text-[#7A8CA0]">{label}</p>
+                    <div className="h-8 w-8 rounded-[8px] grid place-items-center flex-shrink-0" style={{ background: iconBg }}>
+                      <span style={{ color: iconColor }}>{icon}</span>
+                    </div>
                   </div>
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${color}`}>
-                    {icon}
-                  </div>
+                  <p className="text-xl font-bold leading-snug" style={{ color: textColor }}>{value}</p>
+                  <p className="mt-1.5 text-[.72rem] text-[#7A8CA0] line-clamp-2">{hint}</p>
                 </div>
-                <p className="text-xs text-muted">{hint}</p>
-              </Card>
+              </div>
             ))}
             {member.photo_preview_url ? (
               <div className="overflow-hidden rounded-xl border border-border md:col-span-4 xl:col-span-1">

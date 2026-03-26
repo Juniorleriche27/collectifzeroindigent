@@ -220,12 +220,23 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   return (
     <div className="space-y-6">
       {/* Page header banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-[#0a8ea8] px-6 py-5 text-white shadow-md">
+      <div
+        className="relative overflow-hidden rounded-2xl px-8 py-7 text-white shadow-md"
+        style={{ background: "linear-gradient(120deg, #0F5F6B 0%, #1A8A9B 60%, #25B4C8 100%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 0, transparent 24px)",
+          }}
+        />
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Gestion</p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight">Membres CZI</h2>
-            <p className="mt-1 text-sm text-white/75">{roleVisibilityHint(currentRole)}</p>
+            <p className="text-[.65rem] font-bold uppercase tracking-[.14em] text-white/60 mb-[6px]">Gestion</p>
+            <h1 className="text-[1.6rem] font-bold leading-[1.15] text-white mb-[6px]" style={{ fontFamily: "'Syne', sans-serif" }}>
+              Membres CZI
+            </h1>
+            <p className="text-[.85rem] text-white/65">{roleVisibilityHint(currentRole)}</p>
           </div>
           <div className="flex items-center gap-3">
             <span className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold">
@@ -238,28 +249,55 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             ) : null}
           </div>
         </div>
-        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
       </div>
 
       {/* Stats overview */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Total</p>
-          <p className="mt-1.5 text-3xl font-bold text-foreground">{totalCount}</p>
+        {/* Total — blue */}
+        <div
+          className="relative overflow-hidden rounded-[14px] border border-[#E2E8F0] bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          style={{ boxShadow: "0 1px 4px rgba(18,32,46,.06)" }}
+        >
+          <div style={{ height: 3, background: "#1E88E5", borderRadius: "14px 14px 0 0" }} />
+          <div className="p-5">
+            <p className="text-[.65rem] font-bold uppercase tracking-[.12em] text-[#7A8CA0] mb-3">Total</p>
+            <p className="text-[2.2rem] font-bold leading-none text-[#1E88E5]">{totalCount}</p>
+          </div>
         </div>
-        <div className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
-          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">Actifs</p>
-          <p className="mt-1.5 text-3xl font-bold text-emerald-600">
-            {stats.by_gender.reduce((s, b) => s + b.count, 0) > 0 ? stats.total : "—"}
-          </p>
+        {/* Actifs — green */}
+        <div
+          className="relative overflow-hidden rounded-[14px] border border-[#E2E8F0] bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          style={{ boxShadow: "0 1px 4px rgba(18,32,46,.06)" }}
+        >
+          <div style={{ height: 3, background: "#43A047", borderRadius: "14px 14px 0 0" }} />
+          <div className="p-5">
+            <p className="text-[.65rem] font-bold uppercase tracking-[.12em] text-[#7A8CA0] mb-3">Actifs</p>
+            <p className="text-[2.2rem] font-bold leading-none text-[#43A047]">
+              {stats.by_gender.reduce((s, b) => s + b.count, 0) > 0 ? stats.total : "—"}
+            </p>
+          </div>
         </div>
-        <div className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
-          <p className="text-xs font-semibold uppercase tracking-wide text-violet-600">Femmes</p>
-          <p className="mt-1.5 text-3xl font-bold text-violet-600">{genderStatsByKey.get("female") ?? 0}</p>
+        {/* Femmes — purple */}
+        <div
+          className="relative overflow-hidden rounded-[14px] border border-[#E2E8F0] bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          style={{ boxShadow: "0 1px 4px rgba(18,32,46,.06)" }}
+        >
+          <div style={{ height: 3, background: "#7B1FA2", borderRadius: "14px 14px 0 0" }} />
+          <div className="p-5">
+            <p className="text-[.65rem] font-bold uppercase tracking-[.12em] text-[#7A8CA0] mb-3">Femmes</p>
+            <p className="text-[2.2rem] font-bold leading-none text-[#7B1FA2]">{genderStatsByKey.get("female") ?? 0}</p>
+          </div>
         </div>
-        <div className="rounded-xl border border-border bg-surface-elevated px-5 py-4 shadow-xs">
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Hommes</p>
-          <p className="mt-1.5 text-3xl font-bold text-blue-600">{genderStatsByKey.get("male") ?? 0}</p>
+        {/* Hommes — blue */}
+        <div
+          className="relative overflow-hidden rounded-[14px] border border-[#E2E8F0] bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          style={{ boxShadow: "0 1px 4px rgba(18,32,46,.06)" }}
+        >
+          <div style={{ height: 3, background: "#1E88E5", borderRadius: "14px 14px 0 0" }} />
+          <div className="p-5">
+            <p className="text-[.65rem] font-bold uppercase tracking-[.12em] text-[#7A8CA0] mb-3">Hommes</p>
+            <p className="text-[2.2rem] font-bold leading-none text-[#1E88E5]">{genderStatsByKey.get("male") ?? 0}</p>
+          </div>
         </div>
       </section>
 
