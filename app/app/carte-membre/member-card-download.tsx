@@ -9,6 +9,7 @@ import type { MemberCardMemberRecord, MemberCardRequestRecord } from "@/lib/supa
 type Props = {
   member: MemberCardMemberRecord;
   request: MemberCardRequestRecord | null;
+  role: string | null;
 };
 
 function formatDate(iso: string | null | undefined): string {
@@ -23,12 +24,28 @@ function expiryDate(iso: string | null | undefined): string {
   return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function memberRole(member: MemberCardMemberRecord): string {
-  if (member.profession_title) return member.profession_title.toUpperCase();
+/** Platform role → display label on card */
+function memberRole(role: string | null, member: MemberCardMemberRecord): string {
+  switch (role) {
+    case "admin": return "ADMINISTRATEUR";
+    case "cn":    return "COORDINATEUR NATIONAL";
+    case "ca":    return "COORDINATEUR ADJOINT";
+    case "pf":    return "POINT FOCAL";
+  }
+  // Fallback: join mode
   if (member.join_mode === "entrepreneur") return "ENTREPRENEUR";
-  if (member.join_mode === "org_leader") return "LEADER ASSOCIATIF";
-  if (member.join_mode === "engaged") return "CITOYEN ENGAGÉ";
+  if (member.join_mode === "org_leader")   return "LEADER ASSOCIATIF";
+  if (member.join_mode === "engaged")      return "CITOYEN ENGAGÉ";
   return "MEMBRE";
+}
+
+/** Format Togolese phone number — always prefix +228 */
+function formatPhone(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const cleaned = raw.trim().replace(/\s+/g, " ");
+  if (cleaned.startsWith("+")) return cleaned;
+  if (cleaned.startsWith("228")) return `+${cleaned}`;
+  return `+228 ${cleaned}`;
 }
 
 /** Build a consistent member reference from UUID: CZI-XXXXXXXX */
@@ -41,7 +58,7 @@ function cut(text: string, max: number): string {
   return text.length > max ? text.slice(0, max - 1) + "…" : text;
 }
 
-export function MemberCardDownload({ member, request }: Props) {
+export function MemberCardDownload({ member, request, role: userRole }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,9 +108,10 @@ export function MemberCardDownload({ member, request }: Props) {
       const lastName  = (member.last_name  ?? "").toUpperCase();
       const firstName = member.first_name  ?? "";
       const fullName  = [firstName, lastName].filter(Boolean).join(" ");
-      const phone     = member.phone     ?? "";
-      const locality  = cut(member.locality ?? "", 28);
-      const role      = cut(memberRole(member), 30);
+      const phone      = formatPhone(member.phone);
+      const locality   = cut(member.locality ?? "", 28);
+      const profession = cut(member.profession_title ?? "", 28);
+      const role       = cut(memberRole(userRole, member), 30);
       const delivDate = formatDate(request?.created_at);
       const expDate   = expiryDate(request?.created_at);
 
@@ -217,8 +235,9 @@ export function MemberCardDownload({ member, request }: Props) {
 
       // Info rows
       const rows: Array<[string, string]> = [];
-      if (phone) rows.push(["Tél.", phone]);
-      if (locality) rows.push(["Localité", locality]);
+      if (phone)      rows.push(["Tél.", phone]);
+      if (profession) rows.push(["Profession", profession]);
+      if (locality)   rows.push(["Adresse", locality]);
 
       for (const [lbl, val] of rows) {
         doc.setFont("helvetica", "bold");
@@ -317,6 +336,8 @@ export function MemberCardDownload({ member, request }: Props) {
         ["Tél.", "+228 79 07 07 16 / 71 15 46 46"],
         ["Email", "czi.infos@gmail.com"],
         ["Web", "reseauczi.org"],
+        ...(profession ? [["Profession", cut(profession, 30)] as [string, string]] : []),
+        ...(locality   ? [["Adresse",    cut(locality, 30)]   as [string, string]] : []),
       ];
 
       let cy = 27.5;

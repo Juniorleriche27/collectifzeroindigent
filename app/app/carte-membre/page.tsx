@@ -451,7 +451,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                       Votre photo et vos informations sont disponibles. Téléchargez votre carte
                       de membre CZI au format PDF — disponible à tout moment.
                     </p>
-                    <MemberCardDownload member={member} request={request} />
+                    <MemberCardDownload member={member} request={request} role={overview?.role ?? null} />
                   </div>
                 ) : (
                   <div className="rounded-xl border border-border bg-muted-surface/40 p-4">
