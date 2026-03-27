@@ -645,23 +645,64 @@ export function OnboardingForm({
       onInput={saveDraftProgress}
       onSubmit={handleSubmit}
     >
-      <section className="rounded-xl border border-border bg-surface p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-              Étape {currentStep}/{totalSteps}
-            </p>
-            <p className="text-sm text-muted-foreground">{onboardingStepTitles[currentStep - 1]}</p>
-          </div>
-          <div className="text-sm text-muted-foreground">{Math.round((currentStep / totalSteps) * 100)}%</div>
+      <div className="mb-2 overflow-hidden rounded-2xl px-6 py-6" style={{ background: "#12202E", border: "1px solid rgba(255,255,255,.08)" }}>
+        {/* Numbered step circles */}
+        <div className="flex items-center justify-center">
+          {Array.from({ length: totalSteps }, (_, i) => {
+            const step = i + 1;
+            const done = step < currentStep;
+            const active = step === currentStep;
+            return (
+              <>
+                <div
+                  key={`circle-${step}`}
+                  className="relative flex shrink-0 items-center justify-center rounded-full transition-all duration-200"
+                  style={{
+                    width: 34,
+                    height: 34,
+                    fontSize: "0.72rem",
+                    fontWeight: 800,
+                    fontFamily: "'Syne', sans-serif",
+                    background: done || active ? "#1A8A9B" : "transparent",
+                    border: done || active ? "none" : "1.5px solid rgba(255,255,255,.18)",
+                    color: done || active ? "#fff" : "rgba(255,255,255,.35)",
+                    boxShadow: active ? "0 0 0 4px rgba(26,138,155,.2)" : "none",
+                  }}
+                >
+                  {done ? "✓" : step}
+                </div>
+                {step < totalSteps && (
+                  <div
+                    key={`line-${step}`}
+                    style={{
+                      flex: 1,
+                      height: 2,
+                      minWidth: 8,
+                      background: step < currentStep ? "#1A8A9B" : "rgba(255,255,255,.1)",
+                      transition: "background .3s",
+                    }}
+                  />
+                )}
+              </>
+            );
+          })}
         </div>
-        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted-surface">
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-          />
+        {/* Current step label */}
+        <div className="mt-5 text-center">
+          <p
+            className="text-[0.58rem] font-bold uppercase tracking-[.16em]"
+            style={{ color: "rgba(255,255,255,.35)", fontFamily: "'Syne', sans-serif" }}
+          >
+            Étape {currentStep} / {totalSteps}
+          </p>
+          <p
+            className="mt-1 text-base font-bold text-white"
+            style={{ fontFamily: "'Syne', sans-serif" }}
+          >
+            {onboardingStepTitles[currentStep - 1]}
+          </p>
         </div>
-      </section>
+      </div>
 
       <section className={cn("rounded-xl border border-border bg-surface p-4", currentStep === 1 ? "block" : "hidden")}>
         <h3 className="text-base font-semibold">A. Identité et contact</h3>
