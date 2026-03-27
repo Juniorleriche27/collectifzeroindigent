@@ -60,8 +60,10 @@ export function ChatWidget() {
         body: JSON.stringify({ question }),
       });
 
-      const data = (await res.json().catch(() => null)) as { item?: { answer?: string } } | null;
-      const answer = clean(data?.item?.answer ?? "Je n'ai pas pu répondre à cette question.");
+      const data = (await res.json().catch(() => null)) as { item?: { answer?: string }; error?: string } | null;
+      const answer = res.ok
+        ? clean(data?.item?.answer ?? "Je n'ai pas pu répondre à cette question.")
+        : (data?.error ?? `Erreur ${res.status}`);
       setMsgs((prev) =>
         prev.map((m) => (m.id === aid ? { ...m, content: answer, pending: false } : m)),
       );
