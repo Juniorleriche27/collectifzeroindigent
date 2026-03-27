@@ -323,8 +323,6 @@ export function MemberCardDownload({ member, request, cardTitle }: Props) {
         ["Tél.", "+228 79 07 07 16 / 71 15 46 46"],
         ["Email", "czi.infos@gmail.com"],
         ["Web", "reseauczi.org"],
-        ["Profession", cut(profession || "—", 30)],
-        ["Adresse",    cut(locality   || "—", 30)],
       ];
 
       let cy = 27.5;
