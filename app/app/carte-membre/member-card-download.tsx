@@ -9,7 +9,7 @@ import type { MemberCardMemberRecord, MemberCardRequestRecord } from "@/lib/supa
 type Props = {
   member: MemberCardMemberRecord;
   request: MemberCardRequestRecord | null;
-  role: string | null;
+  cardTitle: string;
 };
 
 function formatDate(iso: string | null | undefined): string {
@@ -24,20 +24,6 @@ function expiryDate(iso: string | null | undefined): string {
   return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-/** Platform role → display label on card */
-function memberRole(role: string | null, member: MemberCardMemberRecord): string {
-  switch (role) {
-    case "admin": return "ADMINISTRATEUR";
-    case "cn":    return "COORDINATEUR NATIONAL";
-    case "ca":    return "COORDINATEUR ADJOINT";
-    case "pf":    return "POINT FOCAL";
-  }
-  // Fallback: join mode
-  if (member.join_mode === "entrepreneur") return "ENTREPRENEUR";
-  if (member.join_mode === "org_leader")   return "LEADER ASSOCIATIF";
-  if (member.join_mode === "engaged")      return "CITOYEN ENGAGÉ";
-  return "MEMBRE";
-}
 
 /** Format Togolese phone number — always prefix +228 */
 function formatPhone(raw: string | null | undefined): string {
@@ -58,7 +44,7 @@ function cut(text: string, max: number): string {
   return text.length > max ? text.slice(0, max - 1) + "…" : text;
 }
 
-export function MemberCardDownload({ member, request, role: userRole }: Props) {
+export function MemberCardDownload({ member, request, cardTitle }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,7 +97,7 @@ export function MemberCardDownload({ member, request, role: userRole }: Props) {
       const phone      = formatPhone(member.phone);
       const locality   = cut(member.locality ?? "", 28);
       const profession = cut(member.profession_title ?? "", 28);
-      const role       = cut(memberRole(userRole, member), 30);
+      const role       = cut(cardTitle || "MEMBRE", 30);
       const delivDate = formatDate(request?.created_at);
       const expDate   = expiryDate(request?.created_at);
 

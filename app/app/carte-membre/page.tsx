@@ -244,6 +244,19 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                   disabled={formDisabled}
                   memberName={memberDisplayName}
                 />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="czi-role">
+                    Poste dans le CZI
+                  </label>
+                  <Input
+                    defaultValue={request?.delivery_contact ?? ""}
+                    disabled={formDisabled}
+                    id="czi-role"
+                    name="czi_role"
+                    placeholder="Laisser vide pour afficher MEMBRE"
+                  />
+                  <p className="text-xs text-muted">Ex : Coordinateur National, Point Focal, Trésorier…</p>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="profession-title">
@@ -365,7 +378,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                       Votre photo et vos informations sont disponibles. Téléchargez votre carte
                       de membre CZI au format PDF — disponible à tout moment.
                     </p>
-                    <MemberCardDownload member={member} request={request} role={overview?.role ?? null} />
+                    <MemberCardDownload member={member} request={request} cardTitle={request?.delivery_contact || "MEMBRE"} />
                   </div>
                 ) : (
                   <div className="rounded-xl border border-border bg-muted-surface/40 p-4">

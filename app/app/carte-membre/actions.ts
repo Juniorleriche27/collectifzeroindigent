@@ -58,6 +58,7 @@ export async function saveMemberCardRequestAction(formData: FormData) {
   const removePhoto = formBoolean(formData, "remove_photo");
   const professionTitle = formValue(formData, "profession_title");
   const locality = formValue(formData, "locality");
+  const cziRole = formValue(formData, "czi_role");
 
   const { data: currentMember, error: memberLookupError } = await supabase
     .from("member")
@@ -121,6 +122,7 @@ export async function saveMemberCardRequestAction(formData: FormData) {
 
   const payload = {
     requested,
+    delivery_contact: cziRole || null,
   };
 
   if (requestId) {
