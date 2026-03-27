@@ -124,7 +124,7 @@ export function ChatWidget() {
                 className="text-[0.58rem] font-bold uppercase tracking-[.12em] text-white/55"
                 style={{ fontFamily: "'Syne', sans-serif" }}
               >
-                Assistant
+                Support CZI
               </p>
               <p
                 className="text-[0.8rem] font-bold text-white"
@@ -166,7 +166,7 @@ export function ChatWidget() {
               className="rounded-xl p-3 text-[0.8rem]"
               style={{ background: "#FFF7ED", border: "1px solid #FED7AA", color: "#92400E" }}
             >
-              Connectez-vous à votre compte CZI pour utiliser l&apos;assistant IA.
+              Connectez-vous à votre compte CZI pour utiliser le conseiller.
             </div>
           )}
           {msgs.map((m) => (
@@ -229,7 +229,7 @@ export function ChatWidget() {
           background: "linear-gradient(135deg, #1A8A9B 0%, #0F5F6B 100%)",
           boxShadow: "0 8px 32px rgba(15,95,107,.4)",
         }}
-        aria-label={open ? "Fermer l'assistant" : "Ouvrir l'assistant CZI"}
+        aria-label={open ? "Fermer le conseiller" : "Ouvrir le conseiller CZI"}
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
       </button>

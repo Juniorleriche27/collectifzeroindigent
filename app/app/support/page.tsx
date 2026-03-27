@@ -19,7 +19,7 @@ export default function SupportPage() {
           <h1 className="text-[1.6rem] font-bold leading-[1.15] text-white mb-[6px]" style={{ fontFamily: "'Syne', sans-serif" }}>
             Assistance
           </h1>
-          <p className="text-[.85rem] text-white/65">Conseiller IA disponible en bas à droite de l&apos;écran.</p>
+          <p className="text-[.85rem] text-white/65">Votre conseiller CZI disponible en bas à droite de l&apos;écran.</p>
         </div>
       </div>
 
@@ -34,7 +34,7 @@ export default function SupportPage() {
           Conseiller CZI
         </h2>
         <p className="mx-auto max-w-sm text-sm text-muted">
-          Le conseiller IA est accessible depuis le bouton flottant en bas à droite de toutes les pages.
+          Le conseiller CZI est accessible depuis le bouton flottant en bas à droite de toutes les pages.
           Cliquez dessus pour ouvrir la discussion.
         </p>
       </div>
