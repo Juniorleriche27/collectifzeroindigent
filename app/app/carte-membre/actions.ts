@@ -59,6 +59,8 @@ export async function saveMemberCardRequestAction(formData: FormData) {
   const deliveryMode = formValue(formData, "delivery_mode") === "delivery" ? "delivery" : "pickup";
   const deliveryContact = formValue(formData, "delivery_contact");
   const deliveryAddress = formValue(formData, "delivery_address");
+  const professionTitle = formValue(formData, "profession_title");
+  const locality = formValue(formData, "locality");
 
   const { data: currentMember, error: memberLookupError } = await supabase
     .from("member")
@@ -68,6 +70,20 @@ export async function saveMemberCardRequestAction(formData: FormData) {
 
   if (memberLookupError) {
     buildRedirect("/app/carte-membre", "error", memberLookupError.message);
+  }
+
+  // Update profession and locality on the member record
+  if (professionTitle || locality) {
+    const memberUpdate: Record<string, string> = {};
+    if (professionTitle) memberUpdate.profession_title = professionTitle;
+    if (locality) memberUpdate.locality = locality;
+    const { error: memberFieldError } = await supabase
+      .from("member")
+      .update(memberUpdate)
+      .eq("id", linkedMember.id);
+    if (memberFieldError) {
+      buildRedirect("/app/carte-membre", "error", memberFieldError.message);
+    }
   }
 
   if (photoFile || removePhoto) {

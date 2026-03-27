@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { CreditCard, FileImage, ShieldCheck, Truck } from "lucide-react";
+import { FileImage, ShieldCheck, Truck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ function paramValue(value: string | string[] | undefined): string {
 function badgeVariant(
   value: string | null,
 ): "default" | "success" | "warning" | "danger" {
-  if (value === "paid" || value === "ready" || value === "approved" || value === "delivered") {
+  if (value === "ready" || value === "approved" || value === "delivered") {
     return "success";
   }
   if (value === "pending" || value === "uploaded" || value === "printed") {
@@ -39,16 +39,8 @@ function badgeVariant(
 
 function formatStatusLabel(value: string | null | undefined): string {
   switch (value) {
-    case "unpaid":
-      return "Non payé";
     case "pending":
       return "En attente";
-    case "paid":
-      return "Payé";
-    case "failed":
-      return "Échec";
-    case "refunded":
-      return "Remboursé";
     case "draft":
       return "Brouillon";
     case "ready":
@@ -79,10 +71,8 @@ function formatDeliveryModeLabel(value: string | null | undefined): string {
   return "Retrait";
 }
 
-function canEditRequest(paymentStatus: string | null | undefined, cardStatus: string | null | undefined) {
-  const editablePayment = paymentStatus === "unpaid" || paymentStatus === "pending" || paymentStatus === "failed";
-  const editableCard = cardStatus === "draft" || cardStatus === "cancelled";
-  return editablePayment && editableCard;
+function canEditRequest(cardStatus: string | null | undefined) {
+  return !cardStatus || cardStatus === "draft" || cardStatus === "cancelled";
 }
 
 export default async function MemberCardPage({ searchParams }: { searchParams: SearchParams }) {
@@ -102,7 +92,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
 
   const member = overview?.member ?? null;
   const request = overview?.request ?? null;
-  const requestEditable = request ? canEditRequest(request.payment_status, request.card_status) : true;
+  const requestEditable = request ? canEditRequest(request.card_status) : true;
   const formDisabled = !member || !requestEditable;
   const cardLabel = request?.card_number ?? "Aucun numéro généré pour le moment";
   const defaultDeliveryContact = member
@@ -135,15 +125,12 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
             background: "repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 0, transparent 24px)",
           }}
         />
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-[.65rem] font-bold uppercase tracking-[.14em] text-white/60 mb-[6px]">Mon espace</p>
-            <h1 className="text-[1.6rem] font-bold leading-[1.15] text-white mb-[6px]" style={{ fontFamily: "'Syne', sans-serif" }}>
-              Carte de membre CZI
-            </h1>
-            <p className="text-[.85rem] text-white/65">Demande, photo et mode de remise — 2 900 F.</p>
-          </div>
-          <Badge variant="warning">Paiement bientôt disponible</Badge>
+        <div className="relative z-10">
+          <p className="text-[.65rem] font-bold uppercase tracking-[.14em] text-white/60 mb-[6px]">Mon espace</p>
+          <h1 className="text-[1.6rem] font-bold leading-[1.15] text-white mb-[6px]" style={{ fontFamily: "'Syne', sans-serif" }}>
+            Carte de membre CZI
+          </h1>
+          <p className="text-[.85rem] text-white/65">Demande, photo et mode de remise.</p>
         </div>
       </div>
 
@@ -182,7 +169,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
 
       {member ? (
         <>
-          <section className="grid gap-4 md:grid-cols-4">
+          <section className="grid gap-4 md:grid-cols-3">
             {[
               {
                 label: "Photo",
@@ -193,16 +180,6 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                 iconBg: "rgba(26,138,155,.1)",
                 iconColor: "#1A8A9B",
                 textColor: "#1A8A9B",
-              },
-              {
-                label: "Paiement",
-                value: formatStatusLabel(request?.payment_status ?? "unpaid"),
-                hint: `Montant fixe : ${request?.price_cfa ?? 2900} F`,
-                icon: <CreditCard size={18} />,
-                bar: "#F9A825",
-                iconBg: "rgba(249,168,37,.1)",
-                iconColor: "#F9A825",
-                textColor: "#F9A825",
               },
               {
                 label: "Statut carte",
@@ -244,7 +221,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
               </div>
             ))}
             {member.photo_preview_url ? (
-              <div className="overflow-hidden rounded-xl border border-border md:col-span-4 xl:col-span-1">
+              <div className="overflow-hidden rounded-xl border border-border md:col-span-3 xl:col-span-1">
                 <img
                   alt={`Photo de ${memberDisplayName}`}
                   className="h-40 w-full object-cover"
@@ -267,8 +244,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
               <div>
                 <CardTitle>Configurer votre demande</CardTitle>
                 <CardDescription className="mt-2">
-                  Activez votre demande, ajoutez votre photo et précisez la remise. Le paiement en
-                  ligne n&apos;est pas encore ouvert.
+                  Activez votre demande, ajoutez votre photo et précisez la remise.
                 </CardDescription>
               </div>
               {!requestEditable && request ? (
@@ -286,7 +262,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                     name="requested"
                     type="checkbox"
                   />
-                  Je souhaite ma carte de membre CZI (2900 F)
+                  Je souhaite ma carte de membre CZI
                 </label>
                 <MemberPhotoField
                   currentPhotoExists={Boolean(member.photo_url)}
@@ -295,6 +271,34 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                   disabled={formDisabled}
                   memberName={memberDisplayName}
                 />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="profession-title">
+                      Profession <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      defaultValue={member.profession_title ?? ""}
+                      disabled={formDisabled}
+                      id="profession-title"
+                      name="profession_title"
+                      placeholder="Ex : Enseignant, Médecin…"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="locality">
+                      Adresse / Localité <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      defaultValue={member.locality ?? ""}
+                      disabled={formDisabled}
+                      id="locality"
+                      name="locality"
+                      placeholder="Ex : Lomé, Quartier Bè…"
+                      required
+                    />
+                  </div>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="delivery-mode">
@@ -340,9 +344,6 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                   <Button disabled={formDisabled} type="submit">
                     {request ? "Mettre à jour la demande" : "Enregistrér la demande"}
                   </Button>
-                  <Button disabled type="button" variant="secondary">
-                    Paiement bientôt disponible
-                  </Button>
                 </div>
               </form>
             </Card>
@@ -357,9 +358,6 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                   <div className="mt-3 flex items-center gap-2">
                     <Badge variant={request?.requested ? "success" : "default"}>
                       {request?.requested ? "Demandée" : "Non demandée"}
-                    </Badge>
-                    <Badge variant={badgeVariant(request?.payment_status ?? "unpaid")}>
-                      {formatStatusLabel(request?.payment_status ?? "unpaid")}
                     </Badge>
                     <Badge variant={badgeVariant(request?.card_status ?? "draft")}>
                       {formatStatusLabel(request?.card_status ?? "draft")}
@@ -464,16 +462,6 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                     </p>
                   </div>
                 )}
-
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/70">
-                    Paiement
-                  </p>
-                  <p className="mt-3 text-sm text-foreground/80">
-                    La demande peut être enregistrée dès maintenant. Le paiement en ligne sera activé
-                    des son ouverture.
-                  </p>
-                </div>
                 <Link href="/app/dons">
                   <Button className="w-full" type="button" variant="ghost">
                     Ouvrir aussi le module dons
