@@ -62,8 +62,8 @@ export function ChatWidget() {
 
       const data = (await res.json().catch(() => null)) as { item?: { answer?: string }; error?: string } | null;
       const answer = res.ok
-        ? clean(data?.item?.answer ?? "Je n'ai pas pu répondre à cette question.")
-        : (data?.error ?? `Erreur ${res.status}`);
+        ? clean(data?.item?.answer ?? "Je suis momentanément indisponible. Revenez dans quelques instants.")
+        : "Je suis en maintenance. Votre question a bien été reçue — revenez dans quelques instants et je serai de nouveau là pour vous répondre.";
       setMsgs((prev) =>
         prev.map((m) => (m.id === aid ? { ...m, content: answer, pending: false } : m)),
       );
