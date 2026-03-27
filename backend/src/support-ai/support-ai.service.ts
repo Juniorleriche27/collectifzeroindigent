@@ -46,11 +46,7 @@ export class SupportAiService {
     };
   }
 
-  async ask(accessToken: string, payload: AskSupportAiDto) {
-    const client = this.supabaseDataService.forUser(accessToken);
-    const userId = await requireUserId(client);
-    const memberId = await getCurrentMemberId(client, userId);
-
+  async ask(accessToken: string | null, payload: AskSupportAiDto) {
     const question = payload.question.trim();
     if (!question) {
       throw new BadRequestException('Question vide.');
@@ -66,6 +62,30 @@ export class SupportAiService {
       );
     }
 
+    const model =
+      this.configService.get<string>('COHERE_MODEL')?.trim() ||
+      'command-r-plus';
+
+    // ── Guest mode (no token) — no history, no DB save, no daily limit ──
+    if (!accessToken) {
+      const answer = await this.requestCohere({ historyRows: [], model, question });
+      return {
+        item: {
+          answer,
+          created_at: new Date().toISOString(),
+          id: null,
+          model,
+          provider: 'cohere',
+          question,
+        },
+      };
+    }
+
+    // ── Authenticated mode ──
+    const client = this.supabaseDataService.forUser(accessToken);
+    const userId = await requireUserId(client);
+    const memberId = await getCurrentMemberId(client, userId);
+
     const dailyLimit = this.readPositiveIntEnv('SUPPORT_AI_DAILY_LIMIT', 20);
     const usageToday = await this.countRequestsToday(client, userId);
     if (usageToday >= dailyLimit) {
@@ -74,9 +94,6 @@ export class SupportAiService {
       );
     }
 
-    const model =
-      this.configService.get<string>('COHERE_MODEL')?.trim() ||
-      'command-r-plus';
     const historyTurns = this.readPositiveIntEnv('SUPPORT_AI_CONTEXT_TURNS', 6);
     const historyRows = await this.loadHistory(client, userId, historyTurns);
 
