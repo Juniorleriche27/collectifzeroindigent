@@ -56,9 +56,6 @@ export async function saveMemberCardRequestAction(formData: FormData) {
   const requested = formBoolean(formData, "requested");
   const photoFile = formFile(formData, "photo_file");
   const removePhoto = formBoolean(formData, "remove_photo");
-  const deliveryMode = formValue(formData, "delivery_mode") === "delivery" ? "delivery" : "pickup";
-  const deliveryContact = formValue(formData, "delivery_contact");
-  const deliveryAddress = formValue(formData, "delivery_address");
   const professionTitle = formValue(formData, "profession_title");
   const locality = formValue(formData, "locality");
 
@@ -123,9 +120,6 @@ export async function saveMemberCardRequestAction(formData: FormData) {
   }
 
   const payload = {
-    delivery_address: deliveryAddress || null,
-    delivery_contact: deliveryContact || null,
-    delivery_mode: deliveryMode,
     requested,
   };
 
@@ -155,7 +149,7 @@ export async function saveMemberCardRequestAction(formData: FormData) {
     "/app/carte-membre",
     "notice",
     requested
-      ? "Demande de carte enregistrée. Les informations de livraison et la photo ont été mises à jour."
+      ? "Demande de carte enregistrée. Vos informations ont été mises à jour."
       : "Préférence de carte enregistrée.",
   );
 }

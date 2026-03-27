@@ -1,12 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { FileImage, ShieldCheck, Truck } from "lucide-react";
+import { FileImage, ShieldCheck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { getCurrentMemberCardOverview } from "@/lib/supabase/member-card";
 
 import { MemberCardDownload } from "./member-card-download";
@@ -64,13 +63,6 @@ function formatStatusLabel(value: string | null | undefined): string {
   }
 }
 
-function formatDeliveryModeLabel(value: string | null | undefined): string {
-  if (value === "delivery") {
-    return "Livraison";
-  }
-  return "Retrait";
-}
-
 function canEditRequest(cardStatus: string | null | undefined) {
   return !cardStatus || cardStatus === "draft" || cardStatus === "cancelled";
 }
@@ -95,20 +87,11 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
   const requestEditable = request ? canEditRequest(request.card_status) : true;
   const formDisabled = !member || !requestEditable;
   const cardLabel = request?.card_number ?? "Aucun numéro généré pour le moment";
-  const defaultDeliveryContact = member
-    ? request?.delivery_contact ||
-      [member.first_name, member.last_name].filter(Boolean).join(" ") ||
-      member.phone ||
-      member.email ||
-      ""
-    : "";
   const fullName = member ? [member.first_name, member.last_name].filter(Boolean).join(" ") : "";
   const hasName = Boolean(fullName);
   const hasContact = Boolean(member?.phone || member?.email);
   const hasPhoto =
     Boolean(member?.photo_url) || member?.photo_status === "uploaded" || member?.photo_status === "approved";
-  const hasDeliveryContact = Boolean(defaultDeliveryContact.trim());
-  const hasDeliveryAddress = Boolean(request?.delivery_address?.trim());
   const hasBaseCardInformation = hasName && hasContact;
   const memberDisplayName = fullName || "membre CZI";
 
@@ -130,7 +113,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
           <h1 className="text-[1.6rem] font-bold leading-[1.15] text-white mb-[6px]" style={{ fontFamily: "'Syne', sans-serif" }}>
             Carte de membre CZI
           </h1>
-          <p className="text-[.85rem] text-white/65">Demande, photo et mode de remise.</p>
+          <p className="text-[.85rem] text-white/65">Configurez et téléchargez votre carte de membre au format PDF.</p>
         </div>
       </div>
 
@@ -169,7 +152,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
 
       {member ? (
         <>
-          <section className="grid gap-4 md:grid-cols-3">
+          <section className="grid gap-4 md:grid-cols-2">
             {[
               {
                 label: "Photo",
@@ -191,16 +174,6 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                 iconColor: "#43A047",
                 textColor: "#43A047",
               },
-              {
-                label: "Remise",
-                value: formatDeliveryModeLabel(request?.delivery_mode),
-                hint: request?.delivery_contact || member.phone || member.email || "Contact à définir",
-                icon: <Truck size={18} />,
-                bar: "#1E88E5",
-                iconBg: "rgba(30,136,229,.1)",
-                iconColor: "#1E88E5",
-                textColor: "#1E88E5",
-              },
             ].map(({ label, value, hint, icon, bar, iconBg, iconColor, textColor }) => (
               <div
                 key={label}
@@ -221,7 +194,7 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
               </div>
             ))}
             {member.photo_preview_url ? (
-              <div className="overflow-hidden rounded-xl border border-border md:col-span-3 xl:col-span-1">
+              <div className="overflow-hidden rounded-xl border border-border md:col-span-2 xl:col-span-1">
                 <img
                   alt={`Photo de ${memberDisplayName}`}
                   className="h-40 w-full object-cover"
@@ -242,9 +215,9 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <Card className="space-y-4">
               <div>
-                <CardTitle>Configurer votre demande</CardTitle>
+                <CardTitle>Configurer votre carte</CardTitle>
                 <CardDescription className="mt-2">
-                  Activez votre demande, ajoutez votre photo et précisez la remise.
+                  Activez votre demande, ajoutez votre photo et complétez vos informations.
                 </CardDescription>
               </div>
               {!requestEditable && request ? (
@@ -299,50 +272,9 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                     />
                   </div>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="delivery-mode">
-                      Mode de remise
-                    </label>
-                    <Select
-                      defaultValue={request?.delivery_mode ?? "pickup"}
-                      disabled={formDisabled}
-                      id="delivery-mode"
-                      name="delivery_mode"
-                    >
-                      <option value="pickup">Retrait</option>
-                      <option value="delivery">Livraison</option>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="delivery-contact">
-                      Contact de remise
-                    </label>
-                    <Input
-                      defaultValue={defaultDeliveryContact}
-                      disabled={formDisabled}
-                      id="delivery-contact"
-                      name="delivery_contact"
-                      placeholder="Nom et téléphone"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="delivery-address">
-                    Adresse de livraison
-                  </label>
-                  <textarea
-                    className="min-h-[110px] w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-4 focus:ring-primary/20 disabled:pointer-events-none disabled:opacity-60"
-                    defaultValue={request?.delivery_address ?? ""}
-                    disabled={formDisabled}
-                    id="delivery-address"
-                    name="delivery_address"
-                    placeholder="Commune, quartier, précision de remise"
-                  />
-                </div>
                 <div className="flex flex-wrap gap-3">
                   <Button disabled={formDisabled} type="submit">
-                    {request ? "Mettre à jour la demande" : "Enregistrér la demande"}
+                    {request ? "Mettre à jour la demande" : "Enregistrer la demande"}
                   </Button>
                 </div>
               </form>
@@ -415,22 +347,6 @@ export default async function MemberCardPage({ searchParams }: { searchParams: S
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted">Localité</dt>
                       <dd className="text-right font-medium">{member.locality || "A compléter"}</dd>
-                    </div>
-                    <div className="flex items-start justify-between gap-4">
-                      <dt className="text-muted">Contact de remise</dt>
-                      <dd className="text-right font-medium">
-                        {hasDeliveryContact ? defaultDeliveryContact : "A compléter"}
-                      </dd>
-                    </div>
-                    <div className="flex items-start justify-between gap-4">
-                      <dt className="text-muted">Adresse livraison</dt>
-                      <dd className="text-right font-medium">
-                        {request?.delivery_mode === "delivery"
-                          ? hasDeliveryAddress
-                            ? "Renseignée"
-                            : "A compléter"
-                          : "Non requise"}
-                      </dd>
                     </div>
                   </dl>
                   <p className="mt-4 text-sm text-foreground/80">
