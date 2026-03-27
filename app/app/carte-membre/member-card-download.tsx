@@ -233,11 +233,12 @@ export function MemberCardDownload({ member, request, role: userRole }: Props) {
       doc.text(role, ix, iy);
       iy += 5;
 
-      // Info rows
-      const rows: Array<[string, string]> = [];
-      if (phone)      rows.push(["Tél.", phone]);
-      if (profession) rows.push(["Profession", profession]);
-      if (locality)   rows.push(["Adresse", locality]);
+      // Info rows — toujours affichées, "—" si vide
+      const rows: Array<[string, string]> = [
+        ["Tél.",       phone      || "—"],
+        ["Profession", profession || "—"],
+        ["Adresse",    locality   || "—"],
+      ];
 
       for (const [lbl, val] of rows) {
         doc.setFont("helvetica", "bold");
@@ -336,8 +337,8 @@ export function MemberCardDownload({ member, request, role: userRole }: Props) {
         ["Tél.", "+228 79 07 07 16 / 71 15 46 46"],
         ["Email", "czi.infos@gmail.com"],
         ["Web", "reseauczi.org"],
-        ...(profession ? [["Profession", cut(profession, 30)] as [string, string]] : []),
-        ...(locality   ? [["Adresse",    cut(locality, 30)]   as [string, string]] : []),
+        ["Profession", cut(profession || "—", 30)],
+        ["Adresse",    cut(locality   || "—", 30)],
       ];
 
       let cy = 27.5;
