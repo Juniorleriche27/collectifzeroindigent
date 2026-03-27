@@ -24,7 +24,6 @@ export function ChatWidget() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [q, setQ] = useState("");
   const [sending, setSending] = useState(false);
-  const [needsAuth, setNeedsAuth] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -60,12 +59,6 @@ export function ChatWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),
       });
-
-      if (res.status === 401 || res.status === 403) {
-        setNeedsAuth(true);
-        setMsgs((prev) => prev.filter((m) => m.id !== aid));
-        return;
-      }
 
       const data = (await res.json().catch(() => null)) as { item?: { answer?: string } } | null;
       const answer = clean(data?.item?.answer ?? "Je n'ai pas pu répondre à cette question.");
@@ -149,7 +142,7 @@ export function ChatWidget() {
           className="flex-1 space-y-3 overflow-y-auto p-4"
           style={{ background: "#F8FAFC" }}
         >
-          {msgs.length === 0 && !needsAuth && (
+          {msgs.length === 0 && (
             <div
               className="rounded-xl p-3 text-[0.8rem] leading-relaxed"
               style={{
@@ -159,14 +152,6 @@ export function ChatWidget() {
               }}
             >
               Bonjour ! Je suis l&apos;assistant CZI. Posez-moi une question sur l&apos;organisation, les projets ou les ODD.
-            </div>
-          )}
-          {needsAuth && (
-            <div
-              className="rounded-xl p-3 text-[0.8rem]"
-              style={{ background: "#FFF7ED", border: "1px solid #FED7AA", color: "#92400E" }}
-            >
-              Connectez-vous à votre compte CZI pour utiliser le conseiller.
             </div>
           )}
           {msgs.map((m) => (
@@ -198,7 +183,7 @@ export function ChatWidget() {
               onKeyDown={onKey}
               placeholder="Posez votre question…"
               rows={2}
-              disabled={needsAuth || sending}
+              disabled={sending}
               className="flex-1 resize-none rounded-xl px-3 py-2 text-[0.8rem] outline-none transition-colors disabled:opacity-50"
               style={{
                 background: "#F8FAFC",
@@ -209,7 +194,7 @@ export function ChatWidget() {
             />
             <button
               onClick={() => void send()}
-              disabled={sending || !q.trim() || needsAuth}
+              disabled={sending || !q.trim()}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white transition-colors disabled:opacity-40"
               style={{ background: "#0F5F6B" }}
               aria-label="Envoyer"

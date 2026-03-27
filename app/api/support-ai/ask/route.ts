@@ -49,22 +49,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Question requise." }, { status: 400 });
   }
 
+  // Auth is optional — public visitors can also use the chat
   const supabase = await createClient();
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (sessionError || !session?.access_token) {
-    return NextResponse.json({ error: "Session invalide." }, { status: 401 });
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (session?.access_token) {
+    headers["Authorization"] = `Bearer ${session.access_token}`;
   }
 
   const response = await fetch(`${backendApiBaseUrl()}/support-ai/ask`, {
     body: JSON.stringify({ question }),
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-      "Content-Type": "application/json",
-    },
+    headers,
     method: "POST",
   });
 
