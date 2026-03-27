@@ -175,7 +175,7 @@ export function DonsClient({
         <Card className="border-emerald-200 bg-emerald-50"><CardDescription className="text-emerald-700">{checkoutState.success}</CardDescription></Card>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
           { label: "Total dons",     value: String(summary.count),                            bar: "#1E88E5", text: "#1E88E5", bg: "rgba(30,136,229,.1)" },
           { label: "Montant cumulé", value: `${formatAmount(summary.total_amount_cfa)} F`,    bar: "#1A8A9B", text: "#1A8A9B", bg: "rgba(26,138,155,.1)" },
@@ -264,6 +264,7 @@ export function DonsClient({
         </div>
       ) : (
         <Card className="overflow-hidden p-0">
+          <p className="px-4 pt-3 text-xs text-muted md:hidden">← Faites défiler le tableau horizontalement →</p>
           <div className="overflow-x-auto">
           <table className="w-full min-w-[1020px] text-left">
             <thead>

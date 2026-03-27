@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -18,6 +19,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [joinMode, setJoinMode] = useState("personal");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
@@ -96,27 +98,41 @@ export default function SignupPage() {
           <label className="text-sm font-medium text-foreground" htmlFor="signup-password">
             Mot de passe
           </label>
-          <Input
-            id="signup-password"
-            type="password"
-            placeholder="Choisissez un mot de passe"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-          />
+          <div className="relative">
+            <Input
+              id="signup-password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Choisissez un mot de passe"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+              aria-label={showPassword ? "Masquer" : "Afficher"}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground" htmlFor="signup-password-confirm">
             Confirmer le mot de passe
           </label>
-          <Input
-            id="signup-password-confirm"
-            type="password"
-            placeholder="Rétapez le mot de passe"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            required
-          />
+          <div className="relative">
+            <Input
+              id="signup-password-confirm"
+              type={showPassword ? "text" : "password"}
+              placeholder="Rétapez le mot de passe"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              required
+              className="pr-10"
+            />
+          </div>
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground" htmlFor="join-mode">

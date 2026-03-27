@@ -150,7 +150,7 @@ export default async function CommunesRegionsPage({
 
       <Card className="space-y-4">
         <CardTitle className="text-base">Recherche et filtres</CardTitle>
-        <form className="grid gap-3 md:grid-cols-4" method="get">
+        <form className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4" method="get">
           <Input defaultValue={query} name="q" placeholder="Recherche (région, préfecture, commune)" />
           <Select defaultValue={regionId} name="region_id">
             <option value="">Toutes les régions</option>

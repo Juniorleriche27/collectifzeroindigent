@@ -207,7 +207,9 @@ export function CampagnesEmailClient({
           </CardDescription>
         </Card>
       ) : (
-        <Card className="overflow-x-auto p-0">
+        <Card className="p-0">
+          <p className="px-4 pt-3 text-xs text-muted md:hidden">← Faites défiler le tableau horizontalement →</p>
+          <div className="overflow-x-auto">
           <table className="w-full min-w-[1100px] text-left">
             <thead className="bg-muted-surface">
               <tr>
@@ -278,6 +280,7 @@ export function CampagnesEmailClient({
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
       )}
 

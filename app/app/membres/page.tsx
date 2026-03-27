@@ -303,7 +303,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
 
       <Card className="space-y-4">
         <CardTitle className="text-base">Recherche & filtres</CardTitle>
-        <form className="grid gap-3 md:grid-cols-9" method="get">
+        <form className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5" method="get">
           <Input defaultValue={query} name="q" placeholder="Nom, email, téléphone..." />
           <Select defaultValue={status} name="status">
             <option value="">Tous statuts</option>
@@ -370,7 +370,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
             <option value="20">20 / page</option>
             <option value="50">50 / page</option>
           </Select>
-          <div className="md:col-span-9 flex items-center gap-3">
+          <div className="sm:col-span-2 md:col-span-3 lg:col-span-5 flex items-center gap-3">
             <Button type="submit">Appliquer les filtres</Button>
             <p className="text-sm text-muted">{totalCount} résultat(s)</p>
           </div>
@@ -422,6 +422,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
       </section>
 
       <Card className="overflow-hidden p-0">
+        <p className="px-4 pt-3 text-xs text-muted md:hidden">← Faites défiler le tableau horizontalement →</p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead>
