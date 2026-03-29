@@ -54,11 +54,12 @@ export function MemberCardDownload({ member, request, cardTitle }: Props) {
 
     try {
       // Fetch member photo and logo concurrently
-      const [photoResult, logoResult] = await Promise.allSettled([
+      const [photoResult, logoResult, tamponResult] = await Promise.allSettled([
         member.photo_url
           ? fetch("/api/card/photo-proxy").then((r) => r.ok ? r.json() as Promise<{ base64?: string }> : null).catch(() => null)
           : Promise.resolve(null),
         fetch("/api/card/logo").then((r) => r.ok ? r.json() as Promise<{ base64?: string }> : null).catch(() => null),
+        fetch("/api/card/tampon").then((r) => r.ok ? r.json() as Promise<{ base64?: string }> : null).catch(() => null),
       ]);
 
       const photoBase64: string | null =
@@ -69,6 +70,11 @@ export function MemberCardDownload({ member, request, cardTitle }: Props) {
       const logoBase64: string | null =
         logoResult.status === "fulfilled" && logoResult.value
           ? (logoResult.value as { base64?: string }).base64 ?? null
+          : null;
+
+      const tamponBase64: string | null =
+        tamponResult.status === "fulfilled" && tamponResult.value
+          ? (tamponResult.value as { base64?: string }).base64 ?? null
           : null;
 
       // Load jsPDF dynamically
@@ -339,38 +345,12 @@ export function MemberCardDownload({ member, request, cardTitle }: Props) {
       }
 
       // ── Official stamp (right side) ──
-      const sx = 72;
-      const sy = 30;
-
-      doc.setDrawColor(...BLUE_D);
-      doc.setLineWidth(0.9);
-      doc.circle(sx, sy, 13);
-      doc.setLineWidth(0.4);
-      doc.circle(sx, sy, 11.2);
-
-      doc.setFillColor(...BLUE_D);
-      doc.circle(sx, sy, 0.8, "F");
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(4.2);
-      doc.setTextColor(...BLUE_D);
-
-      // Curved text simulation via character spacing
-      doc.text("COLLECTIF ZÉRO INDIGENT", sx - 9.8, sy - 6.5);
-      doc.setFillColor(...GOLD);
-      doc.rect(sx - 8, sy - 4.5, 16, 0.4, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(5.5);
-      doc.setTextColor(...BLUE_D);
-      doc.text("C . Z . I .", sx - 4.5, sy + 1);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(4);
-      doc.text("OFFICIAL STAMP", sx - 5.8, sy + 5.5);
-      doc.setFillColor(...GOLD);
-      doc.rect(sx - 8, sy + 6.5, 16, 0.4, "F");
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(3.8);
-      doc.text("Togo · Afrique", sx - 4.5, sy + 9);
+      if (tamponBase64) {
+        try {
+          // Stamp: 26×26mm centered at (72, 29) on the verso
+          doc.addImage(tamponBase64, "JPEG", 59, 16, 26, 26);
+        } catch { /* skip if image fails */ }
+      }
 
       // ── Bottom strip ──
       doc.setFillColor(...BLUE_D);

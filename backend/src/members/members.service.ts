@@ -514,9 +514,17 @@ export class MembersService {
     if (query.q) {
       const safeSearch = query.q.replaceAll(',', ' ').trim();
       if (safeSearch) {
-        nextQuery = nextQuery.or(
-          `first_name.ilike.%${safeSearch}%,last_name.ilike.%${safeSearch}%,phone.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%`,
-        );
+        const isFullUUID =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(safeSearch);
+        if (isFullUUID) {
+          nextQuery = nextQuery.or(
+            `id.eq.${safeSearch},first_name.ilike.%${safeSearch}%,last_name.ilike.%${safeSearch}%,phone.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%`,
+          );
+        } else {
+          nextQuery = nextQuery.or(
+            `first_name.ilike.%${safeSearch}%,last_name.ilike.%${safeSearch}%,phone.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%`,
+          );
+        }
       }
     }
 
