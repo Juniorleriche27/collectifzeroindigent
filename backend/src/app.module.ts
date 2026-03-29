@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from './auth/auth.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
+import { BirthdayModule } from './birthday/birthday.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { DonationsModule } from './donations/donations.module';
@@ -22,9 +24,11 @@ import { SupportAiModule } from './support-ai/support-ai.module';
       envFilePath: ['.env.local', '../.env.local'],
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     InfraModule,
     AuthModule,
     AnnouncementsModule,
+    BirthdayModule,
     ConversationsModule,
     HealthModule,
     DashboardModule,

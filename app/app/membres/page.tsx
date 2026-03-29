@@ -6,8 +6,8 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { MemberContactLink } from "@/components/app/member-contact-link";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import type { MemberListStats } from "@/lib/backend/api";
-import { getCurrentMember, getLocations, listMembers, listOrganisations } from "@/lib/backend/api";
+import type { BirthdayMember, MemberListStats } from "@/lib/backend/api";
+import { getCurrentMember, getLocations, listMembers, listOrganisations, listTodayBirthdays } from "@/lib/backend/api";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getCurrentProfileRole } from "@/lib/supabase/profile-server";
@@ -121,6 +121,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
   let stats = emptyMemberStats();
   let currentRole = "member";
   let effectiveRegionId = requestedRegionId;
+  let todayBirthdays: BirthdayMember[] = [];
 
   if (isSupabaseConfigured) {
     try {
@@ -137,7 +138,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
         }
       }
 
-      const [locationData, organisationData, memberData] = await Promise.all([
+      const [locationData, organisationData, memberData, birthdayData] = await Promise.all([
         getLocations(),
         listOrganisations(),
         listMembers({
@@ -156,6 +157,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
               : "created_desc",
           status: status || undefined,
         }),
+        listTodayBirthdays().catch(() => ({ count: 0, items: [] })),
       ]);
       regions = locationData.regions;
       prefectures = locationData.prefectures;
@@ -164,6 +166,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
       members = memberData.rows;
       totalCount = memberData.count;
       stats = normalizeMemberStats(memberData.stats);
+      todayBirthdays = birthdayData.items;
     } catch (error) {
       console.error("Unable to load member list", error);
       loadError = "Impossible de charger la liste des membres.";
@@ -250,6 +253,35 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
           </div>
         </div>
       </div>
+
+      {/* Birthday widget */}
+      {todayBirthdays.length > 0 ? (
+        <div
+          className="flex flex-wrap items-center gap-4 rounded-2xl border border-amber-200 px-6 py-4"
+          style={{ background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)" }}
+        >
+          <span className="text-3xl">🎂</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-amber-800 mb-1">
+              Anniversaire{todayBirthdays.length > 1 ? "s" : ""} du jour&nbsp;
+              <span className="rounded-full bg-amber-200 px-2 py-0.5 text-xs font-bold text-amber-900">
+                {todayBirthdays.length}
+              </span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {todayBirthdays.map((m) => (
+                <Link
+                  key={m.id}
+                  href={`/app/membres/${m.id}`}
+                  className="rounded-full bg-white border border-amber-200 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50 transition-colors"
+                >
+                  {[m.first_name, m.last_name].filter(Boolean).join(" ") || "Membre"}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Stats overview */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

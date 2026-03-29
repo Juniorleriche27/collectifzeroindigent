@@ -483,6 +483,20 @@ export async function listMembers(filters?: ListMembersFilters) {
   return readMembers(filters ? JSON.stringify(filters) : "");
 }
 
+export type BirthdayMember = {
+  birth_date: string | null;
+  email: string | null;
+  first_name: string | null;
+  id: string;
+  last_name: string | null;
+};
+
+export async function listTodayBirthdays(): Promise<{ count: number; items: BirthdayMember[] }> {
+  return requestBackend<{ count: number; items: BirthdayMember[] }>("/birthday/today", {
+    fallbackError: "Impossible de charger les anniversaires du jour.",
+  });
+}
+
 const readMemberById = cache(async (memberId: string) =>
   requestBackend<MemberRecord | null>(`/members/${memberId}`, {
     fallbackError: "Impossible de charger ce membre.",
