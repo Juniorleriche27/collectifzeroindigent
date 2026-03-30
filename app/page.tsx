@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+type PublicBirthdayItem = { id: string; message: string; name: string; photo_url: string | null };
+
 import {
   marketingDisplayFont,
   marketingSerifFont,
@@ -38,6 +40,176 @@ const gallery = [
   { src: "/brand/gallery/czi-photo-03.jpg", alt: "Programme social", em: "🏥" },
   { src: "/brand/gallery/czi-photo-04.jpg", alt: "Leadership & Formation", em: "🎓" },
 ];
+
+async function BirthdaySection({ fonts }: { fonts: Record<string, string> }) {
+  let items: PublicBirthdayItem[] = [];
+  try {
+    const base =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000";
+    const res = await fetch(`${base}/api/birthday/public`, {
+      next: { revalidate: 43200 },
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { items?: PublicBirthdayItem[] };
+      items = data.items ?? [];
+    }
+  } catch {
+    // Silently skip if unavailable
+  }
+
+  if (items.length === 0) return null;
+
+  return (
+    <section
+      style={{
+        background: "linear-gradient(135deg, #fffbeb 0%, #fef9ee 60%, #fff8e1 100%)",
+        padding: "5rem 4.5rem",
+      }}
+    >
+      {/* Section header */}
+      <div className="mb-10 text-center">
+        <span
+          className="mb-3 inline-flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.15em]"
+          style={{ color: "#9a6800", fontFamily: fonts.display }}
+        >
+          <span className="inline-block h-[2px] w-[22px]" style={{ background: "#cc9b28" }} />
+          Réseau CZI
+          <span className="inline-block h-[2px] w-[22px]" style={{ background: "#cc9b28" }} />
+        </span>
+        <h2
+          style={{
+            fontFamily: fonts.serif,
+            fontSize: "clamp(1.8rem, 2.5vw, 2.6rem)",
+            fontWeight: 700,
+            color: "#0D1829",
+            marginBottom: "0.5rem",
+          }}
+        >
+          🎂 {items.length === 1 ? "Un membre fête son anniversaire aujourd'hui" : `${items.length} membres fêtent leur anniversaire aujourd'hui`}
+        </h2>
+        <p style={{ color: "#78716c", fontSize: "0.95rem", fontFamily: fonts.body }}>
+          Le CZI célèbre ses membres chaque jour.
+        </p>
+      </div>
+
+      {/* Cards */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(auto-fit, minmax(280px, 1fr))`,
+          gap: "2rem",
+          maxWidth: "1100px",
+          margin: "0 auto",
+        }}
+      >
+        {items.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              background: "#ffffff",
+              borderRadius: "20px",
+              overflow: "hidden",
+              boxShadow: "0 4px 24px rgba(204, 155, 40, .12), 0 1px 4px rgba(0,0,0,.06)",
+              border: "1px solid rgba(204,155,40,.2)",
+            }}
+          >
+            {/* Photo */}
+            <div
+              style={{
+                background: "linear-gradient(135deg, #0c3782, #25b4c8)",
+                padding: "2rem 2rem 0",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  width: "96px",
+                  height: "96px",
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  border: "4px solid #cc9b28",
+                  background: "#1a5ab4",
+                  flexShrink: 0,
+                  marginBottom: "-48px",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                {item.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.photo_url}
+                    alt={item.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "2.5rem",
+                    }}
+                  >
+                    👤
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: "3.5rem 1.75rem 1.75rem", textAlign: "center" }}>
+              <p
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 700,
+                  color: "#0D1829",
+                  marginBottom: "0.25rem",
+                  fontFamily: fonts.display,
+                }}
+              >
+                {item.name}
+              </p>
+              <p
+                style={{
+                  fontSize: "0.8rem",
+                  color: "#cc9b28",
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  marginBottom: "1.2rem",
+                  textTransform: "uppercase",
+                  fontFamily: fonts.display,
+                }}
+              >
+                🎉 Joyeux Anniversaire !
+              </p>
+              <p
+                style={{
+                  fontSize: "0.92rem",
+                  color: "#4a5568",
+                  lineHeight: 1.7,
+                  fontFamily: fonts.body,
+                  fontStyle: "italic",
+                  borderTop: "1px solid #f0e8d0",
+                  paddingTop: "1rem",
+                  textAlign: "left",
+                }}
+              >
+                {item.message}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default async function HomePage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
@@ -640,6 +812,11 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           ))}
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════
+          ANNIVERSAIRES DU JOUR
+      ═══════════════════════════════════════════════════ */}
+      <BirthdaySection fonts={ff} />
 
       {/* ═══════════════════════════════════════════════════
           CTA
