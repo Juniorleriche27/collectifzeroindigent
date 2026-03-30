@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { MemberContactLink } from "@/components/app/member-contact-link";
-import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { MembersSearchInput } from "./members-search-input";
 import type { BirthdayMember, MemberListStats } from "@/lib/backend/api";
 import { getCurrentMember, getLocations, listMembers, listOrganisations, listTodayBirthdays } from "@/lib/backend/api";
 import { getCurrentUser } from "@/lib/supabase/auth";
@@ -336,7 +336,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Sear
       <Card className="space-y-4">
         <CardTitle className="text-base">Recherche & filtres</CardTitle>
         <form className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5" method="get">
-          <Input defaultValue={query} name="q" placeholder="Nom, email, téléphone..." />
+          <MembersSearchInput defaultValue={query} name="q" placeholder="Nom, email, téléphone, identifiant…" />
           <Select defaultValue={status} name="status">
             <option value="">Tous statuts</option>
             <option value="active">Actif</option>
