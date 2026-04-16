@@ -1,0 +1,35 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Runs every 3 days at 06:00 UTC (well before the 7-day sleep threshold)
+    - cron: "0 6 */3 * *"
+  workflow_dispatch: # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  ping:
+    name: Ping Supabase to prevent project sleep
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping backend health endpoint
+        run: |
+          echo "Pinging CZI backend to keep Supabase active..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.BACKEND_URL }}/api/health" || echo "000")
+          echo "Health endpoint responded with HTTP $STATUS"
+
+      - name: Direct Supabase ping via REST API
+        run: |
+          echo "Sending direct query to Supabase..."
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/member?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            || echo "000")
+          echo "Supabase REST responded with HTTP $RESPONSE"
+          if [ "$RESPONSE" = "200" ] || [ "$RESPONSE" = "406" ]; then
+            echo "Supabase is alive and reachable."
+          else
+            echo "Warning: unexpected response $RESPONSE — check secrets configuration."
+          fi
